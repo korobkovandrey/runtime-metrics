@@ -29,6 +29,10 @@ func main() {
 		)),
 	)
 
+	mux.HandleFunc(`/update/`, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, `Bad Request`, http.StatusBadRequest)
+	})
+
 	if err := http.ListenAndServe(`localhost:8080`, mux); err != nil {
 		panic(err)
 	}
