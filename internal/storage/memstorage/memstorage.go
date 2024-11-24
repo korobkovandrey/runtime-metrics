@@ -10,8 +10,8 @@ type MemStorage struct {
 	int64Store
 }
 
-func NewMemStorage() MemStorage {
-	return MemStorage{
+func NewMemStorage() *MemStorage {
+	return &MemStorage{
 		newFloat64Store(typeGauge),
 		newInt64Store(typeCounter),
 	}
@@ -31,8 +31,4 @@ func (m MemStorage) IncrCounter(name string, value int64) {
 
 func (m MemStorage) GetCounter(name string) (value int64, ok bool) {
 	return m.int64Store.get(typeCounter, name)
-}
-
-func (m MemStorage) Get() MemStorage {
-	return m
 }
