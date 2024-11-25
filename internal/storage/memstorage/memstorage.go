@@ -32,3 +32,7 @@ func (m MemStorage) IncrCounter(name string, value int64) {
 func (m MemStorage) GetCounter(name string) (value int64, ok bool) {
 	return m.int64Store.get(typeCounter, name)
 }
+
+func (m MemStorage) GetStorage() interface{} {
+	return m
+}

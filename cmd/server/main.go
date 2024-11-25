@@ -1,37 +1,30 @@
 package main
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/server"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware"
-	"github.com/korobkovandrey/runtime-metrics/internal/storage"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/internal/storage/memstorage"
 	"net/http"
 )
 
 const (
-	routeGauge   = `/update/gauge/`
-	routeCounter = `/update/counter/`
+	updateRoutePath = `/update/`
 )
 
 func main() {
 	mux := http.NewServeMux()
 	memStorage := memstorage.NewMemStorage()
-
-	mux.Handle(routeGauge,
-		http.StripPrefix(routeGauge, middleware.BadRequestIfMethodNotEqualPOST(
-			http.HandlerFunc(server.Handler(storage.Gauge{Storage: memStorage})),
-		)),
+	store := repository.NewStore(
+		repository.NewGauge(memStorage),
+		repository.NewCounter(memStorage),
 	)
 
-	mux.Handle(routeCounter,
-		http.StripPrefix(routeCounter, middleware.BadRequestIfMethodNotEqualPOST(
-			http.HandlerFunc(server.Handler(storage.Counter{Storage: memStorage})),
+	mux.Handle(updateRoutePath,
+		http.StripPrefix(updateRoutePath, middleware.BadRequestIfMethodNotEqualPOST(
+			http.HandlerFunc(controller.UpdateHandler(store)),
 		)),
 	)
-
-	mux.HandleFunc(`/update/`, func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, `Bad Request`, http.StatusBadRequest)
-	})
 
 	if err := http.ListenAndServe(`localhost:8080`, mux); err != nil {
 		panic(err)
