@@ -1,29 +1,13 @@
 package main
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+	"github.com/korobkovandrey/runtime-metrics/internal/server"
 
 	"log"
-	"net/http"
-)
-
-const (
-	updateRoutePath = `/update/`
 )
 
 func main() {
-	mux := http.NewServeMux()
-	store := repository.NewStoreMemStorage()
-
-	mux.Handle(updateRoutePath,
-		http.StripPrefix(updateRoutePath, middleware.BadRequestIfMethodNotEqualPOST(
-			http.HandlerFunc(controller.UpdateHandler(store)),
-		)),
-	)
-
-	if err := http.ListenAndServe(`localhost:8080`, mux); err != nil {
+	if err := server.New().Run(); err != nil {
 		log.Fatal(err)
 	}
 }
