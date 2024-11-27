@@ -3,7 +3,9 @@ package controller
 import (
 	"errors"
 	"fmt"
+
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+
 	"log"
 	"net/http"
 	"strings"
@@ -43,7 +45,7 @@ func UpdateHandler(store *repository.Store) func(w http.ResponseWriter, r *http.
 		}
 
 		if err = m.Update(raw[1], raw[2]); err != nil {
-			log.Println(r.URL.Path, fmt.Errorf(`%s.Update(%s, %s): %w`, raw[0], raw[1], raw[2], err))
+			log.Println(r.URL.Path, fmt.Errorf(`m.Update(%s, %s): %w`, raw[1], raw[2], err))
 			http.Error(w, `bad request: invalid number`, http.StatusBadRequest)
 			return
 		}

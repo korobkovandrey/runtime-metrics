@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -11,7 +12,7 @@ type Counter struct {
 func (m Counter) Update(name string, value string) error {
 	number, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf(`counter: %w`, err)
 	}
 	m.IncrCounter(name, number)
 	return nil

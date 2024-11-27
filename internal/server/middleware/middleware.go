@@ -4,11 +4,18 @@ import "net/http"
 
 type Middleware func(http.Handler) http.Handler
 
-/*
-func Conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
-	for _, middleware := range middlewares {
-		h = middleware(h)
+func BadRequestIfMethodNotEqual(method string) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != method {
+				http.Error(w, `Bad Request`, http.StatusBadRequest)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
-	return h
 }
-*/
+
+func BadRequestIfMethodNotEqualPOST(next http.Handler) http.Handler {
+	return BadRequestIfMethodNotEqual(http.MethodPost)(next)
+}

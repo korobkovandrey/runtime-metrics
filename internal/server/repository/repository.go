@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+
 	"github.com/korobkovandrey/runtime-metrics/internal/server/adapter"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage"
 )
