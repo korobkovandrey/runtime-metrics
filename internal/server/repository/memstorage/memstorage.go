@@ -22,19 +22,19 @@ func (m MemStorage) SetGauge(name string, value float64) {
 }
 
 func (m MemStorage) GetGauge(name string) (value float64, ok bool) {
-	return m.float64Store.get(typeGauge, name)
+	v, ok := m.float64Store.get(typeCounter, name)
+	value, _ = v.(float64)
+	return
 }
 
 func (m MemStorage) IncrCounter(name string, value int64) {
-	m.int64Store.incr(typeCounter, name, value)
+	m.int64Store.incrInt64(typeCounter, name, value)
 }
 
 func (m MemStorage) GetCounter(name string) (value int64, ok bool) {
-	return m.int64Store.get(typeCounter, name)
-}
-
-func (m MemStorage) GetStorage() interface{} {
-	return m
+	v, ok := m.int64Store.get(typeCounter, name)
+	value, _ = v.(int64)
+	return
 }
 
 func (m MemStorage) GetStorageData() interface{} {
