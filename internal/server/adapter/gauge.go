@@ -1,16 +1,11 @@
-package repository
+package adapter
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/storage"
 	"strconv"
 )
 
 type Gauge struct {
-	storage.Storage
-}
-
-func (m Gauge) GetType() Type {
-	return gaugeType
+	Repository
 }
 
 func (m Gauge) Update(name string, value string) error {
@@ -22,6 +17,6 @@ func (m Gauge) Update(name string, value string) error {
 	return nil
 }
 
-func NewGauge(storage storage.Storage) Gauge {
-	return Gauge{storage}
+func NewGauge(storage Repository) *Gauge {
+	return &Gauge{storage}
 }

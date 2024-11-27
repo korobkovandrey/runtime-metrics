@@ -1,16 +1,11 @@
-package repository
+package adapter
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/storage"
 	"strconv"
 )
 
 type Counter struct {
-	storage.Storage
-}
-
-func (m Counter) GetType() Type {
-	return counterType
+	Repository
 }
 
 func (m Counter) Update(name string, value string) error {
@@ -22,6 +17,6 @@ func (m Counter) Update(name string, value string) error {
 	return nil
 }
 
-func NewCounter(storage storage.Storage) Counter {
-	return Counter{storage}
+func NewCounter(storage Repository) *Counter {
+	return &Counter{storage}
 }

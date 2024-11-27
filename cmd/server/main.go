@@ -4,7 +4,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
-	"github.com/korobkovandrey/runtime-metrics/internal/storage/memstorage"
+	"log"
 	"net/http"
 )
 
@@ -14,11 +14,7 @@ const (
 
 func main() {
 	mux := http.NewServeMux()
-	memStorage := memstorage.NewMemStorage()
-	store := repository.NewStore(
-		repository.NewGauge(memStorage),
-		repository.NewCounter(memStorage),
-	)
+	store := repository.NewStoreMemStorage()
 
 	mux.Handle(updateRoutePath,
 		http.StripPrefix(updateRoutePath, middleware.BadRequestIfMethodNotEqualPOST(
@@ -27,6 +23,6 @@ func main() {
 	)
 
 	if err := http.ListenAndServe(`localhost:8080`, mux); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }

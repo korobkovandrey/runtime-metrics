@@ -6,8 +6,8 @@ const (
 )
 
 type MemStorage struct {
-	float64Store
-	int64Store
+	*float64Store
+	*int64Store
 }
 
 func NewMemStorage() *MemStorage {
@@ -35,4 +35,11 @@ func (m MemStorage) GetCounter(name string) (value int64, ok bool) {
 
 func (m MemStorage) GetStorage() interface{} {
 	return m
+}
+
+func (m MemStorage) GetStorageData() interface{} {
+	return map[string]interface{}{
+		`float64Store`: m.float64Store.getData(),
+		`int64Store`:   m.int64Store.getData(),
+	}
 }
