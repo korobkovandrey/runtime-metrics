@@ -1,45 +1,54 @@
 package memstorage
 
-const (
-	typeGauge   = `gauge`
-	typeCounter = `counter`
+import (
+	"sync"
 )
 
 type MemStorage struct {
-	*float64Store
-	*int64Store
+	data map[string]map[string]any
+	mux  *sync.Mutex
 }
 
 func NewMemStorage() *MemStorage {
 	return &MemStorage{
-		newFloat64Store(typeGauge),
-		newInt64Store(typeCounter),
+		map[string]map[string]any{},
+		&sync.Mutex{},
 	}
 }
 
-func (m MemStorage) SetGauge(name string, value float64) {
-	m.float64Store.set(typeGauge, name, value)
+func (s MemStorage) AddType(t string) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.data[t] = map[string]any{}
 }
 
-func (m MemStorage) GetGauge(name string) (value float64, ok bool) {
-	v, ok := m.float64Store.get(typeCounter, name)
-	value, _ = v.(float64)
+func (s MemStorage) Set(t string, name string, value any) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.data[t][name] = value
+}
+
+func (s MemStorage) Get(t string, name string) (value any, ok bool) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	value, ok = s.data[t][name]
 	return
 }
 
-func (m MemStorage) IncrCounter(name string, value int64) {
-	m.int64Store.incrInt64(typeCounter, name, value)
-}
-
-func (m MemStorage) GetCounter(name string) (value int64, ok bool) {
-	v, ok := m.int64Store.get(typeCounter, name)
-	value, _ = v.(int64)
-	return
-}
-
-func (m MemStorage) GetStorageData() interface{} {
-	return map[string]interface{}{
-		`float64Store`: m.float64Store.getData(),
-		`int64Store`:   m.int64Store.getData(),
+func (s MemStorage) IncrInt64(t string, name string, value int64) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	if v, ok := s.data[t][name].(int64); ok {
+		s.data[t][name] = v + value
 	}
+}
+
+func (s MemStorage) getData() map[string]map[string]any {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	return s.data
+}
+
+func (s MemStorage) GetStorageData() interface{} {
+	return s.getData()
 }
