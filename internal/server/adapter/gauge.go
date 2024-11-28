@@ -7,17 +7,18 @@ import (
 
 type Gauge struct {
 	Repository
+	key string
 }
 
-func (m Gauge) Update(name string, value string) error {
+func (a Gauge) Update(name string, value string) error {
 	number, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return fmt.Errorf(`gauge: %w`, err)
 	}
-	m.SetGauge(name, number)
+	a.Set(a.key, name, number)
 	return nil
 }
 
-func NewGauge(storage Repository) *Gauge {
-	return &Gauge{storage}
+func NewGauge(storage Repository, key string) *Gauge {
+	return &Gauge{storage, key}
 }
