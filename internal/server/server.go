@@ -30,6 +30,8 @@ func (s Server) Run() error {
 		)),
 	)
 
+	fmt.Printf("Server listen: %s\n", `http://localhost:8080/`)
+
 	if err := http.ListenAndServe(`localhost:8080`, mux); err != nil {
 		return fmt.Errorf(`server.Run: %w`, err)
 	}

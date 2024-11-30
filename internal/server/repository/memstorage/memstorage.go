@@ -40,6 +40,8 @@ func (s MemStorage) IncrInt64(t string, name string, value int64) {
 	defer s.mux.Unlock()
 	if v, ok := s.data[t][name].(int64); ok {
 		s.data[t][name] = v + value
+	} else {
+		s.data[t][name] = value
 	}
 }
 
