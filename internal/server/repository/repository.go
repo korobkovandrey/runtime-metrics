@@ -10,7 +10,7 @@ import (
 
 type Adapter interface {
 	Update(name string, value string) error
-	GetStorageData() interface{}
+	GetStorageValue(name string) (any, bool)
 }
 
 type Store struct {

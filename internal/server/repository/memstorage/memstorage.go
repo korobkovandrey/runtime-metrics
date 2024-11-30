@@ -44,13 +44,3 @@ func (s MemStorage) IncrInt64(t string, name string, value int64) {
 		s.data[t][name] = value
 	}
 }
-
-func (s MemStorage) getData() map[string]map[string]any {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	return s.data
-}
-
-func (s MemStorage) GetStorageData() interface{} {
-	return s.getData()
-}

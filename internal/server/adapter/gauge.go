@@ -10,6 +10,10 @@ type Gauge struct {
 	key string
 }
 
+func NewGauge(storage Repository, key string) *Gauge {
+	return &Gauge{storage, key}
+}
+
 func (a Gauge) Update(name string, value string) error {
 	number, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -19,6 +23,6 @@ func (a Gauge) Update(name string, value string) error {
 	return nil
 }
 
-func NewGauge(storage Repository, key string) *Gauge {
-	return &Gauge{storage, key}
+func (a Gauge) GetStorageValue(name string) (any, bool) {
+	return a.Get(a.key, name)
 }
