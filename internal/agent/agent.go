@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -112,7 +111,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 		now time.Time
 		url string
 	)
-	reader := bytes.NewReader([]byte(``))
+
 	client := &http.Client{
 		Timeout: a.config.httpTimeout,
 	}
@@ -122,8 +121,8 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 		}
 		url = a.makeURL(c)
 		now = time.Now()
-		// @todo сделать в func sendRequest(client *http.Client, reader io.Reader, url string) (ok bool, err error)
-		response, err := client.Post(url, `text/plain`, reader)
+		// @todo сделать в func sendRequest(client *http.Client) (ok bool, err error)
+		response, err := client.Post(url, `text/plain`, http.NoBody)
 		if err != nil {
 			log.Println(err)
 			continue
