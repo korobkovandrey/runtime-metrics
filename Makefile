@@ -3,6 +3,10 @@ GOLANGCI_LINT_CACHE?=/tmp/praktikum-golangci-lint-cache
 .PHONY: golangci-lint-run
 golangci-lint-run: _golangci-lint-rm-unformatted-report
 
+.PHONY: lint
+lint:
+	./linter.sh
+
 .PHONY: _golangci-lint-reports-mkdir
 _golangci-lint-reports-mkdir:
 	mkdir -p ./golangci-lint
