@@ -10,6 +10,7 @@ func main() {
 	if err := server.New(server.Config{
 		Addr:       `localhost:8080`,
 		UpdatePath: `/update`,
+		ValuePath:  `/value`,
 	}).Run(); err != nil {
 		log.Fatal(err)
 	}

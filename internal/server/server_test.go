@@ -25,6 +25,7 @@ func TestNew(t *testing.T) {
 func TestServer_NewHandler(t *testing.T) {
 	s := New(Config{
 		UpdatePath: `/update`,
+		ValuePath:  `/value`,
 	})
 	ts := httptest.NewServer(s.NewHandler())
 	defer ts.Close()
@@ -57,8 +58,20 @@ func TestServer_NewHandler(t *testing.T) {
 		{`POST`, `/update/gauge/test7/1.23456E-6`, http.StatusOK, ``},
 		// корректное значение counter
 		{`POST`, `/update/counter/test8/1`, http.StatusOK, ``},
+		{`POST`, `/update/counter/test8/5`, http.StatusOK, ``},
 		{`POST`, `/update/counter/test9/100`, http.StatusOK, ``},
-		{`POST`, `/update/counter/test10/-10`, http.StatusOK, ``},
+		{`POST`, `/update/counter/test9/-10`, http.StatusOK, ``},
+
+		// тест получения
+		{`GET`, `/value/gauge/blabla`, http.StatusNotFound, ``},
+		{`GET`, `/value/counter/blabla`, http.StatusNotFound, ``},
+		{`GET`, `/value/blabla/blabla`, http.StatusBadRequest, "bad request: \"blabla\" type is not valid\n"},
+
+		{`GET`, `/value/gauge/test5`, http.StatusOK, `1.5`},
+		{`GET`, `/value/gauge/test6`, http.StatusOK, `0.001`},
+		{`GET`, `/value/gauge/test7`, http.StatusOK, `1.23456e-06`},
+		{`GET`, `/value/counter/test8`, http.StatusOK, `6`},
+		{`GET`, `/value/counter/test9`, http.StatusOK, `90`},
 	}
 	for _, v := range tests {
 		gotBody, gotStatusCode := testRequest(t, ts, v.method, v.url)

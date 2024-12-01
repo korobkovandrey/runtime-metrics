@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Addr       string
 	UpdatePath string
+	ValuePath  string
 }
 
 type Server struct {
@@ -26,6 +27,7 @@ func New(config Config) *Server {
 func (s Server) NewHandler() http.Handler {
 	store := repository.NewStoreMemStorage()
 	r := chi.NewRouter()
+
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
 	r.Route(s.config.UpdatePath, func(r chi.Router) {
 		r.Post("/", updateHandlerFunc)
@@ -37,6 +39,8 @@ func (s Server) NewHandler() http.Handler {
 			})
 		})
 	})
+	r.Get(s.config.ValuePath+`/{type}/{name}`, controller.ValueHandlerFunc(store))
+	r.Get(`/`, controller.IndexHandlerFunc(store))
 	return r
 }
 
