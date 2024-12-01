@@ -17,6 +17,9 @@ func NewMemStorage() *MemStorage {
 }
 
 func (s MemStorage) AddType(t string) {
+	if _, ok := s.data[t]; ok {
+		return
+	}
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	s.data[t] = map[string]any{}
