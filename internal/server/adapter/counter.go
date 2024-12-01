@@ -26,3 +26,7 @@ func (a Counter) Update(name string, value string) error {
 func (a Counter) GetStorageValue(name string) (any, bool) {
 	return a.Get(a.key, name)
 }
+
+func (a Counter) Names() []string {
+	return a.Keys(a.key)
+}

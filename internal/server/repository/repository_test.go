@@ -31,6 +31,10 @@ func (t testAdapter) GetStorageValue(name string) (any, bool) {
 	return nil, false
 }
 
+func (t testAdapter) Names() []string {
+	return []string{}
+}
+
 func TestStore_addAdapter(t *testing.T) {
 	m := memstorage.NewMemStorage()
 	s := NewStore(m)

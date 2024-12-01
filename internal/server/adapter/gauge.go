@@ -26,3 +26,7 @@ func (a Gauge) Update(name string, value string) error {
 func (a Gauge) GetStorageValue(name string) (any, bool) {
 	return a.Get(a.key, name)
 }
+
+func (a Gauge) Names() []string {
+	return a.Keys(a.key)
+}

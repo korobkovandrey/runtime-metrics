@@ -11,6 +11,7 @@ import (
 type Adapter interface {
 	Update(name string, value string) error
 	GetStorageValue(name string) (any, bool)
+	Names() []string
 }
 
 type Store struct {
@@ -26,6 +27,29 @@ func (s Store) Get(t string) (Adapter, error) {
 		return nil, fmt.Errorf(`"%v" %w`, t, ErrTypeIsNotValid)
 	}
 	return s.data[t], nil
+}
+
+type StorageValue struct {
+	Value any
+	T     string
+	Name  string
+}
+
+func (s Store) GetAllData() (result []StorageValue) {
+	for i := range s.data {
+		for _, k := range s.data[i].Names() {
+			v, ok := s.data[i].GetStorageValue(k)
+			if !ok {
+				continue
+			}
+			result = append(result, StorageValue{
+				T:     i,
+				Name:  k,
+				Value: v,
+			})
+		}
+	}
+	return
 }
 
 func (s Store) addAdapter(key string, a Adapter) {
