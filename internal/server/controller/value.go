@@ -10,6 +10,7 @@ import (
 	"net/http"
 )
 
+// ValueHandlerFunc @todo test!!!
 func ValueHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")

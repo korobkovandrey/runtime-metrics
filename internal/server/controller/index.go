@@ -9,6 +9,7 @@ import (
 	"net/http"
 )
 
+// IndexHandlerFunc @todo test!!!
 func IndexHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, err := fmt.Fprintln(w, `<table><thead><tr><th>Type</th><th>Name</th><th>Value</th></tr><thead><tbody>`)

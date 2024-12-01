@@ -62,22 +62,31 @@ func TestServer_NewHandler(t *testing.T) {
 		{`POST`, `/update/counter/test9/100`, http.StatusOK, ``},
 		{`POST`, `/update/counter/test9/-10`, http.StatusOK, ``},
 
-		// тест получения
+		// тесты для получения данных
+		// некорректрые запросы
 		{`GET`, `/value/gauge/blabla`, http.StatusNotFound, ``},
 		{`GET`, `/value/counter/blabla`, http.StatusNotFound, ``},
 		{`GET`, `/value/blabla/blabla`, http.StatusBadRequest, "bad request: \"blabla\" type is not valid\n"},
-
+		// корректные запросы
 		{`GET`, `/value/gauge/test5`, http.StatusOK, `1.5`},
 		{`GET`, `/value/gauge/test6`, http.StatusOK, `0.001`},
 		{`GET`, `/value/gauge/test7`, http.StatusOK, `1.23456e-06`},
 		{`GET`, `/value/counter/test8`, http.StatusOK, `6`},
 		{`GET`, `/value/counter/test9`, http.StatusOK, `90`},
+		// index
+		{`GET`, `/blablabla`, http.StatusNotFound, ``},
+		{`GET`, `/`, http.StatusOK, `<table><thead><tr><th>Type</th><th>Name</th><th>Value</th></tr><thead><tbody>`},
 	}
 	for _, v := range tests {
 		gotBody, gotStatusCode := testRequest(t, ts, v.method, v.url)
 		assert.Equal(t, v.wantStatus, gotStatusCode, v.method+` `+v.url)
-		if v.wantBodyStr != `` {
-			assert.Equal(t, v.wantBodyStr, string(gotBody), v.method+` `+v.url)
+
+		if v.method == `GET` && v.url == `/` {
+			assert.Contains(t, string(gotBody), v.wantBodyStr)
+		} else if v.wantBodyStr != `` {
+			if v.wantBodyStr != `` {
+				assert.Equal(t, v.wantBodyStr, string(gotBody), v.method+` `+v.url)
+			}
 		}
 	}
 }
