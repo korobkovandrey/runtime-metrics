@@ -26,7 +26,7 @@ func New(config Config) *Server {
 func (s Server) NewHandler() http.Handler {
 	store := repository.NewStoreMemStorage()
 	r := chi.NewRouter()
-	updateHandlerFunc := http.HandlerFunc(controller.UpdateHandlerFunc(store))
+	updateHandlerFunc := controller.UpdateHandlerFunc(store)
 	r.Route(s.config.UpdatePath, func(r chi.Router) {
 		r.Post("/", updateHandlerFunc)
 		r.Route("/{type}", func(r chi.Router) {
