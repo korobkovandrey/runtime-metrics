@@ -34,6 +34,8 @@ func convertReflectValueToString(value reflect.Value) (string, error) {
 			return ``, fmt.Errorf(`"%v" %w: %w`, value, ErrNumberIsNotNumber, err)
 		}
 		return s, nil
+	case reflect.Ptr:
+		return convertReflectValueToString(value.Elem())
 	default:
 		return ``, fmt.Errorf(`"%v" %w`, value, ErrNumberIsNotNumber)
 	}
@@ -64,7 +66,7 @@ func GetRuntimeMetrics(fields ...string) (result map[string]string, errNotNumber
 		}
 	}
 	if len(notNumberFields) != 0 {
-		errNotNumber = fmt.Errorf(`%s: %w`, `"`+strings.Join(notNumberFields, `", "`)+`"`, ErrFieldNotFound)
+		errNotNumber = fmt.Errorf(`%s: %w`, `"`+strings.Join(notNumberFields, `", "`)+`"`, ErrNumberIsNotNumber)
 	}
 	if len(notFoundFields) != 0 {
 		errNotFound = fmt.Errorf(`%s: %w`, `"`+strings.Join(notFoundFields, `", "`)+`"`, ErrFieldNotFound)
