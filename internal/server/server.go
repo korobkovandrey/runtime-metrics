@@ -25,14 +25,14 @@ func New(config Config) *Server {
 func (s Server) NewHandler() http.Handler {
 	mux := http.NewServeMux()
 	store := repository.NewStoreMemStorage()
-
 	updateBasePattern := http.MethodPost + ` ` + s.config.UpdatePath
-	mux.Handle(updateBasePattern+`/`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
-	mux.Handle(updateBasePattern+`/{type}`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
-	mux.Handle(updateBasePattern+`/{type}/`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
-	mux.Handle(updateBasePattern+`/{type}/{name}`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
-	mux.Handle(updateBasePattern+`/{type}/{name}/`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
-	mux.Handle(updateBasePattern+`/{type}/{name}/{value}`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
+	updateHandlerFunc := http.HandlerFunc(controller.UpdateHandlerFunc(store))
+	mux.Handle(updateBasePattern+`/`, updateHandlerFunc)
+	mux.Handle(updateBasePattern+`/{type}`, updateHandlerFunc)
+	mux.Handle(updateBasePattern+`/{type}/`, updateHandlerFunc)
+	mux.Handle(updateBasePattern+`/{type}/{name}`, updateHandlerFunc)
+	mux.Handle(updateBasePattern+`/{type}/{name}/`, updateHandlerFunc)
+	mux.Handle(updateBasePattern+`/{type}/{name}/{value}`, updateHandlerFunc)
 
 	return mux
 }
