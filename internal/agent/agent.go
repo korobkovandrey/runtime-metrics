@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -44,14 +45,14 @@ type Agent struct {
 	config      Config
 }
 
-func (a *Agent) makeURL(r reportMessage) string {
+func (a *Agent) makeURL(r reportMessage) (string, error) {
 	switch r.t {
 	case service.GaugeType:
-		return a.config.UpdateGaugeURL + r.name + `/` + r.value
+		return a.config.UpdateGaugeURL + r.name + `/` + r.value, nil
 	case service.CounterType:
-		return a.config.UpdateCounterURL + r.name + `/` + r.value
+		return a.config.UpdateCounterURL + r.name + `/` + r.value, nil
 	default:
-		return ``
+		return ``, fmt.Errorf(`%s: %w`, r.t, errors.New(`type is not valid`))
 	}
 }
 
@@ -107,10 +108,7 @@ func (a *Agent) pollWorker() {
 
 func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 	defer wg.Done()
-	var (
-		now time.Time
-		url string
-	)
+	var now time.Time
 
 	client := &http.Client{
 		Timeout: a.config.httpTimeout,
@@ -119,20 +117,23 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 		if c.expire.Before(time.Now()) {
 			continue
 		}
-		url = a.makeURL(c)
-		now = time.Now()
-		// @todo сделать в func sendRequest(client *http.Client) (ok bool, err error)
-		response, err := client.Post(url, `text/plain`, http.NoBody)
+		url, err := a.makeURL(c)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		body, err := io.ReadAll(response.Body)
+		now = time.Now()
+		// @todo сделать в func sendRequest(client *http.Client) (ok bool, err error)
+		response, err := client.Post(url, `text/plain`, http.NoBody)
 		if err != nil {
 			log.Println(err)
 		}
-		err = response.Body.Close()
+		if response == nil {
+			continue
+		}
+		body, err := io.ReadAll(response.Body)
+		err = errors.Join(err, response.Body.Close())
 		if err != nil {
 			log.Println(err)
 		}
