@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestUpdateHandler(t *testing.T) {
+func TestUpdateHandlerFunc(t *testing.T) {
 	const (
 		gaugeType   = `gauge`
 		counterType = `counter`
@@ -23,13 +23,14 @@ func TestUpdateHandler(t *testing.T) {
 		contentType string
 	}
 	tests := []struct {
-		name   string
-		target string
-		want   want
+		name       string
+		target     string
+		pathValues map[string]string
+		want       want
 	}{
 		{
-			name:   `empty`,
-			target: `/`,
+			name:       `empty`,
+			pathValues: map[string]string{},
 			want: want{
 				code:        400,
 				response:    "Type is required.\n",
@@ -37,8 +38,10 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `one type`,
-			target: `/` + gaugeType,
+			name: `one type`,
+			pathValues: map[string]string{
+				`type`: gaugeType,
+			},
 			want: want{
 				code:        404,
 				response:    "404 page not found\n",
@@ -46,8 +49,11 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `without value`,
-			target: `/fail_type/name`,
+			name: `without value`,
+			pathValues: map[string]string{
+				`type`: `fail_type`,
+				`name`: `name`,
+			},
 			want: want{
 				code:        400,
 				response:    "Value is required.\n",
@@ -55,8 +61,12 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `not exists type`,
-			target: `/fail_type/name/10`,
+			name: `not exists type`,
+			pathValues: map[string]string{
+				`type`:  `fail_type`,
+				`name`:  `name`,
+				`value`: `10`,
+			},
 			want: want{
 				code:        400,
 				response:    "bad request: \"fail_type\" type is not valid\n",
@@ -64,8 +74,12 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `string value gauge`,
-			target: `/` + gaugeType + `/name/fail_value`,
+			name: `string value gauge`,
+			pathValues: map[string]string{
+				`type`:  gaugeType,
+				`name`:  `name`,
+				`value`: `fail_value`,
+			},
 			want: want{
 				code:        400,
 				response:    "bad request: invalid number\n",
@@ -73,8 +87,12 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `string value counter`,
-			target: `/` + counterType + `/name/fail_value`,
+			name: `string value counter`,
+			pathValues: map[string]string{
+				`type`:  counterType,
+				`name`:  `name`,
+				`value`: `fail_value`,
+			},
 			want: want{
 				code:        400,
 				response:    "bad request: invalid number\n",
@@ -82,8 +100,12 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `gauge ok`,
-			target: `/` + gaugeType + `/name/10.12344`,
+			name: `gauge ok`,
+			pathValues: map[string]string{
+				`type`:  gaugeType,
+				`name`:  `name`,
+				`value`: `10.12344`,
+			},
 			want: want{
 				code:        200,
 				response:    "",
@@ -91,8 +113,12 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `counter fail float`,
-			target: `/` + counterType + `/name/10.12344`,
+			name: `counter fail float`,
+			pathValues: map[string]string{
+				`type`:  counterType,
+				`name`:  `name`,
+				`value`: `10.12344`,
+			},
 			want: want{
 				code:        400,
 				response:    "bad request: invalid number\n",
@@ -100,8 +126,12 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   `counter 1`,
-			target: `/` + counterType + `/name/1`,
+			name: `counter 1`,
+			pathValues: map[string]string{
+				`type`:  counterType,
+				`name`:  `name`,
+				`value`: `1`,
+			},
 			want: want{
 				code:        200,
 				response:    "",
@@ -112,9 +142,19 @@ func TestUpdateHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			s := repository.NewStoreMemStorage()
-			request := httptest.NewRequest(http.MethodPost, test.target, http.NoBody)
+			target := ``
+			for _, v := range test.pathValues {
+				target += `/` + v
+			}
+			if target == `` {
+				target = `/`
+			}
+			request := httptest.NewRequest(http.MethodPost, target, http.NoBody)
+			for i, v := range test.pathValues {
+				request.SetPathValue(i, v)
+			}
 			w := httptest.NewRecorder()
-			UpdateHandler(s)(w, request)
+			UpdateHandlerFunc(s)(w, request)
 
 			res := w.Result()
 			if res != nil {

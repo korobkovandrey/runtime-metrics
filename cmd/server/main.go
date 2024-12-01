@@ -7,7 +7,10 @@ import (
 )
 
 func main() {
-	if err := server.New().Run(); err != nil {
+	if err := server.New(server.Config{
+		Addr:       `localhost:8080`,
+		UpdatePath: `/update`,
+	}).Run(); err != nil {
 		log.Fatal(err)
 	}
 }

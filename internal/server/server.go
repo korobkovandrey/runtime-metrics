@@ -4,35 +4,42 @@ import (
 	"fmt"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 
 	"net/http"
 )
 
-const (
-	updateRoutePath = `/update/`
-)
-
-type Server struct{}
-
-func New() *Server {
-	return &Server{}
+type Config struct {
+	Addr       string
+	UpdatePath string
 }
 
-func (s Server) Run() error {
+type Server struct {
+	config Config
+}
+
+func New(config Config) *Server {
+	return &Server{config}
+}
+
+func (s Server) NewHandler() http.Handler {
 	mux := http.NewServeMux()
 	store := repository.NewStoreMemStorage()
 
-	mux.Handle(updateRoutePath,
-		http.StripPrefix(updateRoutePath, middleware.BadRequestIfMethodNotEqualPOST(
-			http.HandlerFunc(controller.UpdateHandler(store)),
-		)),
-	)
+	updateBasePattern := http.MethodPost + ` ` + s.config.UpdatePath
+	mux.Handle(updateBasePattern+`/`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
+	mux.Handle(updateBasePattern+`/{type}`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
+	mux.Handle(updateBasePattern+`/{type}/`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
+	mux.Handle(updateBasePattern+`/{type}/{name}`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
+	mux.Handle(updateBasePattern+`/{type}/{name}/`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
+	mux.Handle(updateBasePattern+`/{type}/{name}/{value}`, http.HandlerFunc(controller.UpdateHandlerFunc(store)))
 
-	fmt.Printf("Server listen: %s\n", `http://localhost:8080/`)
+	return mux
+}
 
-	if err := http.ListenAndServe(`localhost:8080`, mux); err != nil {
+func (s Server) Run() error {
+	fmt.Printf("Server listen: %s\n", `http://`+s.config.Addr+`/`)
+	if err := http.ListenAndServe(s.config.Addr, s.NewHandler()); err != nil {
 		return fmt.Errorf(`server.Run: %w`, err)
 	}
 	return nil
