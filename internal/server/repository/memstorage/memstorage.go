@@ -1,7 +1,6 @@
 package memstorage
 
 import (
-	"maps"
 	"slices"
 	"sync"
 )
@@ -43,10 +42,14 @@ func (s MemStorage) IncrInt64(t string, name string, value int64) {
 	}
 }
 
-func (s MemStorage) Keys(t string) []string {
+func (s MemStorage) Keys(t string) (result []string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	return slices.Collect[string](maps.Keys(s.data[t]))
+	for i := range s.data[t] {
+		result = append(result, i)
+	}
+	slices.Sort(result)
+	return
 }
 
 func (s MemStorage) Get(t string, name string) (value any, ok bool) {

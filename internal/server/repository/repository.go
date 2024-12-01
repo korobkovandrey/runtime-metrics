@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/adapter"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage"
@@ -36,7 +37,12 @@ type StorageValue struct {
 }
 
 func (s Store) GetAllData() (result []StorageValue) {
+	types := make([]string, 0, len(s.data))
 	for i := range s.data {
+		types = append(types, i)
+	}
+	slices.Sort(types)
+	for _, i := range types {
 		for _, k := range s.data[i].Names() {
 			v, ok := s.data[i].GetStorageValue(k)
 			if !ok {
