@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 
@@ -23,18 +24,20 @@ func New(config Config) *Server {
 }
 
 func (s Server) NewHandler() http.Handler {
-	mux := http.NewServeMux()
 	store := repository.NewStoreMemStorage()
-	updateBasePattern := http.MethodPost + ` ` + s.config.UpdatePath
+	r := chi.NewRouter()
 	updateHandlerFunc := http.HandlerFunc(controller.UpdateHandlerFunc(store))
-	mux.Handle(updateBasePattern+`/`, updateHandlerFunc)
-	mux.Handle(updateBasePattern+`/{type}`, updateHandlerFunc)
-	mux.Handle(updateBasePattern+`/{type}/`, updateHandlerFunc)
-	mux.Handle(updateBasePattern+`/{type}/{name}`, updateHandlerFunc)
-	mux.Handle(updateBasePattern+`/{type}/{name}/`, updateHandlerFunc)
-	mux.Handle(updateBasePattern+`/{type}/{name}/{value}`, updateHandlerFunc)
-
-	return mux
+	r.Route(s.config.UpdatePath, func(r chi.Router) {
+		r.Post("/", updateHandlerFunc)
+		r.Route("/{type}", func(r chi.Router) {
+			r.Post("/", updateHandlerFunc)
+			r.Route("/{name}", func(r chi.Router) {
+				r.Post("/", updateHandlerFunc)
+				r.Post("/{value}", updateHandlerFunc)
+			})
+		})
+	})
+	return r
 }
 
 func (s Server) Run() error {
