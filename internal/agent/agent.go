@@ -171,30 +171,27 @@ func New(config *Config) *Agent {
 }
 
 func (a *Agent) Run() error {
-	if a.config.ReportInterval-a.config.PollInterval <= a.config.PollInterval {
-		return fmt.Errorf(
-			`reportInterval (%ds) must be greater than pollInterval (%ds) by pollInterval (%ds), but %d - %d (%d) > %d`,
-			a.config.ReportInterval/time.Second,
-			a.config.PollInterval/time.Second,
-			a.config.PollInterval/time.Second,
-			a.config.ReportInterval/time.Second,
-			a.config.PollInterval/time.Second,
-			(a.config.ReportInterval-a.config.PollInterval)/time.Second,
-			a.config.PollInterval/time.Second)
+	if a.config.ReportInterval <= a.config.PollInterval {
+		return fmt.Errorf(`ReportInterval (%ds) must be greater than PollInterval (%ds)`,
+			a.config.ReportInterval/time.Second, a.config.PollInterval/time.Second)
 	}
 	if a.config.HTTPTimeoutCoefficient > 1 {
-		return fmt.Errorf(`HTTPTimeoutCoefficient must be less than 1, but %f`, a.config.HTTPTimeoutCoefficient)
+		return fmt.Errorf(`HTTPTimeoutCoefficient (%f) must be less than 1 `, a.config.HTTPTimeoutCoefficient)
 	}
 
 	// максимальное время на запрос, чтобы успеть уложить отправку всех метрик в ReportInterval
 	to := float64(a.config.ReportInterval) / float64(a.gaugeSource.Len()) * float64(a.config.ReportWorkersCount)
+
 	// таймаут для http клиента делаем меньше (HTTPTimeoutCoefficient <= 1)
 	a.config.httpTimeout = time.Duration(a.config.HTTPTimeoutCoefficient * to)
-	// для проверки просрочки в воркере
-	a.config.sendExpireTimeout = min(time.Duration(to), a.config.ReportInterval-a.config.PollInterval)
+
+	// для проверки просрочки в воркере - сколько времени есть у последнего элемента в очереди
+	a.config.sendExpireTimeout = time.Duration(a.config.HTTPTimeoutCoefficient * float64(a.config.ReportInterval))
+
 	// для проверки просрочки при получении списка на отправку
-	// dataExpireTimeout должен быть чуть больше sendExpireTimeout, но не больше ReportInterval
-	a.config.dataExpireTimeout = a.config.sendExpireTimeout + a.config.PollInterval
+	// dataExpireTimeout должен быть чуть больше sendExpireTimeout - не менее чем на httpTimeout,
+	// но не больше ReportInterval
+	a.config.dataExpireTimeout = min(a.config.sendExpireTimeout+a.config.httpTimeout, a.config.ReportInterval)
 
 	go a.dataWorker()
 
