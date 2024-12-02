@@ -4,24 +4,20 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
+
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 
 	"net/http"
 )
 
-type Config struct {
-	Addr       string
-	UpdatePath string
-	ValuePath  string
-}
-
 type Server struct {
-	config Config
+	config config.Config
 }
 
-func New(config Config) *Server {
-	return &Server{config}
+func New(cfg config.Config) *Server {
+	return &Server{cfg}
 }
 
 func (s Server) NewHandler() http.Handler {

@@ -2,16 +2,13 @@ package main
 
 import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 
 	"log"
 )
 
 func main() {
-	if err := server.New(server.Config{
-		Addr:       `localhost:8080`,
-		UpdatePath: `/update`,
-		ValuePath:  `/value`,
-	}).Run(); err != nil {
+	if err := server.New(config.GetConfig()).Run(); err != nil {
 		log.Fatal(err)
 	}
 }
