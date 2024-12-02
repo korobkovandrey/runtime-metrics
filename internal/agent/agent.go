@@ -156,7 +156,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 	}
 }
 
-func New(cfg config.Config) *Agent {
+func New(cfg *config.Config) *Agent {
 	gaugeSource := service.NewGaugeSource()
 	gaugeSourceLen := gaugeSource.Len()
 

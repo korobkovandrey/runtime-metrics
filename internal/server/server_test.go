@@ -19,13 +19,13 @@ type ServerTest interface {
 }
 
 func TestNew(t *testing.T) {
-	s := New(config.Config{})
+	s := New(&config.Config{})
 	assert.IsType(t, s, &Server{})
 	assert.Implements(t, (*ServerTest)(nil), s)
 }
 
 func TestServer_NewHandler(t *testing.T) {
-	s := New(config.Config{
+	s := New(&config.Config{
 		UpdatePath: `/update`,
 		ValuePath:  `/value`,
 	})

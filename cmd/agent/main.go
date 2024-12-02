@@ -8,7 +8,11 @@ import (
 )
 
 func main() {
-	if err := agent.New(config.GetConfig()).Run(); err != nil {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := agent.New(cfg).Run(); err != nil {
 		log.Fatal(err)
 	}
 }

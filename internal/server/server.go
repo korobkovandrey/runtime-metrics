@@ -16,8 +16,8 @@ type Server struct {
 	config config.Config
 }
 
-func New(cfg config.Config) *Server {
-	return &Server{cfg}
+func New(cfg *config.Config) *Server {
+	return &Server{*cfg}
 }
 
 func (s Server) NewHandler() http.Handler {

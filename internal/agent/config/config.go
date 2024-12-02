@@ -2,14 +2,19 @@ package config
 
 import (
 	"flag"
+	"fmt"
+
+	"github.com/caarlos0/env/v6"
+
 	"strings"
 )
 
 type Config struct {
+	addr               string `env:"ADDRESS"`
 	UpdateGaugeURL     string
 	UpdateCounterURL   string
-	PollInterval       int
-	ReportInterval     int
+	PollInterval       int `env:"POLL_INTERVAL"`
+	ReportInterval     int `env:"REPORT_INTERVAL"`
 	ReportWorkersCount int
 	TimeoutCoefficient float64
 }
@@ -21,9 +26,9 @@ const (
 	timeoutCoefficient    = 0.25
 )
 
-func GetConfig() Config {
-	cfg := Config{}
-	addr := flag.String(`a`, `localhost:8080`, `server host`)
+func GetConfig() (*Config, error) {
+	cfg := &Config{}
+	flag.StringVar(&cfg.addr, `a`, `localhost:8080`, `server host`)
 	updatePath := flag.String(`updatePath`, `update`, `update path`)
 	gaugePath := flag.String(`gaugePath`, `gauge`, `gauge path`)
 	counterPath := flag.String(`counterPath`, `counter`, `counter path`)
@@ -34,10 +39,15 @@ func GetConfig() Config {
 
 	flag.Parse()
 
-	updateURL := `http://` + *addr + `/` + strings.Trim(*updatePath, `/`) + `/`
+	err := env.Parse(cfg)
+	if err != nil {
+		return cfg, fmt.Errorf(`GetConfig: %w`, err)
+	}
+
+	updateURL := `http://` + cfg.addr + `/` + strings.Trim(*updatePath, `/`) + `/`
 
 	cfg.UpdateGaugeURL = updateURL + strings.Trim(*gaugePath, `/`) + `/`
 	cfg.UpdateCounterURL = updateURL + strings.Trim(*counterPath, `/`) + `/`
 
-	return cfg
+	return cfg, nil
 }
