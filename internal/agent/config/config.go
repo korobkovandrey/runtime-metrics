@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	addr               string `env:"ADDRESS"`
+	Addr               string `env:"ADDRESS"`
 	UpdateGaugeURL     string
 	UpdateCounterURL   string
 	PollInterval       int `env:"POLL_INTERVAL"`
@@ -28,7 +28,7 @@ const (
 
 func GetConfig() (*Config, error) {
 	cfg := &Config{}
-	flag.StringVar(&cfg.addr, `a`, `localhost:8080`, `server host`)
+	flag.StringVar(&cfg.Addr, `a`, `localhost:8080`, `server host`)
 	updatePath := flag.String(`updatePath`, `update`, `update path`)
 	gaugePath := flag.String(`gaugePath`, `gauge`, `gauge path`)
 	counterPath := flag.String(`counterPath`, `counter`, `counter path`)
@@ -44,7 +44,7 @@ func GetConfig() (*Config, error) {
 		return cfg, fmt.Errorf(`GetConfig: %w`, err)
 	}
 
-	updateURL := `http://` + cfg.addr + `/` + strings.Trim(*updatePath, `/`) + `/`
+	updateURL := `http://` + cfg.Addr + `/` + strings.Trim(*updatePath, `/`) + `/`
 
 	cfg.UpdateGaugeURL = updateURL + strings.Trim(*gaugePath, `/`) + `/`
 	cfg.UpdateCounterURL = updateURL + strings.Trim(*counterPath, `/`) + `/`
