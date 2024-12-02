@@ -2,16 +2,14 @@ package config
 
 import (
 	"flag"
-
 	"strings"
-	"time"
 )
 
 type Config struct {
 	UpdateGaugeURL     string
 	UpdateCounterURL   string
-	PollInterval       time.Duration
-	ReportInterval     time.Duration
+	PollInterval       int
+	ReportInterval     int
 	ReportWorkersCount int
 	TimeoutCoefficient float64
 }
@@ -27,10 +25,10 @@ func GetConfig() Config {
 	cfg := Config{}
 	addr := flag.String(`a`, `localhost:8080`, `server host`)
 	updatePath := flag.String(`updatePath`, `update`, `update path`)
-	gaugePath := flag.String(`gaugePath`, `value`, `gauge path`)
-	counterPath := flag.String(`counterPath`, `counter`, `value path`)
-	flag.DurationVar(&cfg.PollInterval, `p`, pollIntervalSeconds*time.Second, `pollInterval`)
-	flag.DurationVar(&cfg.ReportInterval, `r`, reportIntervalSeconds*time.Second, `ReportInterval`)
+	gaugePath := flag.String(`gaugePath`, `gauge`, `gauge path`)
+	counterPath := flag.String(`counterPath`, `counter`, `counter path`)
+	flag.IntVar(&cfg.PollInterval, `p`, pollIntervalSeconds, `pollInterval in seconds`)
+	flag.IntVar(&cfg.ReportInterval, `r`, reportIntervalSeconds, `ReportInterval in seconds`)
 	flag.IntVar(&cfg.ReportWorkersCount, `w`, reportWorkersCount, `ReportWorkersCount`)
 	flag.Float64Var(&cfg.TimeoutCoefficient, `t`, timeoutCoefficient, `TimeoutCoefficient`)
 

@@ -167,8 +167,8 @@ func New(cfg config.Config) *Agent {
 		config: Config{
 			UpdateGaugeURL:     cfg.UpdateGaugeURL,
 			UpdateCounterURL:   cfg.UpdateCounterURL,
-			PollInterval:       cfg.PollInterval,
-			ReportInterval:     cfg.ReportInterval,
+			PollInterval:       time.Duration(cfg.PollInterval) * time.Second,
+			ReportInterval:     time.Duration(cfg.ReportInterval) * time.Second,
 			ReportWorkersCount: cfg.ReportWorkersCount,
 			TimeoutCoefficient: cfg.TimeoutCoefficient,
 		},
@@ -179,8 +179,8 @@ func New(cfg config.Config) *Agent {
 
 func (a *Agent) Run() error {
 	if a.config.ReportInterval <= a.config.PollInterval {
-		return fmt.Errorf(`ReportInterval (%ds) must be greater than PollInterval (%ds)`,
-			a.config.ReportInterval/time.Second, a.config.PollInterval/time.Second)
+		return fmt.Errorf(`ReportInterval (%v) must be greater than PollInterval (%v)`,
+			a.config.ReportInterval, a.config.PollInterval)
 	}
 	if a.config.TimeoutCoefficient > 1 {
 		return fmt.Errorf(`TimeoutCoefficient (%f) must be less than 1 `, a.config.TimeoutCoefficient)
