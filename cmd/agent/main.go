@@ -18,7 +18,7 @@ const (
 )
 
 func main() {
-	if err := agent.New(agent.Config{
+	if err := agent.New(&agent.Config{
 		UpdateGaugeURL:         serverUpdateBaseURL + gaugePath,
 		UpdateCounterURL:       serverUpdateBaseURL + counterPath,
 		PollInterval:           pollIntervalSeconds * time.Second,

@@ -103,7 +103,7 @@ func (s *Source) Collect() (err error) {
 }
 
 func (s *Source) Len() int {
-	return len(s.gaugeData)
+	return len(s.gaugeData) + 1
 }
 
 type DataForSend struct {
@@ -112,15 +112,14 @@ type DataForSend struct {
 	Value string
 }
 
-func (s *Source) GetDataForSend(expireInterval time.Duration) (result []DataForSend) {
+func (s *Source) GetDataForSend(expireTimeout time.Duration, reportInterval time.Duration) (result []DataForSend) {
 	now := time.Now()
-	expire := now.Add(expireInterval)
+	expire := now.Add(expireTimeout)
 	for i, v := range s.gaugeData {
 		// отправляем если:
-		// sent + интервал < time.Now() - отвечает за отправку раз в интервал
-		// и expire < time.Now() - отвечает за отправку в случае просрочки (клиент не отправил)
-		// @todo по хорошему надо отделить интервал для expire и сделать зависимым от таймаута клиента
-		if !v.sent.Add(expireInterval).Before(now) {
+		// sent + reportInterval < time.Now() - отвечает за отправку раз в интервал
+		// и expire < time.Now() - отвечает за отправку в случае таймаута отправки
+		if !v.sent.Add(reportInterval).Before(now) {
 			continue
 		}
 		if !v.expire.Before(now) {
@@ -134,7 +133,7 @@ func (s *Source) GetDataForSend(expireInterval time.Duration) (result []DataForS
 		v.expire = expire
 		s.gaugeData[i] = v
 	}
-	if s.collectCount.sent.Add(expireInterval).Before(now) && s.collectCount.expire.Before(now) {
+	if s.collectCount.sent.Add(reportInterval).Before(now) && s.collectCount.expire.Before(now) {
 		diffCollectCount := s.getDiffCollectCount()
 		if diffCollectCount != 0 {
 			s.collectCount.expire = expire

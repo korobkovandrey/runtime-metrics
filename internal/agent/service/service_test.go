@@ -11,7 +11,7 @@ import (
 func TestNewGaugeSource(t *testing.T) {
 	s := NewGaugeSource()
 	assert.IsType(t, s, &Source{})
-	assert.Equal(t, s.Len(), len(runtimeMetricNames)+1)
+	assert.Equal(t, s.Len(), len(runtimeMetricNames)+2)
 	for _, m := range runtimeMetricNames {
 		assert.Contains(t, s.gaugeData, m)
 	}
@@ -30,7 +30,7 @@ func TestSource_Collect(t *testing.T) {
 func TestSource_GetDataForSendAndSetDataSent(t *testing.T) {
 	s := NewGaugeSource()
 	require.NoError(t, s.Collect())
-	result := s.GetDataForSend(1 * time.Second)
+	result := s.GetDataForSend(time.Second, time.Second)
 	assert.Len(t, result, len(runtimeMetricNames)+2)
 	dataIndex := map[string]string{}
 	sentData := make([]DataSent, 0, len(result)+1)
@@ -47,19 +47,19 @@ func TestSource_GetDataForSendAndSetDataSent(t *testing.T) {
 	assert.NotEqual(t, dataIndex[`gauge_`+randomValueName], `0`)
 	assert.Equal(t, dataIndex[`counter_`+collectCountName], `1`)
 
-	result = s.GetDataForSend(1 * time.Second)
+	result = s.GetDataForSend(time.Second, time.Second)
 	assert.Len(t, result, 0)
 	time.Sleep(500 * time.Millisecond)
-	result = s.GetDataForSend(1 * time.Second)
+	result = s.GetDataForSend(time.Second, time.Second)
 	assert.Len(t, result, 0)
 	time.Sleep(500 * time.Millisecond)
-	result = s.GetDataForSend(1 * time.Second)
+	result = s.GetDataForSend(time.Second, time.Second)
 	assert.Len(t, result, len(runtimeMetricNames)+2)
 }
 
 func TestSource_Len(t *testing.T) {
 	s := NewGaugeSource()
-	assert.Equal(t, s.Len(), len(runtimeMetricNames)+1)
+	assert.Equal(t, s.Len(), len(runtimeMetricNames)+2)
 }
 
 func TestSource_addCollectCountSent(t *testing.T) {
