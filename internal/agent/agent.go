@@ -4,26 +4,26 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
-
-	"github.com/korobkovandrey/runtime-metrics/internal/agent/service"
-
-	"log"
 	"time"
+
+	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/agent/service"
 )
 
 type Config struct {
-	UpdateGaugeURL         string
-	UpdateCounterURL       string
-	PollInterval           time.Duration
-	ReportInterval         time.Duration
-	ReportWorkersCount     int
-	HTTPTimeoutCoefficient float64
-	httpTimeout            time.Duration
-	sendExpireTimeout      time.Duration
-	dataExpireTimeout      time.Duration
+	UpdateGaugeURL     string
+	UpdateCounterURL   string
+	PollInterval       time.Duration
+	ReportInterval     time.Duration
+	ReportWorkersCount int
+	TimeoutCoefficient float64
+	httpTimeout        time.Duration
+	sendExpireTimeout  time.Duration
+	dataExpireTimeout  time.Duration
 }
 
 type sentMessage struct {
@@ -156,7 +156,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 	}
 }
 
-func New(config *Config) *Agent {
+func New(cfg config.Config) *Agent {
 	gaugeSource := service.NewGaugeSource()
 	gaugeSourceLen := gaugeSource.Len()
 
@@ -164,7 +164,14 @@ func New(config *Config) *Agent {
 		sentChan:    make(chan sentMessage, gaugeSourceLen),
 		reportChan:  make(chan reportMessage, gaugeSourceLen),
 		gaugeSource: gaugeSource,
-		config:      *config,
+		config: Config{
+			UpdateGaugeURL:     cfg.UpdateGaugeURL,
+			UpdateCounterURL:   cfg.UpdateCounterURL,
+			PollInterval:       cfg.PollInterval,
+			ReportInterval:     cfg.ReportInterval,
+			ReportWorkersCount: cfg.ReportWorkersCount,
+			TimeoutCoefficient: cfg.TimeoutCoefficient,
+		},
 	}
 
 	return a
@@ -175,18 +182,18 @@ func (a *Agent) Run() error {
 		return fmt.Errorf(`ReportInterval (%ds) must be greater than PollInterval (%ds)`,
 			a.config.ReportInterval/time.Second, a.config.PollInterval/time.Second)
 	}
-	if a.config.HTTPTimeoutCoefficient > 1 {
-		return fmt.Errorf(`HTTPTimeoutCoefficient (%f) must be less than 1 `, a.config.HTTPTimeoutCoefficient)
+	if a.config.TimeoutCoefficient > 1 {
+		return fmt.Errorf(`TimeoutCoefficient (%f) must be less than 1 `, a.config.TimeoutCoefficient)
 	}
 
 	// максимальное время на запрос, чтобы успеть уложить отправку всех метрик в ReportInterval
 	to := float64(a.config.ReportInterval) / float64(a.gaugeSource.Len()) * float64(a.config.ReportWorkersCount)
 
-	// таймаут для http клиента делаем меньше (HTTPTimeoutCoefficient <= 1)
-	a.config.httpTimeout = time.Duration(a.config.HTTPTimeoutCoefficient * to)
+	// таймаут для http клиента делаем меньше (TimeoutCoefficient <= 1)
+	a.config.httpTimeout = time.Duration(a.config.TimeoutCoefficient * to)
 
 	// для проверки просрочки в воркере - сколько времени есть у последнего элемента в очереди
-	a.config.sendExpireTimeout = time.Duration(a.config.HTTPTimeoutCoefficient * float64(a.config.ReportInterval))
+	a.config.sendExpireTimeout = time.Duration(a.config.TimeoutCoefficient * float64(a.config.ReportInterval))
 
 	// для проверки просрочки при получении списка на отправку
 	// dataExpireTimeout должен быть чуть больше sendExpireTimeout - не менее чем на httpTimeout,
