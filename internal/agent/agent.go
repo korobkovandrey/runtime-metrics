@@ -122,7 +122,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 		}
 		url, err := a.makeURL(c)
 		if err != nil {
-			log.Println(err)
+			log.Printf("reportWorker makeURL: %v", err)
 			continue
 		}
 
@@ -130,15 +130,16 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 		// @todo сделать в func sendRequest(client *http.Client) (ok bool, err error)
 		response, err := client.Post(url, "text/plain", http.NoBody)
 		if err != nil {
-			log.Println(err)
-		}
-		if response == nil {
+			if response != nil {
+				err = errors.Join(err, response.Body.Close())
+			}
+			log.Printf("reportWorker client.Post: %v", err)
 			continue
 		}
 		body, err := io.ReadAll(response.Body)
 		err = errors.Join(err, response.Body.Close())
 		if err != nil {
-			log.Println(err)
+			log.Printf("reportWorker response.Body.Close: %v", err)
 		}
 		if response.StatusCode == http.StatusOK {
 			a.sentChan <- sentMessage{
