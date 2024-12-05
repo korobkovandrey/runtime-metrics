@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -52,7 +51,7 @@ func (a *Agent) makeURL(r reportMessage) (string, error) {
 	case service.CounterType:
 		return a.config.UpdateURL + service.CounterType + "/" + r.name + "/" + r.value, nil
 	default:
-		return "", fmt.Errorf("%s: type is not valid", r.t)
+		return "", fmt.Errorf(`makeURL: "%s" type is not valid`, r.t)
 	}
 }
 
@@ -109,6 +108,27 @@ func (a *Agent) dataWorker() {
 	}
 }
 
+func sendRequest(client *http.Client, url string) error {
+	response, err := client.Post(url, "text/plain", http.NoBody)
+	if response != nil {
+		defer func() {
+			_ = response.Body.Close()
+		}()
+	}
+	if err != nil {
+		return fmt.Errorf("sendRequest: %w", err)
+	}
+	if response.StatusCode != http.StatusOK {
+		err = fmt.Errorf("code %d", response.StatusCode)
+		body, err1 := io.ReadAll(response.Body)
+		if err1 == nil {
+			err1 = fmt.Errorf("body %s", strings.TrimSuffix(string(body), "\n"))
+		}
+		return fmt.Errorf("sendRequest: %w, %w", err, err1)
+	}
+	return nil
+}
+
 func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 	defer wg.Done()
 	var now time.Time
@@ -122,26 +142,13 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 		}
 		url, err := a.makeURL(c)
 		if err != nil {
-			log.Printf("reportWorker makeURL: %v", err)
+			log.Printf("reportWorker: %v", err)
 			continue
 		}
 
 		now = time.Now()
-		// @todo сделать в func sendRequest(client *http.Client) (ok bool, err error)
-		response, err := client.Post(url, "text/plain", http.NoBody)
-		if err != nil {
-			if response != nil {
-				err = errors.Join(err, response.Body.Close())
-			}
-			log.Printf("reportWorker client.Post: %v", err)
-			continue
-		}
-		body, err := io.ReadAll(response.Body)
-		err = errors.Join(err, response.Body.Close())
-		if err != nil {
-			log.Printf("reportWorker response.Body.Close: %v", err)
-		}
-		if response.StatusCode == http.StatusOK {
+		err = sendRequest(client, url)
+		if err == nil {
 			a.sentChan <- sentMessage{
 				sent:  now,
 				t:     c.t,
@@ -149,7 +156,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 				value: c.value,
 			}
 		} else {
-			log.Println(url, response.StatusCode, strings.TrimSuffix(string(body), "\n"))
+			log.Printf("reportWorker: %v", err)
 		}
 	}
 }
