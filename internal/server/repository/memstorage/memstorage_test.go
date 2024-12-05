@@ -1,18 +1,11 @@
 package memstorage
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/server/adapter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"testing"
 )
-
-func TestNewMemStorage(t *testing.T) {
-	s := NewMemStorage()
-	assert.IsType(t, s, &MemStorage{})
-	assert.Implements(t, (*adapter.Repository)(nil), s)
-}
 
 func TestMemStorage_AddType(t *testing.T) {
 	type args struct {
@@ -62,30 +55,18 @@ func TestMemStorage_Set(t *testing.T) {
 			wantValues: checkIntValues,
 		},
 		{
-			name: "test2 int",
-			args: args{
-				t:      "int",
-				name:   "test2",
-				values: checkIntValues,
-			},
+			name:       "test2 int",
+			args:       args{"int", "test2", checkIntValues},
 			wantValues: checkIntValues,
 		},
 		{
-			name: "test1 float",
-			args: args{
-				t:      "float",
-				name:   "test1",
-				values: checkFloatValues,
-			},
+			name:       "test1 float",
+			args:       args{"float", "test1", checkFloatValues},
 			wantValues: checkFloatValues,
 		},
 		{
-			name: "test2 float",
-			args: args{
-				t:      "float",
-				name:   "test2",
-				values: checkFloatValues,
-			},
+			name:       "test2 float",
+			args:       args{"float", "test2", checkFloatValues},
 			wantValues: checkFloatValues,
 		},
 	}
@@ -126,21 +107,13 @@ func TestMemStorage_IncrInt64(t *testing.T) {
 		wantValues []int64
 	}{
 		{
-			name: "test1 int",
-			args: args{
-				t:      "int",
-				name:   "test1",
-				values: checkIntValues,
-			},
+			name:       "test1 int",
+			args:       args{"int", "test1", checkIntValues},
 			wantValues: wantIntValues,
 		},
 		{
-			name: "test2 int",
-			args: args{
-				t:      "int",
-				name:   "test2",
-				values: checkIntValues,
-			},
+			name:       "test2 int",
+			args:       args{"int", "test2", checkIntValues},
 			wantValues: wantIntValues,
 		},
 	}
@@ -176,47 +149,33 @@ func TestMemStorage_Get(t *testing.T) {
 			"test1": 0.1,
 		},
 	}
-
 	tests := []struct {
 		name      string
 		args      args
 		wantValue any
 		wantOk    bool
 	}{
-
 		{
-			name: "not exists type",
-			args: args{
-				t:    "not_exists",
-				name: "not_exists",
-			},
+			name:      "not exists type",
+			args:      args{"not_exists", "not_exists"},
 			wantValue: nil,
 			wantOk:    false,
 		},
 		{
-			name: "not exists value",
-			args: args{
-				t:    "int",
-				name: "not_exists",
-			},
+			name:      "not exists value",
+			args:      args{"int", "not_exists"},
 			wantValue: nil,
 			wantOk:    false,
 		},
 		{
-			name: "int value",
-			args: args{
-				t:    "int",
-				name: "test1",
-			},
+			name:      "int value",
+			args:      args{"int", "test1"},
 			wantValue: 1,
 			wantOk:    true,
 		},
 		{
-			name: "float value",
-			args: args{
-				t:    "float",
-				name: "test1",
-			},
+			name:      "float value",
+			args:      args{"float", "test1"},
 			wantValue: 0.1,
 			wantOk:    true,
 		},

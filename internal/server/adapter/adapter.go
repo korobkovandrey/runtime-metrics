@@ -1,7 +1,5 @@
 package adapter
 
-type RepositoryKey string
-
 type Repository interface {
 	AddType(t string)
 	Keys(t string) []string

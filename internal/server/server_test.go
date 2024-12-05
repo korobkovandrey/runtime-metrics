@@ -14,16 +14,6 @@ import (
 	"testing"
 )
 
-type ServerTest interface {
-	Run() error
-}
-
-func TestNew(t *testing.T) {
-	s := New(&config.Config{})
-	assert.IsType(t, s, &Server{})
-	assert.Implements(t, (*ServerTest)(nil), s)
-}
-
 func TestServer_NewHandler(t *testing.T) {
 	s := New(&config.Config{})
 	ts := httptest.NewServer(s.NewHandler())
