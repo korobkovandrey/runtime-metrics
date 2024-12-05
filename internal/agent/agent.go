@@ -51,11 +51,11 @@ type Agent struct {
 func (a *Agent) makeURL(r reportMessage) (string, error) {
 	switch r.t {
 	case service.GaugeType:
-		return a.config.UpdateGaugeURL + r.name + `/` + r.value, nil
+		return a.config.UpdateGaugeURL + r.name + "/" + r.value, nil
 	case service.CounterType:
-		return a.config.UpdateCounterURL + r.name + `/` + r.value, nil
+		return a.config.UpdateCounterURL + r.name + "/" + r.value, nil
 	default:
-		return ``, fmt.Errorf(`%s: %w`, r.t, errors.New(`type is not valid`))
+		return "", fmt.Errorf("%s: %w", r.t, errors.New("type is not valid"))
 	}
 }
 
@@ -89,7 +89,7 @@ func (a *Agent) dataWorker() {
 			a.collectExpire = time.Now().Add(a.config.PollInterval)
 			err = a.gaugeSource.Collect()
 			if err != nil {
-				log.Println(fmt.Errorf(`dataWorker: %w`, err))
+				log.Println(fmt.Errorf("dataWorker: %w", err))
 			}
 		}
 
@@ -131,7 +131,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 
 		now = time.Now()
 		// @todo сделать в func sendRequest(client *http.Client) (ok bool, err error)
-		response, err := client.Post(url, `text/plain`, http.NoBody)
+		response, err := client.Post(url, "text/plain", http.NoBody)
 		if err != nil {
 			log.Println(err)
 		}
@@ -179,11 +179,11 @@ func New(cfg *config.Config) *Agent {
 
 func (a *Agent) Run() error {
 	if a.config.ReportInterval <= a.config.PollInterval {
-		return fmt.Errorf(`ReportInterval (%v) must be greater than PollInterval (%v)`,
+		return fmt.Errorf("ReportInterval (%v) must be greater than PollInterval (%v)",
 			a.config.ReportInterval, a.config.PollInterval)
 	}
 	if a.config.TimeoutCoefficient > 1 {
-		return fmt.Errorf(`TimeoutCoefficient (%f) must be less than 1 `, a.config.TimeoutCoefficient)
+		return fmt.Errorf("TimeoutCoefficient (%f) must be less than 1 ", a.config.TimeoutCoefficient)
 	}
 
 	// максимальное время на запрос, чтобы успеть уложить отправку всех метрик в ReportInterval

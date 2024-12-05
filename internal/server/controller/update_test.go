@@ -14,8 +14,8 @@ import (
 
 func TestUpdateHandlerFunc(t *testing.T) {
 	const (
-		gaugeType   = `gauge`
-		counterType = `counter`
+		gaugeType   = "gauge"
+		counterType = "counter"
 	)
 	type want struct {
 		code        int
@@ -29,125 +29,125 @@ func TestUpdateHandlerFunc(t *testing.T) {
 		want       want
 	}{
 		{
-			name:       `empty`,
+			name:       "empty",
 			pathValues: map[string]string{},
 			want: want{
 				code:        400,
 				response:    "Type is required.\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `one type`,
+			name: "one type",
 			pathValues: map[string]string{
-				`type`: gaugeType,
+				"type": gaugeType,
 			},
 			want: want{
 				code:        404,
 				response:    "404 page not found\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `without value`,
+			name: "without value",
 			pathValues: map[string]string{
-				`type`: `fail_type`,
-				`name`: `name`,
+				"type": "fail_type",
+				"name": "name",
 			},
 			want: want{
 				code:        400,
 				response:    "Value is required.\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `not exists type`,
+			name: "not exists type",
 			pathValues: map[string]string{
-				`type`:  `fail_type`,
-				`name`:  `name`,
-				`value`: `10`,
+				"type":  "fail_type",
+				"name":  "name",
+				"value": "10",
 			},
 			want: want{
 				code:        400,
 				response:    "bad request: \"fail_type\" type is not valid\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `string value gauge`,
+			name: "string value gauge",
 			pathValues: map[string]string{
-				`type`:  gaugeType,
-				`name`:  `name`,
-				`value`: `fail_value`,
+				"type":  gaugeType,
+				"name":  "name",
+				"value": "fail_value",
 			},
 			want: want{
 				code:        400,
 				response:    "bad request: invalid number\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `string value counter`,
+			name: "string value counter",
 			pathValues: map[string]string{
-				`type`:  counterType,
-				`name`:  `name`,
-				`value`: `fail_value`,
+				"type":  counterType,
+				"name":  "name",
+				"value": "fail_value",
 			},
 			want: want{
 				code:        400,
 				response:    "bad request: invalid number\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `gauge ok`,
+			name: "gauge ok",
 			pathValues: map[string]string{
-				`type`:  gaugeType,
-				`name`:  `name`,
-				`value`: `10.12344`,
+				"type":  gaugeType,
+				"name":  "name",
+				"value": "10.12344",
 			},
 			want: want{
 				code:        200,
 				response:    "",
-				contentType: ``,
+				contentType: "",
 			},
 		},
 		{
-			name: `counter fail float`,
+			name: "counter fail float",
 			pathValues: map[string]string{
-				`type`:  counterType,
-				`name`:  `name`,
-				`value`: `10.12344`,
+				"type":  counterType,
+				"name":  "name",
+				"value": "10.12344",
 			},
 			want: want{
 				code:        400,
 				response:    "bad request: invalid number\n",
-				contentType: `text/plain; charset=utf-8`,
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: `counter 1`,
+			name: "counter 1",
 			pathValues: map[string]string{
-				`type`:  counterType,
-				`name`:  `name`,
-				`value`: `1`,
+				"type":  counterType,
+				"name":  "name",
+				"value": "1",
 			},
 			want: want{
 				code:        200,
 				response:    "",
-				contentType: ``,
+				contentType: "",
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			s := repository.NewStoreMemStorage()
-			target := ``
+			target := ""
 			for _, v := range test.pathValues {
-				target += `/` + v
+				target += "/" + v
 			}
-			if target == `` {
-				target = `/`
+			if target == "" {
+				target = "/"
 			}
 			request := httptest.NewRequest(http.MethodPost, target, http.NoBody)
 			for i, v := range test.pathValues {

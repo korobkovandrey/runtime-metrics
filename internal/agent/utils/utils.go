@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrNumberIsNotNumber = errors.New(`is not number`)
-	ErrFieldNotFound     = errors.New(`not found`)
+	ErrNumberIsNotNumber = errors.New("is not number")
+	ErrFieldNotFound     = errors.New("not found")
 )
 
 func convertReflectValueToString(value reflect.Value) (string, error) {
@@ -24,20 +24,20 @@ func convertReflectValueToString(value reflect.Value) (string, error) {
 		return strconv.FormatFloat(value.Float(), 'g', -1, 64), nil
 	case reflect.Bool:
 		if value.Bool() {
-			return `1`, nil
+			return "1", nil
 		} else {
-			return `0`, nil
+			return "0", nil
 		}
 	case reflect.String:
 		s := value.String()
 		if _, err := strconv.ParseFloat(s, 64); err != nil {
-			return ``, fmt.Errorf(`"%v" %w: %w`, value, ErrNumberIsNotNumber, err)
+			return "", fmt.Errorf(`"%v" %w: %w`, value, ErrNumberIsNotNumber, err)
 		}
 		return s, nil
 	case reflect.Ptr:
 		return convertReflectValueToString(value.Elem())
 	default:
-		return ``, fmt.Errorf(`"%v" %w`, value, ErrNumberIsNotNumber)
+		return "", fmt.Errorf(`"%v" %w`, value, ErrNumberIsNotNumber)
 	}
 }
 
@@ -66,10 +66,10 @@ func GetRuntimeMetrics(fields ...string) (result map[string]string, errNotNumber
 		}
 	}
 	if len(notNumberFields) != 0 {
-		errNotNumber = fmt.Errorf(`%s: %w`, `"`+strings.Join(notNumberFields, `", "`)+`"`, ErrNumberIsNotNumber)
+		errNotNumber = fmt.Errorf("%s: %w", `"`+strings.Join(notNumberFields, `", "`)+`"`, ErrNumberIsNotNumber)
 	}
 	if len(notFoundFields) != 0 {
-		errNotFound = fmt.Errorf(`%s: %w`, `"`+strings.Join(notFoundFields, `", "`)+`"`, ErrFieldNotFound)
+		errNotFound = fmt.Errorf("%s: %w", `"`+strings.Join(notFoundFields, `", "`)+`"`, ErrFieldNotFound)
 	}
 	return
 }

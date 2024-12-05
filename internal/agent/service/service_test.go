@@ -35,17 +35,17 @@ func TestSource_GetDataForSendAndSetDataSent(t *testing.T) {
 	dataIndex := map[string]string{}
 	sentData := make([]DataSent, 0, len(result)+1)
 	for _, m := range result {
-		dataIndex[m.T+`_`+m.Name] = m.Value
+		dataIndex[m.T+"_"+m.Name] = m.Value
 		sentData = append(sentData, DataSent{Sent: time.Now(), T: m.T, Name: m.Name})
 	}
 	s.SetDataSent(sentData)
 	for _, m := range runtimeMetricNames {
-		assert.Contains(t, dataIndex, `gauge_`+m)
+		assert.Contains(t, dataIndex, "gauge_"+m)
 	}
-	assert.Contains(t, dataIndex, `gauge_`+randomValueName)
-	assert.Contains(t, dataIndex, `counter_`+collectCountName)
-	assert.NotEqual(t, dataIndex[`gauge_`+randomValueName], `0`)
-	assert.Equal(t, dataIndex[`counter_`+collectCountName], `1`)
+	assert.Contains(t, dataIndex, "gauge_"+randomValueName)
+	assert.Contains(t, dataIndex, "counter_"+collectCountName)
+	assert.NotEqual(t, dataIndex["gauge_"+randomValueName], "0")
+	assert.Equal(t, dataIndex["counter_"+collectCountName], "1")
 
 	result = s.GetDataForSend(time.Second, time.Second)
 	assert.Len(t, result, 0)
@@ -65,9 +65,9 @@ func TestSource_Len(t *testing.T) {
 func TestSource_addCollectCountSent(t *testing.T) {
 	s := NewGaugeSource()
 	assert.Equal(t, s.collectCount.sentValue, uint64(0))
-	s.addCollectCountSent(`10`)
+	s.addCollectCountSent("10")
 	assert.Equal(t, s.collectCount.sentValue, uint64(10))
-	s.addCollectCountSent(`20`)
+	s.addCollectCountSent("20")
 	assert.Equal(t, s.collectCount.sentValue, uint64(30))
 }
 
@@ -75,7 +75,7 @@ func TestSource_getDiffCollectCount(t *testing.T) {
 	s := NewGaugeSource()
 	assert.Equal(t, s.getDiffCollectCount(), 0)
 	s.collectCount.value = 10
-	s.addCollectCountSent(`10`)
+	s.addCollectCountSent("10")
 	assert.Equal(t, s.getDiffCollectCount(), 0)
 	s.collectCount.value = 20
 	assert.Equal(t, s.getDiffCollectCount(), 10)

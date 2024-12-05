@@ -64,7 +64,7 @@ func Test_convertReflectValueToString(t *testing.T) {
 			args: args{
 				value: reflect.ValueOf("10.123.345"),
 			},
-			want:    ``,
+			want:    "",
 			wantErr: ErrNumberIsNotNumber,
 		},
 		{
@@ -72,7 +72,7 @@ func Test_convertReflectValueToString(t *testing.T) {
 			args: args{
 				value: reflect.ValueOf(nil),
 			},
-			want:    ``,
+			want:    "",
 			wantErr: ErrNumberIsNotNumber,
 		},
 		{
@@ -80,7 +80,7 @@ func Test_convertReflectValueToString(t *testing.T) {
 			args: args{
 				value: reflect.ValueOf(true),
 			},
-			want:    `1`,
+			want:    "1",
 			wantErr: nil,
 		},
 		{
@@ -109,12 +109,12 @@ func Test_convertReflectValueToString(t *testing.T) {
 }
 
 func TestGetRuntimeMetrics(t *testing.T) {
-	metricsOk := []string{`Alloc`, `BuckHashSys`, `Frees`, `GCCPUFraction`, `GCSys`, `HeapAlloc`, `HeapIdle`,
-		`HeapInuse`, `HeapObjects`, `HeapReleased`, `HeapSys`, `LastGC`, `Lookups`, `MCacheInuse`, `MCacheSys`,
-		`MSpanInuse`, `MSpanSys`, `Mallocs`, `NextGC`, `NumForcedGC`, `NumGC`, `OtherSys`, `PauseTotalNs`,
-		`StackInuse`, `StackSys`, `Sys`, `TotalAlloc`}
-	notNumberMetrics := []string{`PauseEnd`, `PauseNs`, `BySize`}
-	notFoundMetrics := []string{`NotFoundMetric`}
+	metricsOk := []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc", "HeapIdle",
+		"HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC", "Lookups", "MCacheInuse", "MCacheSys",
+		"MSpanInuse", "MSpanSys", "Mallocs", "NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs",
+		"StackInuse", "StackSys", "Sys", "TotalAlloc"}
+	notNumberMetrics := []string{"PauseEnd", "PauseNs", "BySize"}
+	notFoundMetrics := []string{"NotFoundMetric"}
 	allMetrics := metricsOk
 	allMetrics = append(allMetrics, notNumberMetrics...)
 	allMetrics = append(allMetrics, notFoundMetrics...)

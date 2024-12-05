@@ -20,7 +20,7 @@ type Store struct {
 }
 
 var (
-	ErrTypeIsNotValid = errors.New(`type is not valid`)
+	ErrTypeIsNotValid = errors.New("type is not valid")
 )
 
 func (s Store) Get(t string) (Adapter, error) {
@@ -63,8 +63,8 @@ func (s Store) addAdapter(key string, a Adapter) {
 }
 
 const (
-	gaugeType   = `gauge`
-	counterType = `counter`
+	gaugeType   = "gauge"
+	counterType = "counter"
 )
 
 func NewStore(repository adapter.Repository) *Store {

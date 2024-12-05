@@ -38,7 +38,7 @@ func (t testAdapter) Names() []string {
 func TestStore_addAdapter(t *testing.T) {
 	m := memstorage.NewMemStorage()
 	s := NewStore(m)
-	const key = `test`
+	const key = "test"
 	s.addAdapter(key, testAdapter{m})
 	require.Contains(t, s.data, key)
 	assert.Implements(t, (*Adapter)(nil), s.data[key])
@@ -59,7 +59,7 @@ func TestNewStoreMemStorage(t *testing.T) {
 
 func TestStore_Get(t *testing.T) {
 	s := NewStoreMemStorage()
-	_, err := s.Get(`test`)
+	_, err := s.Get("test")
 	assert.Error(t, err)
 	types := []string{gaugeType, counterType}
 	for _, typ := range types {

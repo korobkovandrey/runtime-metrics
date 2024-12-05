@@ -17,7 +17,7 @@ func NewGauge(storage Repository, key string) *Gauge {
 func (a Gauge) Update(name string, value string) error {
 	number, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return fmt.Errorf(`gauge: %w`, err)
+		return fmt.Errorf("gauge: %w", err)
 	}
 	a.Set(a.key, name, number)
 	return nil

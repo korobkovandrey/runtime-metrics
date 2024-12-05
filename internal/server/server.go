@@ -35,15 +35,15 @@ func (s Server) NewHandler() http.Handler {
 			})
 		})
 	})
-	r.Get(s.config.ValuePath+`/{type}/{name}`, controller.ValueHandlerFunc(store))
-	r.Get(`/`, controller.IndexHandlerFunc(store))
+	r.Get(s.config.ValuePath+"/{type}/{name}", controller.ValueHandlerFunc(store))
+	r.Get("/", controller.IndexHandlerFunc(store))
 	return r
 }
 
 func (s Server) Run() error {
-	fmt.Printf("Server listen: %s\n", `http://`+s.config.Addr+`/`)
+	fmt.Printf("Server listen: %s\n", "http://"+s.config.Addr+"/")
 	if err := http.ListenAndServe(s.config.Addr, s.NewHandler()); err != nil {
-		return fmt.Errorf(`server.Run: %w`, err)
+		return fmt.Errorf("server.Run: %w", err)
 	}
 	return nil
 }

@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	GaugeType        = `gauge`
-	CounterType      = `counter`
-	collectCountName = `PollCount`
-	randomValueName  = `RandomValue`
+	GaugeType        = "gauge"
+	CounterType      = "counter"
+	collectCountName = "PollCount"
+	randomValueName  = "RandomValue"
 )
 
 type data struct {
@@ -36,10 +36,10 @@ type Source struct {
 	collectCount collectCount
 }
 
-var runtimeMetricNames = []string{`Alloc`, `BuckHashSys`, `Frees`, `GCCPUFraction`, `GCSys`, `HeapAlloc`, `HeapIdle`,
-	`HeapInuse`, `HeapObjects`, `HeapReleased`, `HeapSys`, `LastGC`, `Lookups`, `MCacheInuse`, `MCacheSys`,
-	`MSpanInuse`, `MSpanSys`, `Mallocs`, `NextGC`, `NumForcedGC`, `NumGC`, `OtherSys`, `PauseTotalNs`,
-	`StackInuse`, `StackSys`, `Sys`, `TotalAlloc`}
+var runtimeMetricNames = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc", "HeapIdle",
+	"HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC", "Lookups", "MCacheInuse", "MCacheSys",
+	"MSpanInuse", "MSpanSys", "Mallocs", "NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs",
+	"StackInuse", "StackSys", "Sys", "TotalAlloc"}
 
 func NewGaugeSource() *Source {
 	source := &Source{
@@ -83,18 +83,18 @@ func (s *Source) Collect() (err error) {
 	s.collectCount.value++
 
 	var errs []any
-	errFmt := ``
+	errFmt := ""
 
 	if errNotNumber != nil {
 		errs = append(errs, errNotNumber)
-		errFmt = `%w`
+		errFmt = "%w"
 	}
 	if errNotFound != nil {
 		errs = append(errs, errNotFound)
-		if errFmt != `` {
-			errFmt += `, `
+		if errFmt != "" {
+			errFmt += ", "
 		}
-		errFmt += `%w`
+		errFmt += "%w"
 	}
 	if len(errs) > 0 {
 		err = fmt.Errorf(errFmt, errs...)
