@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/utils"
 
 	"math/rand"
@@ -11,10 +9,8 @@ import (
 )
 
 const (
-	GaugeType        = "gauge"
-	CounterType      = "counter"
-	collectCountName = "PollCount"
-	randomValueName  = "RandomValue"
+	GaugeType   = "gauge"
+	CounterType = "counter"
 )
 
 type data struct {
@@ -36,11 +32,6 @@ type Source struct {
 	collectCount collectCount
 }
 
-var runtimeMetricNames = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc", "HeapIdle",
-	"HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC", "Lookups", "MCacheInuse", "MCacheSys",
-	"MSpanInuse", "MSpanSys", "Mallocs", "NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs",
-	"StackInuse", "StackSys", "Sys", "TotalAlloc"}
-
 func NewGaugeSource() *Source {
 	source := &Source{
 		gaugeData: map[string]data{},
@@ -49,23 +40,23 @@ func NewGaugeSource() *Source {
 			expire: time.Now(),
 		},
 	}
-	for _, i := range runtimeMetricNames {
+	for i := range utils.GetRuntimeMetrics() {
 		source.gaugeData[i] = data{
 			sent:   time.Time{}, // time.Now() - для отправки через 10 сек после старта
 			expire: time.Now(),
 			name:   i,
 		}
 	}
-	source.gaugeData[randomValueName] = data{
+	source.gaugeData["RandomValue"] = data{
 		sent:   time.Time{},
 		expire: time.Now(),
-		name:   randomValueName,
+		name:   "RandomValue",
 	}
 	return source
 }
 
 func (s *Source) Collect() (err error) {
-	result, errNotNumber, errNotFound := utils.GetRuntimeMetrics(runtimeMetricNames...)
+	result := utils.GetRuntimeMetrics()
 
 	var i, v string
 
@@ -76,34 +67,18 @@ func (s *Source) Collect() (err error) {
 		}
 	}
 
-	if d, ok := s.gaugeData[randomValueName]; ok {
+	if d, ok := s.gaugeData["RandomValue"]; ok {
 		d.value = strconv.FormatFloat(rand.Float64(), 'g', -1, 64)
-		s.gaugeData[randomValueName] = d
+		s.gaugeData["RandomValue"] = d
 	}
 	s.collectCount.value++
-
-	var errs []any
-	errFmt := ""
-
-	if errNotNumber != nil {
-		errs = append(errs, errNotNumber)
-		errFmt = "%w"
-	}
-	if errNotFound != nil {
-		errs = append(errs, errNotFound)
-		if errFmt != "" {
-			errFmt += ", "
-		}
-		errFmt += "%w"
-	}
-	if len(errs) > 0 {
-		err = fmt.Errorf(errFmt, errs...)
-	}
 	return
 }
 
+const addCountMetrics = 2
+
 func (s *Source) Len() int {
-	return len(s.gaugeData) + 1
+	return len(utils.GetRuntimeMetrics()) + addCountMetrics
 }
 
 type DataForSend struct {
@@ -139,7 +114,7 @@ func (s *Source) GetDataForSend(expireTimeout time.Duration, reportInterval time
 			s.collectCount.expire = expire
 			result = append(result, DataForSend{
 				T:     CounterType,
-				Name:  collectCountName,
+				Name:  "PollCount",
 				Value: strconv.Itoa(diffCollectCount),
 			})
 		}
@@ -157,7 +132,7 @@ type DataSent struct {
 func (s *Source) SetDataSent(sent []DataSent) {
 	for _, v := range sent {
 		if v.T == CounterType {
-			if v.Name == collectCountName {
+			if v.Name == "PollCount" {
 				s.collectCount.sent = v.Sent
 				s.addCollectCountSent(v.Value)
 			}

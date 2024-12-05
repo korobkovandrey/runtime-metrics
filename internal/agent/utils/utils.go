@@ -1,75 +1,41 @@
 package utils
 
 import (
-	"errors"
-	"fmt"
-	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 )
 
-var (
-	ErrNumberIsNotNumber = errors.New("is not number")
-	ErrFieldNotFound     = errors.New("not found")
-)
-
-func convertReflectValueToString(value reflect.Value) (string, error) {
-	switch value.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.Itoa(int(value.Int())), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return strconv.Itoa(int(value.Uint())), nil
-	case reflect.Float32, reflect.Float64:
-		return strconv.FormatFloat(value.Float(), 'g', -1, 64), nil
-	case reflect.Bool:
-		if value.Bool() {
-			return "1", nil
-		} else {
-			return "0", nil
-		}
-	case reflect.String:
-		s := value.String()
-		if _, err := strconv.ParseFloat(s, 64); err != nil {
-			return "", fmt.Errorf(`"%v" %w: %w`, value, ErrNumberIsNotNumber, err)
-		}
-		return s, nil
-	case reflect.Ptr:
-		return convertReflectValueToString(value.Elem())
-	default:
-		return "", fmt.Errorf(`"%v" %w`, value, ErrNumberIsNotNumber)
-	}
-}
-
-func GetRuntimeMetrics(fields ...string) (result map[string]string, errNotNumber error, errNotFound error) {
+func GetRuntimeMetrics() (result map[string]string) {
 	result = map[string]string{}
 	memStats := &runtime.MemStats{}
 	runtime.ReadMemStats(memStats)
-	v := reflect.ValueOf(*memStats)
-	var (
-		r   string
-		err error
-	)
-	var notNumberFields, notFoundFields []string
 
-	for _, i := range fields {
-		value := v.FieldByName(i)
-		if value.IsValid() {
-			r, err = convertReflectValueToString(value)
-			if err == nil {
-				result[i] = r
-			} else {
-				notNumberFields = append(notNumberFields, i)
-			}
-		} else {
-			notFoundFields = append(notFoundFields, i)
-		}
-	}
-	if len(notNumberFields) != 0 {
-		errNotNumber = fmt.Errorf("%s: %w", `"`+strings.Join(notNumberFields, `", "`)+`"`, ErrNumberIsNotNumber)
-	}
-	if len(notFoundFields) != 0 {
-		errNotFound = fmt.Errorf("%s: %w", `"`+strings.Join(notFoundFields, `", "`)+`"`, ErrFieldNotFound)
-	}
+	result["Alloc"] = strconv.Itoa(int(memStats.Alloc))
+	result["BuckHashSys"] = strconv.Itoa(int(memStats.BuckHashSys))
+	result["Frees"] = strconv.Itoa(int(memStats.Frees))
+	result["GCCPUFraction"] = strconv.FormatFloat(memStats.GCCPUFraction, 'g', -1, 64)
+	result["GCSys"] = strconv.Itoa(int(memStats.GCSys))
+	result["HeapAlloc"] = strconv.Itoa(int(memStats.HeapAlloc))
+	result["HeapIdle"] = strconv.Itoa(int(memStats.HeapIdle))
+	result["HeapInuse"] = strconv.Itoa(int(memStats.HeapInuse))
+	result["HeapObjects"] = strconv.Itoa(int(memStats.HeapObjects))
+	result["HeapReleased"] = strconv.Itoa(int(memStats.HeapReleased))
+	result["HeapSys"] = strconv.Itoa(int(memStats.HeapSys))
+	result["LastGC"] = strconv.Itoa(int(memStats.LastGC))
+	result["Lookups"] = strconv.Itoa(int(memStats.Lookups))
+	result["MCacheInuse"] = strconv.Itoa(int(memStats.MCacheInuse))
+	result["MCacheSys"] = strconv.Itoa(int(memStats.MCacheSys))
+	result["MSpanInuse"] = strconv.Itoa(int(memStats.MSpanInuse))
+	result["MSpanSys"] = strconv.Itoa(int(memStats.MSpanSys))
+	result["Mallocs"] = strconv.Itoa(int(memStats.Mallocs))
+	result["NextGC"] = strconv.Itoa(int(memStats.NextGC))
+	result["NumForcedGC"] = strconv.Itoa(int(memStats.NumForcedGC))
+	result["NumGC"] = strconv.Itoa(int(memStats.NumGC))
+	result["OtherSys"] = strconv.Itoa(int(memStats.OtherSys))
+	result["PauseTotalNs"] = strconv.Itoa(int(memStats.PauseTotalNs))
+	result["StackInuse"] = strconv.Itoa(int(memStats.StackInuse))
+	result["StackSys"] = strconv.Itoa(int(memStats.StackSys))
+	result["Sys"] = strconv.Itoa(int(memStats.Sys))
+	result["TotalAlloc"] = strconv.Itoa(int(memStats.TotalAlloc))
 	return
 }
