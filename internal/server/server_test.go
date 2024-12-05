@@ -25,10 +25,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestServer_NewHandler(t *testing.T) {
-	s := New(&config.Config{
-		UpdatePath: "/update",
-		ValuePath:  "/value",
-	})
+	s := New(&config.Config{})
 	ts := httptest.NewServer(s.NewHandler())
 	defer ts.Close()
 

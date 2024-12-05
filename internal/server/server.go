@@ -25,7 +25,7 @@ func (s Server) NewHandler() http.Handler {
 	r := chi.NewRouter()
 
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
-	r.Route(s.config.UpdatePath, func(r chi.Router) {
+	r.Route("/update", func(r chi.Router) {
 		r.Post("/", updateHandlerFunc)
 		r.Route("/{type}", func(r chi.Router) {
 			r.Post("/", updateHandlerFunc)
@@ -35,7 +35,7 @@ func (s Server) NewHandler() http.Handler {
 			})
 		})
 	})
-	r.Get(s.config.ValuePath+"/{type}/{name}", controller.ValueHandlerFunc(store))
+	r.Get("/value/{type}/{name}", controller.ValueHandlerFunc(store))
 	r.Get("/", controller.IndexHandlerFunc(store))
 	return r
 }

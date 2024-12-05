@@ -14,16 +14,12 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/service"
 )
 
-type Config struct {
-	UpdateGaugeURL     string
-	UpdateCounterURL   string
-	PollInterval       time.Duration
-	ReportInterval     time.Duration
-	ReportWorkersCount int
-	TimeoutCoefficient float64
-	httpTimeout        time.Duration
-	sendExpireTimeout  time.Duration
-	dataExpireTimeout  time.Duration
+type cfgTimeouts struct {
+	pollInterval      time.Duration
+	reportInterval    time.Duration
+	httpTimeout       time.Duration
+	sendExpireTimeout time.Duration
+	dataExpireTimeout time.Duration
 }
 
 type sentMessage struct {
@@ -45,15 +41,16 @@ type Agent struct {
 	reportChan    chan reportMessage
 	gaugeSource   *service.Source
 	collectExpire time.Time
-	config        Config
+	config        config.Config
+	cfgTimeouts   cfgTimeouts
 }
 
 func (a *Agent) makeURL(r reportMessage) (string, error) {
 	switch r.t {
 	case service.GaugeType:
-		return a.config.UpdateGaugeURL + r.name + "/" + r.value, nil
+		return a.config.UpdateURL + service.GaugeType + "/" + r.name + "/" + r.value, nil
 	case service.CounterType:
-		return a.config.UpdateCounterURL + r.name + "/" + r.value, nil
+		return a.config.UpdateURL + service.CounterType + "/" + r.name + "/" + r.value, nil
 	default:
 		return "", fmt.Errorf("%s: %w", r.t, errors.New("type is not valid"))
 	}
@@ -84,20 +81,20 @@ func (a *Agent) dataWorker() {
 			}
 		}
 
-		// получение данных раз PollInterval
+		// получение данных раз pollInterval
 		if a.collectExpire.Before(time.Now()) {
-			a.collectExpire = time.Now().Add(a.config.PollInterval)
+			a.collectExpire = time.Now().Add(a.cfgTimeouts.pollInterval)
 			err = a.gaugeSource.Collect()
 			if err != nil {
 				log.Println(fmt.Errorf("dataWorker: %w", err))
 			}
 		}
 
-		// метрики, которые не отправлялись дольше ReportInterval
-		dataForSend := a.gaugeSource.GetDataForSend(a.config.dataExpireTimeout, a.config.ReportInterval)
+		// метрики, которые не отправлялись дольше reportInterval
+		dataForSend := a.gaugeSource.GetDataForSend(a.cfgTimeouts.dataExpireTimeout, a.cfgTimeouts.reportInterval)
 
 		if len(dataForSend) > 0 {
-			expire = time.Now().Add(a.config.sendExpireTimeout)
+			expire = time.Now().Add(a.cfgTimeouts.sendExpireTimeout)
 			for _, v := range dataForSend {
 				a.reportChan <- reportMessage{
 					expire: expire,
@@ -117,7 +114,7 @@ func (a *Agent) reportWorker(wg *sync.WaitGroup) {
 	var now time.Time
 
 	client := &http.Client{
-		Timeout: a.config.httpTimeout,
+		Timeout: a.cfgTimeouts.httpTimeout,
 	}
 	for c := range a.reportChan {
 		if c.expire.Before(time.Now()) {
@@ -164,13 +161,10 @@ func New(cfg *config.Config) *Agent {
 		sentChan:    make(chan sentMessage, gaugeSourceLen),
 		reportChan:  make(chan reportMessage, gaugeSourceLen),
 		gaugeSource: gaugeSource,
-		config: Config{
-			UpdateGaugeURL:     cfg.UpdateGaugeURL,
-			UpdateCounterURL:   cfg.UpdateCounterURL,
-			PollInterval:       time.Duration(cfg.PollInterval) * time.Second,
-			ReportInterval:     time.Duration(cfg.ReportInterval) * time.Second,
-			ReportWorkersCount: cfg.ReportWorkersCount,
-			TimeoutCoefficient: cfg.TimeoutCoefficient,
+		config:      *cfg,
+		cfgTimeouts: cfgTimeouts{
+			pollInterval:   time.Duration(cfg.PollInterval) * time.Second,
+			reportInterval: time.Duration(cfg.ReportInterval) * time.Second,
 		},
 	}
 
@@ -178,33 +172,35 @@ func New(cfg *config.Config) *Agent {
 }
 
 func (a *Agent) Run() error {
-	if a.config.ReportInterval <= a.config.PollInterval {
-		return fmt.Errorf("ReportInterval (%v) must be greater than PollInterval (%v)",
-			a.config.ReportInterval, a.config.PollInterval)
+	if a.cfgTimeouts.reportInterval <= a.cfgTimeouts.pollInterval {
+		return fmt.Errorf("reportInterval (%v) must be greater than pollInterval (%v)",
+			a.cfgTimeouts.reportInterval, a.cfgTimeouts.pollInterval)
 	}
 	if a.config.TimeoutCoefficient > 1 {
 		return fmt.Errorf("TimeoutCoefficient (%f) must be less than 1 ", a.config.TimeoutCoefficient)
 	}
 
-	// максимальное время на запрос, чтобы успеть уложить отправку всех метрик в ReportInterval
-	to := float64(a.config.ReportInterval) / float64(a.gaugeSource.Len()) * float64(a.config.ReportWorkersCount)
+	// максимальное время на запрос, чтобы успеть уложить отправку всех метрик в reportInterval
+	to := float64(a.cfgTimeouts.reportInterval) / float64(a.gaugeSource.Len()) * float64(a.config.ReportWorkersCount)
 
 	// таймаут для http клиента делаем меньше (TimeoutCoefficient <= 1)
-	a.config.httpTimeout = time.Duration(a.config.TimeoutCoefficient * to)
+	a.cfgTimeouts.httpTimeout = time.Duration(a.config.TimeoutCoefficient * to)
 
 	// для проверки просрочки в воркере - сколько времени есть у последнего элемента в очереди
-	a.config.sendExpireTimeout = time.Duration(a.config.TimeoutCoefficient * float64(a.config.ReportInterval))
+	a.cfgTimeouts.sendExpireTimeout = time.Duration(a.config.TimeoutCoefficient * float64(a.cfgTimeouts.reportInterval))
 
 	// для проверки просрочки при получении списка на отправку
 	// dataExpireTimeout должен быть чуть больше sendExpireTimeout - не менее чем на httpTimeout,
-	// но не больше ReportInterval
-	a.config.dataExpireTimeout = min(a.config.sendExpireTimeout+a.config.httpTimeout, a.config.ReportInterval)
+	// но не больше reportInterval
+	a.cfgTimeouts.dataExpireTimeout = min(
+		a.cfgTimeouts.sendExpireTimeout+a.cfgTimeouts.httpTimeout,
+		a.cfgTimeouts.reportInterval)
 
 	go a.dataWorker()
 
 	wg := &sync.WaitGroup{}
 
-	//nolint:intrange // for range reportWorkersCount {...} подсвечивает GoLang inspection
+	//nolint:intrange // for range ReportWorkersCount {...} подсвечивает GoLang inspection
 	for i := 0; i < a.config.ReportWorkersCount; i++ {
 		wg.Add(1)
 		go a.reportWorker(wg)
