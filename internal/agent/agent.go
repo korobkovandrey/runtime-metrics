@@ -86,7 +86,7 @@ func (a *Agent) dataWorker() {
 			a.collectExpire = time.Now().Add(a.cfgTimeouts.pollInterval)
 			err = a.gaugeSource.Collect()
 			if err != nil {
-				log.Println(fmt.Errorf("dataWorker: %w", err))
+				log.Printf("dataWorker: %v", err)
 			}
 		}
 
