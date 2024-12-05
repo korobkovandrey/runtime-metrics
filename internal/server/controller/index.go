@@ -38,10 +38,10 @@ func IndexHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *ht
 		err := tpl.execute(w, store.GetAllData())
 		if err != nil {
 			log.Printf("IndexHandlerFunc tpl: %v", err)
-		}
-		_, err = fmt.Fprint(w, "Fail load template!!!")
-		if err != nil {
-			log.Printf("fmt.Fprintln: %v", err)
+			_, err = fmt.Fprint(w, "Fail load template!!!")
+			if err != nil {
+				log.Printf("IndexHandlerFunc fmt.Fprintln: %v", err)
+			}
 		}
 	}
 }
