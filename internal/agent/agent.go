@@ -52,7 +52,7 @@ func (a *Agent) makeURL(r reportMessage) (string, error) {
 	case service.CounterType:
 		return a.config.UpdateURL + service.CounterType + "/" + r.name + "/" + r.value, nil
 	default:
-		return "", fmt.Errorf("%s: %w", r.t, errors.New("type is not valid"))
+		return "", fmt.Errorf("%s: type is not valid", r.t)
 	}
 }
 
