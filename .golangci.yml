@@ -250,6 +250,18 @@ linters-settings:
   makezero:
     always: false
 
+  mnd:
+    checks:
+      - argument
+      - case
+      - condition
+      - operation
+      - return
+      - assign
+    ignored-files: []
+    ignored-functions: []
+    ignored-numbers: []
+
   musttag:
     # A set of custom functions to check in addition to the builtin ones.
     # Default: json, xml, gopkg.in/yaml.v3, BurntSushi/toml, mitchellh/mapstructure, jmoiron/sqlx
@@ -349,6 +361,8 @@ linters-settings:
     # - "all": report all global loggers
     # - "default": report only the default slog logger
     no-global: "all"
+    # Enforce using methods that accept a context.
+    context: "all"
     # Enforce using static values for log messages.
     static-msg: false
     # Enforce using constants instead of raw keys.
@@ -478,7 +492,6 @@ linters:
     - godot
     - gofmt
     - goimports
-    - mnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -490,6 +503,7 @@ linters:
     - loggercheck
     - makezero
     - mirror
+    - mnd
     - musttag
     - nilerr
     - nilnil
