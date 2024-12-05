@@ -2,16 +2,15 @@ package server
 
 import (
 	"errors"
-	"os"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -67,6 +66,7 @@ func TestServer_NewHandler(t *testing.T) {
 		{"GET", "/blablabla", http.StatusNotFound, ""},
 		{"GET", "/", http.StatusOK, "<!DOCTYPE html>"},
 	}
+	currentDir, _ := os.Getwd()
 	_ = os.Chdir("../..")
 	for _, v := range tests {
 		gotBody, gotStatusCode := testRequest(t, ts, v.method, v.url)
@@ -80,6 +80,7 @@ func TestServer_NewHandler(t *testing.T) {
 			}
 		}
 	}
+	_ = os.Chdir(currentDir)
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string) (body []byte, statusCode int) {
