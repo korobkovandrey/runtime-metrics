@@ -1,12 +1,9 @@
 package service
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/agent/utils"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"testing"
-	"time"
 )
 
 var testRuntimeMetricNames = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",
@@ -14,75 +11,21 @@ var testRuntimeMetricNames = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFra
 	"MSpanInuse", "MSpanSys", "Mallocs", "NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs",
 	"StackInuse", "StackSys", "Sys", "TotalAlloc"}
 
-func TestNewGaugeSource(t *testing.T) {
+func TestSource_NewGaugeSource_Collect_GetDataForSend(t *testing.T) {
 	s := NewGaugeSource()
-	assert.IsType(t, s, &Source{})
-	assert.Equal(t, s.Len(), len(utils.GetRuntimeMetrics())+2)
+	s.Collect()
+	assert.Len(t, s.data, len(testRuntimeMetricNames)+1)
+	assert.Contains(t, s.data, "RandomValue")
+	assert.NotEmpty(t, s.data["RandomValue"])
 	for _, m := range testRuntimeMetricNames {
-		assert.Contains(t, s.gaugeData, m)
+		assert.Contains(t, s.data, m)
 	}
-	assert.Contains(t, s.gaugeData, "RandomValue")
-}
 
-func TestSource_Collect(t *testing.T) {
-	s := NewGaugeSource()
-	assert.Equal(t, s.collectCount.value, uint64(0))
-	assert.Empty(t, s.gaugeData["RandomValue"].value)
-	assert.NoError(t, s.Collect())
-	assert.Equal(t, s.collectCount.value, uint64(1))
-	assert.NotEmpty(t, s.gaugeData["RandomValue"].value)
-}
-
-func TestSource_GetDataForSendAndSetDataSent(t *testing.T) {
-	s := NewGaugeSource()
-	require.NoError(t, s.Collect())
-	result := s.GetDataForSend(time.Second, time.Second)
-	assert.Len(t, result, len(testRuntimeMetricNames)+addCountMetrics)
-	dataIndex := map[string]string{}
-	sentData := make([]DataSent, 0, len(result)+1)
-	for _, m := range result {
-		dataIndex[m.T+"_"+m.Name] = m.Value
-		sentData = append(sentData, DataSent{Sent: time.Now(), T: m.T, Name: m.Name})
-	}
-	s.SetDataSent(sentData)
+	result := s.GetDataForSend()
+	assert.Len(t, result, len(testRuntimeMetricNames)+1)
+	assert.Contains(t, result, "RandomValue")
+	assert.NotEqual(t, result["RandomValue"], "0")
 	for _, m := range testRuntimeMetricNames {
-		assert.Contains(t, dataIndex, "gauge_"+m)
+		assert.Contains(t, result, m)
 	}
-	assert.Contains(t, dataIndex, "gauge_RandomValue")
-	assert.Contains(t, dataIndex, "counter_PollCount")
-	assert.NotEqual(t, dataIndex["gauge_RandomValue"], "0")
-	assert.Equal(t, dataIndex["counter_PollCount"], "1")
-
-	result = s.GetDataForSend(time.Second, time.Second)
-	assert.Len(t, result, 0)
-	time.Sleep(500 * time.Millisecond)
-	result = s.GetDataForSend(time.Second, time.Second)
-	assert.Len(t, result, 0)
-	time.Sleep(500 * time.Millisecond)
-	result = s.GetDataForSend(time.Second, time.Second)
-	assert.Len(t, result, len(testRuntimeMetricNames)+addCountMetrics)
-}
-
-func TestSource_Len(t *testing.T) {
-	s := NewGaugeSource()
-	assert.Equal(t, s.Len(), len(testRuntimeMetricNames)+addCountMetrics)
-}
-
-func TestSource_addCollectCountSent(t *testing.T) {
-	s := NewGaugeSource()
-	assert.Equal(t, s.collectCount.sentValue, uint64(0))
-	s.addCollectCountSent("10")
-	assert.Equal(t, s.collectCount.sentValue, uint64(10))
-	s.addCollectCountSent("20")
-	assert.Equal(t, s.collectCount.sentValue, uint64(30))
-}
-
-func TestSource_getDiffCollectCount(t *testing.T) {
-	s := NewGaugeSource()
-	assert.Equal(t, s.getDiffCollectCount(), 0)
-	s.collectCount.value = 10
-	s.addCollectCountSent("10")
-	assert.Equal(t, s.getDiffCollectCount(), 0)
-	s.collectCount.value = 20
-	assert.Equal(t, s.getDiffCollectCount(), 10)
 }

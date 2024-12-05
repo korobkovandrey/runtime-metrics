@@ -13,11 +13,11 @@ import (
 )
 
 type Server struct {
-	config config.Config
+	config *config.Config
 }
 
 func New(cfg *config.Config) *Server {
-	return &Server{*cfg}
+	return &Server{cfg}
 }
 
 func (s Server) NewHandler() http.Handler {
