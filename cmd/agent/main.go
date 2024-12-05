@@ -12,7 +12,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := agent.New(cfg).Run(); err != nil {
+	if err = agent.New(cfg).Run(); err != nil {
 		log.Fatal(err)
 	}
 }

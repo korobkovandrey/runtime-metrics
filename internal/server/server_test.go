@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"os"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 
@@ -64,8 +65,9 @@ func TestServer_NewHandler(t *testing.T) {
 		{"GET", "/value/counter/test9", http.StatusOK, "90"},
 		// index
 		{"GET", "/blablabla", http.StatusNotFound, ""},
-		{"GET", "/", http.StatusOK, "<table><thead><tr><th>Type</th><th>Name</th><th>Value</th></tr><thead><tbody>"},
+		{"GET", "/", http.StatusOK, "<!DOCTYPE html>"},
 	}
+	_ = os.Chdir("../..")
 	for _, v := range tests {
 		gotBody, gotStatusCode := testRequest(t, ts, v.method, v.url)
 		assert.Equal(t, v.wantStatus, gotStatusCode, v.method+" "+v.url)
@@ -84,16 +86,14 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (body [
 	t.Helper()
 	req, err := http.NewRequest(method, ts.URL+path, http.NoBody)
 	require.NoError(t, err)
-
 	resp, err := ts.Client().Do(req)
-	require.NoError(t, err)
 	if resp != nil {
 		defer func() {
 			err = errors.Join(err, resp.Body.Close())
 			require.NoError(t, err)
 		}()
 	}
-
+	require.NoError(t, err)
 	body, err = io.ReadAll(resp.Body)
 	statusCode = resp.StatusCode
 	return

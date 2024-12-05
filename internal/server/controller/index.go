@@ -2,6 +2,8 @@ package controller
 
 import (
 	"fmt"
+	"html/template"
+	"sync"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 
@@ -9,20 +11,31 @@ import (
 	"net/http"
 )
 
-// IndexHandlerFunc @todo test!!!
+type tplStore struct {
+	tpl *template.Template
+	mux *sync.Mutex
+}
+
+func (s *tplStore) getTpl() template.Template {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	if s.tpl == nil {
+		s.tpl = template.Must(template.ParseFiles("./web/template/index.html"))
+	}
+	return *s.tpl
+}
+
 func IndexHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
+	cache := &tplStore{
+		mux: &sync.Mutex{},
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := fmt.Fprintln(w, "<table><thead><tr><th>Type</th><th>Name</th><th>Value</th></tr><thead><tbody>")
+		tpl := cache.getTpl()
+		err := tpl.Execute(w, store.GetAllData())
 		if err != nil {
-			log.Printf("fmt.Fprintln: %v", err)
+			log.Printf("IndexHandlerFunc tpl.Execute: %v", err)
 		}
-		for _, v := range store.GetAllData() {
-			_, err = fmt.Fprintf(w, "<tr><td>%s</td><td>%s</td><td>%v</td></tr>", v.T, v.Name, v.Value)
-			if err != nil {
-				log.Printf("fmt.Fprintln: %v", err)
-			}
-		}
-		_, err = fmt.Fprintln(w, "</tbody></table>")
+		_, err = fmt.Fprint(w, "Fail load template!!!")
 		if err != nil {
 			log.Printf("fmt.Fprintln: %v", err)
 		}
