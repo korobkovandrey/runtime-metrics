@@ -43,11 +43,5 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 			http.Error(w, "bad request: invalid number", http.StatusBadRequest)
 			return
 		}
-
-		if v, ok := m.GetStorageValue(name); ok {
-			log.Printf("%s OK %s: %s[%s] = %v", r.URL.Path, value, t, name, v)
-		} else {
-			log.Printf("%s FAIL %s: %s[%s] not found in storage", r.URL.Path, value, t, name)
-		}
 	}
 }
