@@ -30,11 +30,11 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 		m, err := store.Get(t)
 		if err != nil {
 			log.Println(r.URL.Path, fmt.Errorf("store.Get(%v): %w", t, err))
-			responseText := ""
 			if errors.Is(err, repository.ErrTypeIsNotValid) {
-				responseText = fmt.Errorf("bad request: %w", err).Error()
+				http.Error(w, fmt.Errorf("bad request: %w", err).Error(), http.StatusBadRequest)
+				return
 			}
-			http.Error(w, responseText, http.StatusBadRequest)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
