@@ -20,7 +20,7 @@ func New(cfg *config.Config) *Server {
 	return &Server{cfg}
 }
 
-func (s Server) NewHandler() http.Handler {
+func (s Server) NewHandler() (http.Handler, error) {
 	store := repository.NewStoreMemStorage()
 	r := chi.NewRouter()
 
@@ -36,13 +36,22 @@ func (s Server) NewHandler() http.Handler {
 		})
 	})
 	r.Get("/value/{type}/{name}", controller.ValueHandlerFunc(store))
-	r.Get("/", controller.IndexHandlerFunc(store))
-	return r
+
+	indexHandlerFunc, err := controller.IndexHandlerFunc(store)
+	if err != nil {
+		return r, fmt.Errorf("NewHandler: %w", err)
+	}
+	r.Get("/", indexHandlerFunc)
+	return r, nil
 }
 
 func (s Server) Run() error {
+	handler, err := s.NewHandler()
+	if err != nil {
+		return fmt.Errorf("server.NewHandler: %w", err)
+	}
 	fmt.Printf("Server listen: %s\n", "http://"+s.config.Addr+"/")
-	if err := http.ListenAndServe(s.config.Addr, s.NewHandler()); err != nil {
+	if err = http.ListenAndServe(s.config.Addr, handler); err != nil {
 		return fmt.Errorf("server.Run: %w", err)
 	}
 	return nil

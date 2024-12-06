@@ -16,7 +16,12 @@ import (
 
 func TestServer_NewHandler(t *testing.T) {
 	s := New(&config.Config{})
-	ts := httptest.NewServer(s.NewHandler())
+	currentDir, _ := os.Getwd()
+	_ = os.Chdir("../..")
+	handler, err := s.NewHandler()
+	_ = os.Chdir(currentDir)
+	require.NoError(t, err)
+	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
 	tests := []struct {
@@ -66,8 +71,6 @@ func TestServer_NewHandler(t *testing.T) {
 		{"GET", "/blablabla", http.StatusNotFound, ""},
 		{"GET", "/", http.StatusOK, "<!DOCTYPE html>"},
 	}
-	currentDir, _ := os.Getwd()
-	_ = os.Chdir("../..")
 	for _, v := range tests {
 		gotBody, gotStatusCode := testRequest(t, ts, v.method, v.url)
 		assert.Equal(t, v.wantStatus, gotStatusCode, v.method+" "+v.url)
@@ -80,7 +83,6 @@ func TestServer_NewHandler(t *testing.T) {
 			}
 		}
 	}
-	_ = os.Chdir(currentDir)
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string) (body []byte, statusCode int) {
