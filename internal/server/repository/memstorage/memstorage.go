@@ -35,11 +35,8 @@ func (s MemStorage) Set(t string, name string, value any) {
 func (s MemStorage) IncrInt64(t string, name string, value int64) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if v, ok := s.data[t][name].(int64); ok {
-		s.data[t][name] = v + value
-	} else {
-		s.data[t][name] = value
-	}
+	v, _ := s.data[t][name].(int64)
+	s.data[t][name] = v + value
 }
 
 func (s MemStorage) Keys(t string) (result []string) {
