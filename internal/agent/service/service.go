@@ -21,6 +21,7 @@ func NewGaugeSource() *Source {
 }
 
 func (s *Source) Collect() {
+	s.data["RandomValue"] = strconv.FormatFloat(rand.Float64(), 'g', -1, 64)
 	runtimeMetrics := utils.GetRuntimeMetrics()
 	var i, v string
 	s.mux.Lock()
@@ -28,7 +29,6 @@ func (s *Source) Collect() {
 	for i, v = range runtimeMetrics {
 		s.data[i] = v
 	}
-	s.data["RandomValue"] = strconv.FormatFloat(rand.Float64(), 'g', -1, 64)
 }
 
 func (s *Source) GetDataForSend() (result map[string]string) {
