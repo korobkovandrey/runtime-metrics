@@ -18,13 +18,14 @@ type Agent struct {
 
 func sendRequest(client *http.Client, url string) error {
 	response, err := client.Post(url, "text/plain", http.NoBody)
-	if response != nil {
-		defer func() {
-			_ = response.Body.Close()
-		}()
-	}
 	if err != nil {
 		return fmt.Errorf("sendRequest: %w", err)
+	}
+	if response != nil {
+		defer func() {
+			err := response.Body.Close()
+			log.Printf("failed to close the response body: %v", err)
+		}()
 	}
 	if response.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(response.Body)
