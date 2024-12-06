@@ -23,6 +23,7 @@ func IndexHandlerFunc(store *repository.Store) (func(w http.ResponseWriter, r *h
 			if err != nil {
 				log.Printf("IndexHandlerFunc fmt.Fprintln: %v", err)
 			}
+			return
 		}
 	}, nil
 }
