@@ -43,7 +43,7 @@ func New(cfg *config.Config) *Agent {
 	}
 }
 
-func (a *Agent) Run() error {
+func (a *Agent) Run() {
 	client := &http.Client{}
 	go func(client *http.Client) {
 		pollInterval := time.Duration(a.config.PollInterval) * time.Second
@@ -58,9 +58,7 @@ func (a *Agent) Run() error {
 		}
 	}(client)
 
-	reportInterval := time.Duration(a.config.ReportInterval) * time.Second
-	for {
-		time.Sleep(reportInterval)
+	for range time.Tick(time.Duration(a.config.ReportInterval) * time.Second) {
 		dataForSend := a.gaugeSource.GetDataForSend()
 		var err error
 		for i, v := range dataForSend {
