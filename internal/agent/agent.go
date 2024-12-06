@@ -28,7 +28,11 @@ func sendRequest(client *http.Client, url string) error {
 		return fmt.Errorf("sendRequest: %w", err)
 	}
 	if response.StatusCode != http.StatusOK {
-		err = fmt.Errorf("code %d", response.StatusCode)
+                body, err := io.ReadAll(response.Body)
+                if err != nil {
+                    return fmt.Errorf("failed to read the response body: %w (status code %d)", err, response.StatusCode)
+                }
+                return fmt.Erorrf("unexpected status code received: %d (body: %s)", response.StatusCode, string(body))
 		body, err1 := io.ReadAll(response.Body)
 		if err1 == nil {
 			err1 = fmt.Errorf("body %s", strings.TrimSuffix(string(body), "\n"))
