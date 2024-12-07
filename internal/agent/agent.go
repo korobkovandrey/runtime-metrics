@@ -23,8 +23,9 @@ func sendRequest(client *http.Client, url string) error {
 	}
 	if response != nil {
 		defer func() {
-			err := response.Body.Close()
-			log.Printf("failed to close the response body: %v", err)
+			if err := response.Body.Close(); err != nil {
+				log.Printf("failed to close the response body: %v", err)
+			}
 		}()
 	}
 	if response.StatusCode != http.StatusOK {
@@ -47,15 +48,14 @@ func New(cfg *config.Config) *Agent {
 func (a *Agent) Run() {
 	client := &http.Client{}
 	go func(client *http.Client) {
-		pollInterval := time.Duration(a.config.PollInterval) * time.Second
+		tick := time.NewTicker(time.Duration(a.config.PollInterval) * time.Second)
 		var err error
-		for {
+		for ; ; <-tick.C {
 			a.gaugeSource.Collect()
 			err = sendRequest(client, a.config.UpdateURL+"counter/PollCount/1")
 			if err != nil {
 				log.Printf("fail send PollCount: %v", err)
 			}
-			time.Sleep(pollInterval)
 		}
 	}(client)
 
