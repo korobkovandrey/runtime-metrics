@@ -16,10 +16,13 @@ import (
 
 func TestServer_NewHandler(t *testing.T) {
 	s := New(&config.Config{})
-	currentDir, _ := os.Getwd()
-	_ = os.Chdir("../..")
+	currentDir, err := os.Getwd()
+	require.NoError(t, err)
+	err = os.Chdir("../..")
+	require.NoError(t, err)
 	handler, err := s.NewHandler()
-	_ = os.Chdir(currentDir)
+	require.NoError(t, err)
+	err = os.Chdir(currentDir)
 	require.NoError(t, err)
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
