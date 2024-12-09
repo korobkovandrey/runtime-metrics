@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Runtime Metrics</title>
+    <style>
+        table {
+            width: 90%;
+            max-width: 500px;
+            margin: 0 auto;
+            border: 3px solid #333;
+            border-collapse: collapse;
+        }
+        th {
+            border: 3px solid #333;
+            padding: 10px 15px;
+        }
+        td {
+            border: 1px solid #333;
+            padding: 10px 15px;
+        }
+        td:nth-of-type(1) {
+            text-align: center;
+        }
+        td:nth-of-type(3) {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>
+        <th>Тип</th>
+        <th>Метрика</th>
+        <th>Значение</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range .}}
+    <tr>
+        <td>{{.T}}</td><td>{{.Name}}</td><td>{{.Value}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+</table>
+</body>
+</html>
