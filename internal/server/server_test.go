@@ -1,8 +1,6 @@
 package server
 
 import (
-	"errors"
-
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -93,14 +91,12 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (body [
 	req, err := http.NewRequest(method, ts.URL+path, http.NoBody)
 	require.NoError(t, err)
 	resp, err := ts.Client().Do(req)
-	if resp != nil {
-		defer func() {
-			err = errors.Join(err, resp.Body.Close())
-			require.NoError(t, err)
-		}()
-	}
 	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 	body, err = io.ReadAll(resp.Body)
+	require.NoError(t, err)
 	statusCode = resp.StatusCode
 	return
 }
