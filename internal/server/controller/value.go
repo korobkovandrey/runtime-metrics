@@ -39,6 +39,7 @@ func ValueHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *ht
 			http.NotFound(w, r)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 		_, err = fmt.Fprint(w, value)
 		if err != nil {
 			log.Println(r.URL.Path, fmt.Errorf("fmt.Fprint(%v): %w", value, err))

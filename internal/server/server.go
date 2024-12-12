@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/logger"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
@@ -25,7 +26,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 	r := chi.NewRouter()
 
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
-	r.Route("/update", func(r chi.Router) {
+	r.With(logger.WithLogging).Route("/update", func(r chi.Router) {
 		r.Post("/", updateHandlerFunc)
 		r.Route("/{type}", func(r chi.Router) {
 			r.Post("/", updateHandlerFunc)
@@ -35,13 +36,13 @@ func (s Server) NewHandler() (http.Handler, error) {
 			})
 		})
 	})
-	r.Get("/value/{type}/{name}", controller.ValueHandlerFunc(store))
+	r.With(logger.WithLogging).Get("/value/{type}/{name}", controller.ValueHandlerFunc(store))
 
 	indexHandlerFunc, err := controller.IndexHandlerFunc(store)
 	if err != nil {
 		return r, fmt.Errorf("NewHandler: %w", err)
 	}
-	r.Get("/", indexHandlerFunc)
+	r.With(logger.WithLogging).Get("/", indexHandlerFunc)
 	return r, nil
 }
 

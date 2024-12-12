@@ -43,5 +43,6 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 			http.Error(w, "bad request: invalid number", http.StatusBadRequest)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 	}
 }
