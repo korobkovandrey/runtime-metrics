@@ -24,6 +24,7 @@ type Store struct {
 var (
 	ErrTypeIsNotValid  = errors.New("type is not valid")
 	ErrValueIsRequired = errors.New("value is required")
+	ErrMetricsNotFound = errors.New("metrics not found")
 )
 
 func (s Store) Get(t string) (Adapter, error) {
@@ -72,16 +73,16 @@ func (s Store) FillMetrics(metrics *model.Metrics) error {
 		if v, ok := s.repository.GetFloat64(metrics.MType, metrics.ID); ok {
 			metrics.Value = &v
 		} else {
-			metrics.Value = nil
+			return fmt.Errorf(`UpdateMetrics %s.%s: %w`, metrics.MType, metrics.ID, ErrMetricsNotFound)
 		}
 	case counterType:
 		if v, ok := s.repository.GetInt64(metrics.MType, metrics.ID); ok {
 			metrics.Delta = &v
 		} else {
-			metrics.Delta = nil
+			return fmt.Errorf(`UpdateMetrics %s.%s: %w`, metrics.MType, metrics.ID, ErrMetricsNotFound)
 		}
 	default:
-		return fmt.Errorf(`UpdateMetrics: "%v" %w`, metrics.MType, ErrTypeIsNotValid)
+		return fmt.Errorf(`UpdateMetrics %s: %w`, metrics.MType, ErrTypeIsNotValid)
 	}
 	return nil
 }

@@ -28,6 +28,10 @@ func ValueJSONHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r
 					http.StatusBadRequest)
 				return
 			}
+			if errors.Is(err, repository.ErrMetricsNotFound) {
+				http.NotFound(w, r)
+				return
+			}
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
