@@ -10,7 +10,6 @@ import (
 	"net/http"
 )
 
-// ValueHandlerFunc @todo test!!!
 func ValueHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")
@@ -27,7 +26,7 @@ func ValueHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *ht
 		if err != nil {
 			log.Println(r.URL.Path, fmt.Errorf("store.Get(%v): %w", t, err))
 			if errors.Is(err, repository.ErrTypeIsNotValid) {
-				http.Error(w, fmt.Errorf("bad request: %w", err).Error(), http.StatusBadRequest)
+				http.Error(w, fmt.Errorf(http.StatusText(http.StatusBadRequest)+": %w", err).Error(), http.StatusBadRequest)
 				return
 			}
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -39,6 +38,7 @@ func ValueHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *ht
 			http.NotFound(w, r)
 			return
 		}
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		_, err = fmt.Fprint(w, value)
 		if err != nil {

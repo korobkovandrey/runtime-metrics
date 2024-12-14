@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/adapter"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage"
 )
@@ -16,11 +17,13 @@ type Adapter interface {
 }
 
 type Store struct {
-	data map[string]Adapter
+	repository adapter.Repository
+	data       map[string]Adapter
 }
 
 var (
-	ErrTypeIsNotValid = errors.New("type is not valid")
+	ErrTypeIsNotValid  = errors.New("type is not valid")
+	ErrValueIsRequired = errors.New("value is required")
 )
 
 func (s Store) Get(t string) (Adapter, error) {
@@ -28,6 +31,59 @@ func (s Store) Get(t string) (Adapter, error) {
 		return nil, fmt.Errorf(`"%v" %w`, t, ErrTypeIsNotValid)
 	}
 	return s.data[t], nil
+}
+
+const (
+	gaugeType   = "gauge"
+	counterType = "counter"
+)
+
+func (s Store) UpdateMetrics(metrics *model.Metrics) error {
+	switch metrics.MType {
+	case gaugeType:
+		if metrics.Value == nil {
+			return fmt.Errorf("UpdateMetrics: %w", ErrValueIsRequired)
+		}
+		s.repository.SetFloat64(metrics.MType, metrics.ID, *metrics.Value)
+		if v, ok := s.repository.GetFloat64(metrics.MType, metrics.ID); ok {
+			*metrics.Value = v
+		} else {
+			metrics.Value = nil
+		}
+	case counterType:
+		if metrics.Delta == nil {
+			return fmt.Errorf("UpdateMetrics: %w", ErrValueIsRequired)
+		}
+		s.repository.IncrInt64(metrics.MType, metrics.ID, *metrics.Delta)
+		if v, ok := s.repository.GetInt64(metrics.MType, metrics.ID); ok {
+			*metrics.Delta = v
+		} else {
+			metrics.Delta = nil
+		}
+	default:
+		return fmt.Errorf(`UpdateMetrics: "%v" %w`, metrics.MType, ErrTypeIsNotValid)
+	}
+	return nil
+}
+
+func (s Store) FillMetrics(metrics *model.Metrics) error {
+	switch metrics.MType {
+	case gaugeType:
+		if v, ok := s.repository.GetFloat64(metrics.MType, metrics.ID); ok {
+			metrics.Value = &v
+		} else {
+			metrics.Value = nil
+		}
+	case counterType:
+		if v, ok := s.repository.GetInt64(metrics.MType, metrics.ID); ok {
+			metrics.Delta = &v
+		} else {
+			metrics.Delta = nil
+		}
+	default:
+		return fmt.Errorf(`UpdateMetrics: "%v" %w`, metrics.MType, ErrTypeIsNotValid)
+	}
+	return nil
 }
 
 type StorageValue struct {
@@ -62,13 +118,9 @@ func (s Store) addAdapter(key string, a Adapter) {
 	s.data[key] = a
 }
 
-const (
-	gaugeType   = "gauge"
-	counterType = "counter"
-)
-
 func NewStore(repository adapter.Repository) *Store {
 	store := &Store{
+		repository,
 		map[string]Adapter{},
 	}
 	repository.AddType(gaugeType)

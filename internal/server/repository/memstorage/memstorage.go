@@ -26,7 +26,7 @@ func (s MemStorage) AddType(t string) {
 	s.data[t] = map[string]any{}
 }
 
-func (s MemStorage) Set(t string, name string, value any) {
+func (s MemStorage) SetFloat64(t string, name string, value float64) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	s.data[t][name] = value
@@ -53,5 +53,19 @@ func (s MemStorage) Get(t string, name string) (value any, ok bool) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	value, ok = s.data[t][name]
+	return
+}
+
+func (s MemStorage) GetFloat64(t string, name string) (value float64, ok bool) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	value, ok = s.data[t][name].(float64)
+	return
+}
+
+func (s MemStorage) GetInt64(t string, name string) (value int64, ok bool) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	value, ok = s.data[t][name].(int64)
 	return
 }

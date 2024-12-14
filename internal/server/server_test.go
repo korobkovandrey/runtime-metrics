@@ -45,10 +45,10 @@ func TestServer_NewHandler(t *testing.T) {
 		// без значения
 		{"POST", "/update/gauge/test1", http.StatusBadRequest, "Value is required.\n"},
 		// неизвестный тип
-		{"POST", "/update/blabla/test2/1", http.StatusBadRequest, "bad request: \"blabla\" type is not valid\n"},
+		{"POST", "/update/blabla/test2/1", http.StatusBadRequest, "Bad Request: \"blabla\" type is not valid\n"},
 		// некорректное значение
-		{"POST", "/update/gauge/test3/fail_value", http.StatusBadRequest, "bad request: invalid number\n"},
-		{"POST", "/update/counter/test4/1.5", http.StatusBadRequest, "bad request: invalid number\n"},
+		{"POST", "/update/gauge/test3/fail_value", http.StatusBadRequest, "Bad Request: invalid number\n"},
+		{"POST", "/update/counter/test4/1.5", http.StatusBadRequest, "Bad Request: invalid number\n"},
 		// корректное значение gauge
 		{"POST", "/update/gauge/test5/1.5", http.StatusOK, ""},
 		{"POST", "/update/gauge/test6/0.001", http.StatusOK, ""},
@@ -63,7 +63,7 @@ func TestServer_NewHandler(t *testing.T) {
 		// некорректрые запросы
 		{"GET", "/value/gauge/blabla", http.StatusNotFound, ""},
 		{"GET", "/value/counter/blabla", http.StatusNotFound, ""},
-		{"GET", "/value/blabla/blabla", http.StatusBadRequest, "bad request: \"blabla\" type is not valid\n"},
+		{"GET", "/value/blabla/blabla", http.StatusBadRequest, "Bad Request: \"blabla\" type is not valid\n"},
 		// корректные запросы
 		{"GET", "/value/gauge/test5", http.StatusOK, "1.5"},
 		{"GET", "/value/gauge/test6", http.StatusOK, "0.001"},

@@ -1,18 +1,18 @@
 package controller
 
 import (
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"io"
 	"net/http"
 	"net/http/httptest"
-
 	"testing"
+
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateHandlerFunc(t *testing.T) {
+func TestValueHandlerFunc(t *testing.T) {
 	const (
 		gaugeType   = "gauge"
 		counterType = "counter"
@@ -48,99 +48,57 @@ func TestUpdateHandlerFunc(t *testing.T) {
 			},
 		},
 		{
-			name: "without value",
+			name: "not exists name",
 			pathValues: map[string]string{
-				"type": "fail_type",
-				"name": "name",
+				"type": gaugeType,
+				"name": "fail_name",
 			},
 			want: want{
-				code:        400,
-				response:    "Value is required.\n",
-				contentType: "text/plain; charset=utf-8",
-			},
-		},
-		{
-			name: "not exists type",
-			pathValues: map[string]string{
-				"type":  "fail_type",
-				"name":  "name",
-				"value": "10",
-			},
-			want: want{
-				code:        400,
-				response:    "Bad Request: \"fail_type\" type is not valid\n",
-				contentType: "text/plain; charset=utf-8",
-			},
-		},
-		{
-			name: "string value gauge",
-			pathValues: map[string]string{
-				"type":  gaugeType,
-				"name":  "name",
-				"value": "fail_value",
-			},
-			want: want{
-				code:        400,
-				response:    "Bad Request: invalid number\n",
-				contentType: "text/plain; charset=utf-8",
-			},
-		},
-		{
-			name: "string value counter",
-			pathValues: map[string]string{
-				"type":  counterType,
-				"name":  "name",
-				"value": "fail_value",
-			},
-			want: want{
-				code:        400,
-				response:    "Bad Request: invalid number\n",
+				code:        404,
+				response:    "404 page not found\n",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
 			name: "gauge ok",
 			pathValues: map[string]string{
-				"type":  gaugeType,
-				"name":  "name",
-				"value": "10.12344",
+				"type": gaugeType,
+				"name": "name",
 			},
 			want: want{
 				code:        200,
-				response:    "",
-				contentType: "",
-			},
-		},
-		{
-			name: "counter fail float",
-			pathValues: map[string]string{
-				"type":  counterType,
-				"name":  "name",
-				"value": "10.12344",
-			},
-			want: want{
-				code:        400,
-				response:    "Bad Request: invalid number\n",
+				response:    "10.1",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: "counter 1",
+			name: "counter ok",
 			pathValues: map[string]string{
-				"type":  counterType,
-				"name":  "name",
-				"value": "1",
+				"type": counterType,
+				"name": "name",
 			},
 			want: want{
 				code:        200,
-				response:    "",
-				contentType: "",
+				response:    "10",
+				contentType: "text/plain; charset=utf-8",
 			},
 		},
 	}
+	s := repository.NewStoreMemStorage()
+	valueFloat64 := 10.1
+	valueInt64 := int64(10)
+	require.NoError(t, s.UpdateMetrics(&model.Metrics{
+		MType: gaugeType,
+		ID:    "name",
+		Value: &valueFloat64,
+	}))
+	require.NoError(t, s.UpdateMetrics(&model.Metrics{
+		MType: counterType,
+		ID:    "name",
+		Delta: &valueInt64,
+	}))
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			s := repository.NewStoreMemStorage()
 			target := ""
 			for _, v := range test.pathValues {
 				target += "/" + v
@@ -153,7 +111,7 @@ func TestUpdateHandlerFunc(t *testing.T) {
 				request.SetPathValue(i, v)
 			}
 			w := httptest.NewRecorder()
-			UpdateHandlerFunc(s)(w, request)
+			ValueHandlerFunc(s)(w, request)
 
 			res := w.Result()
 			if res != nil {

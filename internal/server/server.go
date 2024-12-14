@@ -27,7 +27,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
 	r.With(logger.WithLogging).Route("/update", func(r chi.Router) {
-		r.Post("/", updateHandlerFunc)
+		r.Post("/", controller.UpdateJSONHandlerFunc(store))
 		r.Route("/{type}", func(r chi.Router) {
 			r.Post("/", updateHandlerFunc)
 			r.Route("/{name}", func(r chi.Router) {
@@ -36,7 +36,11 @@ func (s Server) NewHandler() (http.Handler, error) {
 			})
 		})
 	})
-	r.With(logger.WithLogging).Get("/value/{type}/{name}", controller.ValueHandlerFunc(store))
+
+	r.With(logger.WithLogging).Route("/value", func(r chi.Router) {
+		r.Post("/", controller.ValueJSONHandlerFunc(store))
+		r.Get("/{type}/{name}", controller.ValueHandlerFunc(store))
+	})
 
 	indexHandlerFunc, err := controller.IndexHandlerFunc(store)
 	if err != nil {
