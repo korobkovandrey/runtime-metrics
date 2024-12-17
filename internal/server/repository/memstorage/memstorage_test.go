@@ -36,29 +36,14 @@ func TestMemStorage_Set(t *testing.T) {
 	type args struct {
 		t      string
 		name   string
-		values []any
+		values []float64
 	}
-	checkIntValues := []any{1, 2, 3, 4, 5}
-	checkFloatValues := []any{0.1, 0.2, 0.3, 0.4, 0.5}
+	checkFloatValues := []float64{1, 2, 3, 4, 5, 0.1, 0.2, 0.3, 0.4, 0.5}
 	tests := []struct {
 		name       string
 		args       args
-		wantValues []any
+		wantValues []float64
 	}{
-		{
-			name: "test1 int",
-			args: args{
-				t:      "int",
-				name:   "test1",
-				values: checkIntValues,
-			},
-			wantValues: checkIntValues,
-		},
-		{
-			name:       "test2 int",
-			args:       args{"int", "test2", checkIntValues},
-			wantValues: checkIntValues,
-		},
 		{
 			name:       "test1 float",
 			args:       args{"float", "test1", checkFloatValues},
@@ -76,16 +61,12 @@ func TestMemStorage_Set(t *testing.T) {
 		s.AddType(tt.args.t)
 		require.Contains(t, s.data, tt.args.t)
 		for i, v := range tt.args.values {
-			s.Set(tt.args.t, tt.args.name, v)
+			s.SetFloat64(tt.args.t, tt.args.name, v)
 			require.Contains(t, s.data[tt.args.t], tt.args.name)
 			assert.Equal(t, s.data[tt.args.t][tt.args.name], tt.wantValues[i])
 		}
 	}
 	assert.Equal(t, s.data, map[string]map[string]any{
-		"int": {
-			"test1": checkIntValues[len(checkIntValues)-1],
-			"test2": checkIntValues[len(checkIntValues)-1],
-		},
 		"float": {
 			"test1": checkFloatValues[len(checkFloatValues)-1],
 			"test2": checkFloatValues[len(checkFloatValues)-1],

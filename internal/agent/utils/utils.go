@@ -2,40 +2,39 @@ package utils
 
 import (
 	"runtime"
-	"strconv"
 )
 
-func GetRuntimeMetrics() (result map[string]string) {
-	result = map[string]string{}
+func GetRuntimeMetricsFloat64() (result map[string]float64) {
+	result = map[string]float64{}
 	memStats := &runtime.MemStats{}
 	runtime.ReadMemStats(memStats)
 
-	result["Alloc"] = strconv.Itoa(int(memStats.Alloc))
-	result["BuckHashSys"] = strconv.Itoa(int(memStats.BuckHashSys))
-	result["Frees"] = strconv.Itoa(int(memStats.Frees))
-	result["GCCPUFraction"] = strconv.FormatFloat(memStats.GCCPUFraction, 'g', -1, 64)
-	result["GCSys"] = strconv.Itoa(int(memStats.GCSys))
-	result["HeapAlloc"] = strconv.Itoa(int(memStats.HeapAlloc))
-	result["HeapIdle"] = strconv.Itoa(int(memStats.HeapIdle))
-	result["HeapInuse"] = strconv.Itoa(int(memStats.HeapInuse))
-	result["HeapObjects"] = strconv.Itoa(int(memStats.HeapObjects))
-	result["HeapReleased"] = strconv.Itoa(int(memStats.HeapReleased))
-	result["HeapSys"] = strconv.Itoa(int(memStats.HeapSys))
-	result["LastGC"] = strconv.Itoa(int(memStats.LastGC))
-	result["Lookups"] = strconv.Itoa(int(memStats.Lookups))
-	result["MCacheInuse"] = strconv.Itoa(int(memStats.MCacheInuse))
-	result["MCacheSys"] = strconv.Itoa(int(memStats.MCacheSys))
-	result["MSpanInuse"] = strconv.Itoa(int(memStats.MSpanInuse))
-	result["MSpanSys"] = strconv.Itoa(int(memStats.MSpanSys))
-	result["Mallocs"] = strconv.Itoa(int(memStats.Mallocs))
-	result["NextGC"] = strconv.Itoa(int(memStats.NextGC))
-	result["NumForcedGC"] = strconv.Itoa(int(memStats.NumForcedGC))
-	result["NumGC"] = strconv.Itoa(int(memStats.NumGC))
-	result["OtherSys"] = strconv.Itoa(int(memStats.OtherSys))
-	result["PauseTotalNs"] = strconv.Itoa(int(memStats.PauseTotalNs))
-	result["StackInuse"] = strconv.Itoa(int(memStats.StackInuse))
-	result["StackSys"] = strconv.Itoa(int(memStats.StackSys))
-	result["Sys"] = strconv.Itoa(int(memStats.Sys))
-	result["TotalAlloc"] = strconv.Itoa(int(memStats.TotalAlloc))
+	result["Alloc"] = float64(memStats.Alloc)
+	result["BuckHashSys"] = float64(memStats.BuckHashSys)
+	result["Frees"] = float64(memStats.Frees)
+	result["GCCPUFraction"] = memStats.GCCPUFraction
+	result["GCSys"] = float64(memStats.GCSys)
+	result["HeapAlloc"] = float64(memStats.HeapAlloc)
+	result["HeapIdle"] = float64(memStats.HeapIdle)
+	result["HeapInuse"] = float64(memStats.HeapInuse)
+	result["HeapObjects"] = float64(memStats.HeapObjects)
+	result["HeapReleased"] = float64(memStats.HeapReleased)
+	result["HeapSys"] = float64(memStats.HeapSys)
+	result["LastGC"] = float64(memStats.LastGC)
+	result["Lookups"] = float64(memStats.Lookups)
+	result["MCacheInuse"] = float64(memStats.MCacheInuse)
+	result["MCacheSys"] = float64(memStats.MCacheSys)
+	result["MSpanInuse"] = float64(memStats.MSpanInuse)
+	result["MSpanSys"] = float64(memStats.MSpanSys)
+	result["Mallocs"] = float64(memStats.Mallocs)
+	result["NextGC"] = float64(memStats.NextGC)
+	result["NumForcedGC"] = float64(memStats.NumForcedGC)
+	result["NumGC"] = float64(memStats.NumGC)
+	result["OtherSys"] = float64(memStats.OtherSys)
+	result["PauseTotalNs"] = float64(memStats.PauseTotalNs)
+	result["StackInuse"] = float64(memStats.StackInuse)
+	result["StackSys"] = float64(memStats.StackSys)
+	result["Sys"] = float64(memStats.Sys)
+	result["TotalAlloc"] = float64(memStats.TotalAlloc)
 	return
 }

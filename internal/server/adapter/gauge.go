@@ -19,7 +19,7 @@ func (a Gauge) Update(name string, value string) error {
 	if err != nil {
 		return fmt.Errorf("gauge: %w", err)
 	}
-	a.Set(a.key, name, number)
+	a.SetFloat64(a.key, name, number)
 	return nil
 }
 
