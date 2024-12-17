@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/logger"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
@@ -24,9 +25,10 @@ func New(cfg *config.Config) *Server {
 func (s Server) NewHandler() (http.Handler, error) {
 	store := repository.NewStoreMemStorage()
 	r := chi.NewRouter()
+	r.Use(middleware.SugarRequestLogger(logger.Sugar()))
 
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
-	r.With(logger.WithLogging).Route("/update", func(r chi.Router) {
+	r.Route("/update", func(r chi.Router) {
 		r.Post("/", controller.UpdateJSONHandlerFunc(store))
 		r.Route("/{type}", func(r chi.Router) {
 			r.Post("/", updateHandlerFunc)
@@ -37,7 +39,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 		})
 	})
 
-	r.With(logger.WithLogging).Route("/value", func(r chi.Router) {
+	r.Route("/value", func(r chi.Router) {
 		r.Post("/", controller.ValueJSONHandlerFunc(store))
 		r.Get("/{type}/{name}", controller.ValueHandlerFunc(store))
 	})
@@ -46,7 +48,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 	if err != nil {
 		return r, fmt.Errorf("NewHandler: %w", err)
 	}
-	r.With(logger.WithLogging).Get("/", indexHandlerFunc)
+	r.Get("/", indexHandlerFunc)
 	return r, nil
 }
 
