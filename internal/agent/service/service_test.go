@@ -24,7 +24,7 @@ func TestSource_NewGaugeSource_Collect_GetDataForSend(t *testing.T) {
 	result := s.GetDataForSend()
 	assert.Len(t, result, len(testRuntimeMetricNames)+1)
 	assert.Contains(t, result, "RandomValue")
-	assert.NotEqual(t, result["RandomValue"], "0")
+	assert.NotEqual(t, result["RandomValue"], 0)
 	for _, m := range testRuntimeMetricNames {
 		assert.Contains(t, result, m)
 	}

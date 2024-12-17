@@ -9,8 +9,6 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 )
 
-const strTypeIsRequired = "Type is required."
-
 func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")

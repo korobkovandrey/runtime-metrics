@@ -1,6 +1,8 @@
 package server
 
 import (
+	"strings"
+
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/logger"
 	"github.com/stretchr/testify/assert"
@@ -75,7 +77,7 @@ func TestServer_NewHandler(t *testing.T) {
 		{"GET", "/", http.StatusOK, "<!DOCTYPE html>"},
 	}
 	for _, v := range tests {
-		gotBody, gotStatusCode := testRequest(t, ts, v.method, v.url)
+		gotBody, gotStatusCode, _ := testRequest(t, ts, v.method, v.url, http.NoBody)
 		assert.Equal(t, v.wantStatus, gotStatusCode, v.method+" "+v.url)
 
 		if v.method == "GET" && v.url == "/" {
@@ -88,9 +90,113 @@ func TestServer_NewHandler(t *testing.T) {
 	}
 }
 
-func testRequest(t *testing.T, ts *httptest.Server, method, path string) (body []byte, statusCode int) {
+func TestServer_NewHandler_update(t *testing.T) {
+	require.NoError(t, logger.Initialize())
+	s := New(&config.Config{})
+	currentDir, err := os.Getwd()
+	require.NoError(t, err)
+	err = os.Chdir("../..")
+	require.NoError(t, err)
+	handler, err := s.NewHandler()
+	require.NoError(t, err)
+	err = os.Chdir(currentDir)
+	require.NoError(t, err)
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+
+	type want struct {
+		code        int
+		contentType string
+		body        string
+		json        string
+	}
+	tests := []struct {
+		name string
+		body string
+		want want
+	}{
+		{
+			name: "empty",
+			body: "",
+			want: want{
+				code:        400,
+				body:        "Type is required.\n",
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "without type",
+			body: "{}",
+			want: want{
+				code:        400,
+				body:        "Type is required.\n",
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "without id",
+			body: `{"type": "gauge"}`,
+			want: want{
+				code:        400,
+				body:        "ID is required.\n",
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "without value",
+			body: `{"type": "gauge", "id": "test1"}`,
+			want: want{
+				code:        400,
+				body:        "Bad Request: value is required\n",
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "gauge",
+			body: `{"type": "gauge", "id": "test1", "value": 10}`,
+			want: want{
+				code:        200,
+				json:        `{"type": "gauge", "id": "test1", "value": 10}`,
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "counter",
+			body: `{"type": "counter", "id": "test1", "delta": 10}`,
+			want: want{
+				code:        200,
+				json:        `{"type": "counter", "id": "test1", "delta": 10}`,
+				contentType: "application/json",
+			},
+		},
+	}
+	for _, test := range tests {
+		var postBody io.Reader
+		if test.body == "" {
+			postBody = http.NoBody
+		} else {
+			postBody = strings.NewReader(test.body)
+		}
+		gotBody, gotStatusCode, contentType := testRequest(t, ts, http.MethodPost, "/update/", postBody)
+		assert.Equal(t, test.want.code, gotStatusCode)
+		if test.want.contentType != "" {
+			assert.Equal(t, test.want.contentType, contentType)
+		}
+		if test.want.body != "" {
+			assert.Equal(t, test.want.body, string(gotBody))
+		}
+		if test.want.json != "" {
+			require.NotEmpty(t, gotBody)
+			assert.JSONEq(t, test.want.json, string(gotBody))
+		}
+	}
+}
+
+func testRequest(
+	t *testing.T, ts *httptest.Server,
+	method, path string, postBody io.Reader) (body []byte, statusCode int, contentType string) {
 	t.Helper()
-	req, err := http.NewRequest(method, ts.URL+path, http.NoBody)
+	req, err := http.NewRequest(method, ts.URL+path, postBody)
 	require.NoError(t, err)
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)
@@ -100,5 +206,6 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (body [
 	body, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	statusCode = resp.StatusCode
+	contentType = resp.Header.Get("Content-Type")
 	return
 }

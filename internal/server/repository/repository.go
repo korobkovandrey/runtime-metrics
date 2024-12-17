@@ -24,7 +24,7 @@ type Store struct {
 var (
 	ErrTypeIsNotValid  = errors.New("type is not valid")
 	ErrValueIsRequired = errors.New("value is required")
-	ErrMetricsNotFound = errors.New("metrics not found")
+	ErrMetricNotFound  = errors.New("metric not found")
 )
 
 func (s Store) Get(t string) (Adapter, error) {
@@ -39,50 +39,50 @@ const (
 	counterType = "counter"
 )
 
-func (s Store) UpdateMetrics(metrics *model.Metrics) error {
-	switch metrics.MType {
+func (s Store) UpdateMetric(metric *model.Metric) error {
+	switch metric.MType {
 	case gaugeType:
-		if metrics.Value == nil {
-			return fmt.Errorf("UpdateMetrics: %w", ErrValueIsRequired)
+		if metric.Value == nil {
+			return fmt.Errorf("UpdateMetric: %w", ErrValueIsRequired)
 		}
-		s.repository.SetFloat64(metrics.MType, metrics.ID, *metrics.Value)
-		if v, ok := s.repository.GetFloat64(metrics.MType, metrics.ID); ok {
-			*metrics.Value = v
+		s.repository.SetFloat64(metric.MType, metric.ID, *metric.Value)
+		if v, ok := s.repository.GetFloat64(metric.MType, metric.ID); ok {
+			*metric.Value = v
 		} else {
-			metrics.Value = nil
+			metric.Value = nil
 		}
 	case counterType:
-		if metrics.Delta == nil {
-			return fmt.Errorf("UpdateMetrics: %w", ErrValueIsRequired)
+		if metric.Delta == nil {
+			return fmt.Errorf("UpdateMetric: %w", ErrValueIsRequired)
 		}
-		s.repository.IncrInt64(metrics.MType, metrics.ID, *metrics.Delta)
-		if v, ok := s.repository.GetInt64(metrics.MType, metrics.ID); ok {
-			*metrics.Delta = v
+		s.repository.IncrInt64(metric.MType, metric.ID, *metric.Delta)
+		if v, ok := s.repository.GetInt64(metric.MType, metric.ID); ok {
+			*metric.Delta = v
 		} else {
-			metrics.Delta = nil
+			metric.Delta = nil
 		}
 	default:
-		return fmt.Errorf(`UpdateMetrics: "%v" %w`, metrics.MType, ErrTypeIsNotValid)
+		return fmt.Errorf(`UpdateMetric: "%v" %w`, metric.MType, ErrTypeIsNotValid)
 	}
 	return nil
 }
 
-func (s Store) FillMetrics(metrics *model.Metrics) error {
-	switch metrics.MType {
+func (s Store) FillMetric(metric *model.Metric) error {
+	switch metric.MType {
 	case gaugeType:
-		if v, ok := s.repository.GetFloat64(metrics.MType, metrics.ID); ok {
-			metrics.Value = &v
+		if v, ok := s.repository.GetFloat64(metric.MType, metric.ID); ok {
+			metric.Value = &v
 		} else {
-			return fmt.Errorf(`UpdateMetrics %s.%s: %w`, metrics.MType, metrics.ID, ErrMetricsNotFound)
+			return fmt.Errorf(`FillMetric %s.%s: %w`, metric.MType, metric.ID, ErrMetricNotFound)
 		}
 	case counterType:
-		if v, ok := s.repository.GetInt64(metrics.MType, metrics.ID); ok {
-			metrics.Delta = &v
+		if v, ok := s.repository.GetInt64(metric.MType, metric.ID); ok {
+			metric.Delta = &v
 		} else {
-			return fmt.Errorf(`UpdateMetrics %s.%s: %w`, metrics.MType, metrics.ID, ErrMetricsNotFound)
+			return fmt.Errorf(`FillMetric %s.%s: %w`, metric.MType, metric.ID, ErrMetricNotFound)
 		}
 	default:
-		return fmt.Errorf(`UpdateMetrics %s: %w`, metrics.MType, ErrTypeIsNotValid)
+		return fmt.Errorf(`FillMetric %s: %w`, metric.MType, ErrTypeIsNotValid)
 	}
 	return nil
 }

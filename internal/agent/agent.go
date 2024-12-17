@@ -19,14 +19,14 @@ type Agent struct {
 	config      *config.Config
 }
 
-func sendRequest(client *http.Client, url string, contentType string, metrics *model.Metrics) error {
+func sendRequest(client *http.Client, url string, contentType string, metric *model.Metric) error {
 	var postBody io.Reader
-	if metrics == nil {
+	if metric == nil {
 		postBody = http.NoBody
 	} else {
-		m, err := json.Marshal(metrics)
+		m, err := json.Marshal(metric)
 		if err != nil {
-			return fmt.Errorf("failed marshled metrics: %w", err)
+			return fmt.Errorf("failed marshled metric: %w", err)
 		}
 		postBody = bytes.NewBuffer(m)
 	}
@@ -69,18 +69,18 @@ func (a *Agent) Run() {
 	client := &http.Client{}
 	var pollCount, pollCountDelta, sentPollCount int64
 	var err error
-	metricsPollCount := model.Metrics{
+	metricPollCount := model.Metric{
 		Delta: &pollCountDelta,
 		ID:    "PollCount",
 		MType: "counter",
 	}
-	metricsGauge := model.Metrics{
+	metricGauge := model.Metric{
 		MType: "gauge",
 	}
 	for range time.Tick(time.Duration(a.config.ReportInterval) * time.Second) {
 		pollCount = a.gaugeSource.GetPollCount()
 		pollCountDelta = pollCount - sentPollCount
-		err = sendRequest(client, a.config.UpdateURL, "application/json", &metricsPollCount)
+		err = sendRequest(client, a.config.UpdateURL, "application/json", &metricPollCount)
 		if err == nil {
 			sentPollCount = pollCount
 		} else {
@@ -88,9 +88,9 @@ func (a *Agent) Run() {
 		}
 		dataForSend := a.gaugeSource.GetDataForSend()
 		for i, v := range dataForSend {
-			metricsGauge.ID = i
-			metricsGauge.Value = &v
-			err = sendRequest(client, a.config.UpdateURL, "application/json", &metricsGauge)
+			metricGauge.ID = i
+			metricGauge.Value = &v
+			err = sendRequest(client, a.config.UpdateURL, "application/json", &metricGauge)
 			if err != nil {
 				log.Printf("fail send %s: %v", i, err)
 			}

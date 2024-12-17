@@ -87,12 +87,12 @@ func TestValueHandlerFunc(t *testing.T) {
 	s := repository.NewStoreMemStorage()
 	valueFloat64 := 10.1
 	valueInt64 := int64(10)
-	require.NoError(t, s.UpdateMetrics(&model.Metrics{
+	require.NoError(t, s.UpdateMetric(&model.Metric{
 		MType: gaugeType,
 		ID:    "name",
 		Value: &valueFloat64,
 	}))
-	require.NoError(t, s.UpdateMetrics(&model.Metrics{
+	require.NoError(t, s.UpdateMetric(&model.Metric{
 		MType: counterType,
 		ID:    "name",
 		Delta: &valueInt64,

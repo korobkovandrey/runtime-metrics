@@ -1,20 +1,19 @@
 package controller
 
 import (
-	"strings"
-
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"io"
 	"net/http"
 	"net/http/httptest"
-
+	"strings"
 	"testing"
+
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateJsonHandlerFunc(t *testing.T) {
+func TestValueJSONHandlerFunc(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
@@ -22,9 +21,10 @@ func TestUpdateJsonHandlerFunc(t *testing.T) {
 		json        string
 	}
 	tests := []struct {
-		name string
-		body string
-		want want
+		name    string
+		body    string
+		metrics []*model.Metric
+		want    want
 	}{
 		{
 			name: "empty",
@@ -54,17 +54,27 @@ func TestUpdateJsonHandlerFunc(t *testing.T) {
 			},
 		},
 		{
-			name: "without value",
-			body: `{"type": "gauge", "id": "test1"}`,
+			name: "unknown gauge",
+			body: `{"type": "gauge", "id": "unknown_id1"}`,
 			want: want{
-				code:        400,
-				body:        "Bad Request: value is required\n",
+				code:        404,
+				body:        "404 page not found\n",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: "gauge",
-			body: `{"type": "gauge", "id": "test1", "value": 10}`,
+			name: "unknown counter",
+			body: `{"type": "counter", "id": "unknown_id1"}`,
+			want: want{
+				code:        404,
+				body:        "404 page not found\n",
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:    "gauge",
+			body:    `{"type": "gauge", "id": "test1"}`,
+			metrics: []*model.Metric{model.NewMetricGauge("test1", 10)},
 			want: want{
 				code:        200,
 				json:        `{"type": "gauge", "id": "test1", "value": 10}`,
@@ -72,8 +82,9 @@ func TestUpdateJsonHandlerFunc(t *testing.T) {
 			},
 		},
 		{
-			name: "counter",
-			body: `{"type": "counter", "id": "test1", "delta": 10}`,
+			name:    "counter",
+			body:    `{"type": "counter", "id": "test1"}`,
+			metrics: []*model.Metric{model.NewMetricCounter("test1", 10)},
 			want: want{
 				code:        200,
 				json:        `{"type": "counter", "id": "test1", "delta": 10}`,
@@ -84,6 +95,10 @@ func TestUpdateJsonHandlerFunc(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			s := repository.NewStoreMemStorage()
+			for _, m := range test.metrics {
+				require.NoError(t, s.UpdateMetric(m))
+			}
+
 			var postBody io.Reader
 			if test.body == "" {
 				postBody = http.NoBody
@@ -91,10 +106,10 @@ func TestUpdateJsonHandlerFunc(t *testing.T) {
 				postBody = strings.NewReader(test.body)
 			}
 
-			request := httptest.NewRequest(http.MethodPost, "/update/", postBody)
+			request := httptest.NewRequest(http.MethodPost, "/value/", postBody)
 
 			w := httptest.NewRecorder()
-			UpdateJSONHandlerFunc(s)(w, request)
+			ValueJSONHandlerFunc(s)(w, request)
 
 			res := w.Result()
 			if res != nil {
