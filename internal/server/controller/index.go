@@ -22,5 +22,6 @@ func IndexHandlerFunc(store *repository.Store) (func(w http.ResponseWriter, r *h
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 	}, nil
 }
