@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -13,6 +14,7 @@ import (
 )
 
 func TestServer_NewHandler(t *testing.T) {
+	require.NoError(t, logger.Initialize())
 	s := New(&config.Config{})
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
