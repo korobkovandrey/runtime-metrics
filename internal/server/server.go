@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/logger"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
@@ -25,7 +25,7 @@ func New(cfg *config.Config) *Server {
 func (s Server) NewHandler() (http.Handler, error) {
 	store := repository.NewStoreMemStorage()
 	r := chi.NewRouter()
-	r.Use(middleware.SugarRequestLogger(logger.Sugar()))
+	r.Use(mlogger.SugarRequestLogger(logger.Sugar()))
 
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
 	r.Route("/update", func(r chi.Router) {
