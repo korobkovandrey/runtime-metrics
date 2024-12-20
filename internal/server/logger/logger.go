@@ -6,17 +6,10 @@ import (
 	"go.uber.org/zap"
 )
 
-var zapLogger = zap.NewNop()
-
-func Initialize() error {
-	var err error
+func NewZapLogger() (zapLogger *zap.Logger, err error) {
 	zapLogger, err = zap.NewDevelopment()
 	if err != nil {
-		return fmt.Errorf("logger.Initialize: %w", err)
+		return nil, fmt.Errorf("NewLogger: %w", err)
 	}
-	return nil
-}
-
-func Sugar() *zap.SugaredLogger {
-	return zapLogger.Sugar()
+	return
 }

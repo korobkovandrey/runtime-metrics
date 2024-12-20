@@ -9,15 +9,15 @@ import (
 )
 
 func main() {
-	if err := logger.Initialize(); err != nil {
+	zapLogger, err := logger.NewZapLogger()
+	if err != nil {
 		log.Fatal(err)
 	}
-
 	cfg, err := config.GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err = server.New(cfg).Run(); err != nil {
+	if err = server.New(cfg, zapLogger).Run(); err != nil {
 		log.Fatal(err)
 	}
 }

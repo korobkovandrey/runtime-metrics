@@ -16,8 +16,9 @@ import (
 )
 
 func TestServer_NewHandler(t *testing.T) {
-	require.NoError(t, logger.Initialize())
-	s := New(&config.Config{})
+	zapLogger, err := logger.NewZapLogger()
+	require.NoError(t, err)
+	s := New(&config.Config{}, zapLogger)
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
 	err = os.Chdir("../..")
@@ -91,8 +92,9 @@ func TestServer_NewHandler(t *testing.T) {
 }
 
 func TestServer_NewHandler_update(t *testing.T) {
-	require.NoError(t, logger.Initialize())
-	s := New(&config.Config{})
+	zapLogger, err := logger.NewZapLogger()
+	require.NoError(t, err)
+	s := New(&config.Config{}, zapLogger)
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
 	err = os.Chdir("../..")
