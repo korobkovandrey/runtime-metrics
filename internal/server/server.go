@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+	"go.uber.org/zap"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
@@ -14,34 +16,43 @@ import (
 
 type Server struct {
 	config *config.Config
+	logger *zap.Logger
 }
 
-func New(cfg *config.Config) *Server {
-	return &Server{cfg}
+func New(cfg *config.Config, logger *zap.Logger) *Server {
+	return &Server{cfg, logger}
 }
 
 func (s Server) NewHandler() (http.Handler, error) {
 	store := repository.NewStoreMemStorage()
 	r := chi.NewRouter()
-
+	sugaredLogger := s.logger.Sugar().Named("request")
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
-	r.Route("/update", func(r chi.Router) {
-		r.Post("/", updateHandlerFunc)
-		r.Route("/{type}", func(r chi.Router) {
-			r.Post("/", updateHandlerFunc)
-			r.Route("/{name}", func(r chi.Router) {
+
+	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("update"))).
+		Route("/update", func(r chi.Router) {
+			r.Post("/", controller.UpdateJSONHandlerFunc(store))
+			r.Route("/{type}", func(r chi.Router) {
 				r.Post("/", updateHandlerFunc)
-				r.Post("/{value}", updateHandlerFunc)
+				r.Route("/{name}", func(r chi.Router) {
+					r.Post("/", updateHandlerFunc)
+					r.Post("/{value}", updateHandlerFunc)
+				})
 			})
 		})
-	})
-	r.Get("/value/{type}/{name}", controller.ValueHandlerFunc(store))
+
+	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("value"))).
+		Route("/value", func(r chi.Router) {
+			r.Post("/", controller.ValueJSONHandlerFunc(store))
+			r.Get("/{type}/{name}", controller.ValueHandlerFunc(store))
+		})
 
 	indexHandlerFunc, err := controller.IndexHandlerFunc(store)
 	if err != nil {
 		return r, fmt.Errorf("NewHandler: %w", err)
 	}
-	r.Get("/", indexHandlerFunc)
+	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("index"))).
+		Get("/", indexHandlerFunc)
 	return r, nil
 }
 

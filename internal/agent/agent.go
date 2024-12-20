@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/service"
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
 type Agent struct {
@@ -16,8 +19,18 @@ type Agent struct {
 	config      *config.Config
 }
 
-func sendRequest(client *http.Client, url string) error {
-	response, err := client.Post(url, "text/plain", http.NoBody)
+func sendRequest(client *http.Client, url string, contentType string, metric *model.Metric) error {
+	var postBody io.Reader
+	if metric == nil {
+		postBody = http.NoBody
+	} else {
+		m, err := json.Marshal(metric)
+		if err != nil {
+			return fmt.Errorf("failed marshled metric: %w", err)
+		}
+		postBody = bytes.NewBuffer(m)
+	}
+	response, err := client.Post(url, contentType, postBody)
 	if err != nil {
 		return fmt.Errorf("sendRequest: %w", err)
 	}
@@ -46,24 +59,38 @@ func New(cfg *config.Config) *Agent {
 }
 
 func (a *Agent) Run() {
-	client := &http.Client{}
-	go func(client *http.Client) {
+	go func() {
 		tick := time.NewTicker(time.Duration(a.config.PollInterval) * time.Second)
-		var err error
 		for ; ; <-tick.C {
 			a.gaugeSource.Collect()
-			err = sendRequest(client, a.config.UpdateURL+"counter/PollCount/1")
-			if err != nil {
-				log.Printf("fail send PollCount: %v", err)
-			}
 		}
-	}(client)
+	}()
 
+	client := &http.Client{}
+	var pollCount, pollCountDelta, sentPollCount int64
+	var err error
+	metricPollCount := model.Metric{
+		Delta: &pollCountDelta,
+		ID:    "PollCount",
+		MType: "counter",
+	}
+	metricGauge := model.Metric{
+		MType: "gauge",
+	}
 	for range time.Tick(time.Duration(a.config.ReportInterval) * time.Second) {
+		pollCount = a.gaugeSource.GetPollCount()
+		pollCountDelta = pollCount - sentPollCount
+		err = sendRequest(client, a.config.UpdateURL, "application/json", &metricPollCount)
+		if err == nil {
+			sentPollCount = pollCount
+		} else {
+			log.Printf("fail send %s: %v", "PollCount", err)
+		}
 		dataForSend := a.gaugeSource.GetDataForSend()
-		var err error
 		for i, v := range dataForSend {
-			err = sendRequest(client, a.config.UpdateURL+"gauge/"+i+"/"+v)
+			metricGauge.ID = i
+			metricGauge.Value = &v
+			err = sendRequest(client, a.config.UpdateURL, "application/json", &metricGauge)
 			if err != nil {
 				log.Printf("fail send %s: %v", i, err)
 			}
