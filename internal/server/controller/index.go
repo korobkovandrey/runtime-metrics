@@ -16,12 +16,11 @@ func IndexHandlerFunc(store *repository.Store) (func(w http.ResponseWriter, r *h
 		return nil, fmt.Errorf("IndexHandlerFunc parse template: %w", err)
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := tpl.Execute(w, store.GetAllData())
-		if err != nil {
+		w.WriteHeader(http.StatusOK)
+		if err := tpl.Execute(w, store.GetAllData()); err != nil {
 			log.Printf("IndexHandlerFunc tpl.Execute: %v", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
 	}, nil
 }
