@@ -3,11 +3,10 @@ package controller
 import (
 	"errors"
 	"fmt"
-
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
-
 	"log"
 	"net/http"
+
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 )
 
 func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +15,7 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 		name := r.PathValue("name")
 		value := r.PathValue("value")
 		if t == "" {
-			http.Error(w, "Type is required.", http.StatusBadRequest)
+			http.Error(w, strTypeIsRequired, http.StatusBadRequest)
 			return
 		}
 		if name == "" {
@@ -29,9 +28,9 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 		}
 		m, err := store.Get(t)
 		if err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("store.Get(%v): %w", t, err))
+			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc store.Get(%v): %w", t, err))
 			if errors.Is(err, repository.ErrTypeIsNotValid) {
-				http.Error(w, fmt.Errorf("bad request: %w", err).Error(), http.StatusBadRequest)
+				http.Error(w, fmt.Errorf(http.StatusText(http.StatusBadRequest)+": %w", err).Error(), http.StatusBadRequest)
 				return
 			}
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -39,9 +38,10 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 		}
 
 		if err = m.Update(name, value); err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("m.Update(%s, %s): %w", name, value, err))
-			http.Error(w, "bad request: invalid number", http.StatusBadRequest)
+			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc m.Update(%s, %s): %w", name, value, err))
+			http.Error(w, http.StatusText(http.StatusBadRequest)+": invalid number", http.StatusBadRequest)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 	}
 }

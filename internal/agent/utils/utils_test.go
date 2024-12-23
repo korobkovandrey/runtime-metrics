@@ -11,7 +11,7 @@ func TestGetRuntimeMetrics(t *testing.T) {
 		"HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC", "Lookups", "MCacheInuse", "MCacheSys",
 		"MSpanInuse", "MSpanSys", "Mallocs", "NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs",
 		"StackInuse", "StackSys", "Sys", "TotalAlloc"}
-	gotResult := GetRuntimeMetrics()
+	gotResult := GetRuntimeMetricsFloat64()
 	for _, m := range metricsOk {
 		assert.Contains(t, gotResult, m)
 	}
