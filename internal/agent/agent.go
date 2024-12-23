@@ -2,6 +2,7 @@ package agent
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -21,6 +22,7 @@ type Agent struct {
 
 func sendRequest(client *http.Client, url string, contentType string, metric *model.Metric) error {
 	var postBody io.Reader
+	isGzipped := false
 	if metric == nil {
 		postBody = http.NoBody
 	} else {
@@ -28,11 +30,32 @@ func sendRequest(client *http.Client, url string, contentType string, metric *mo
 		if err != nil {
 			return fmt.Errorf("failed marshled metric: %w", err)
 		}
-		postBody = bytes.NewBuffer(m)
+		buf := bytes.NewBuffer(nil)
+		gz := gzip.NewWriter(buf)
+		_, err = gz.Write(m)
+		if err != nil {
+			return fmt.Errorf("failed gzip write: %w", err)
+		}
+		err = gz.Close()
+		if err != nil {
+			return fmt.Errorf("failed gzip close: %w", err)
+		}
+		postBody = buf
+		isGzipped = true
 	}
-	response, err := client.Post(url, contentType, postBody)
+	req, err := http.NewRequest(http.MethodPost, url, postBody)
 	if err != nil {
 		return fmt.Errorf("sendRequest: %w", err)
+	}
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Accept-Encoding", "gzip")
+	if isGzipped {
+		req.Header.Set("Content-Encoding", "gzip")
+	}
+
+	response, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed send request: %w", err)
 	}
 	if response != nil {
 		defer func() {
@@ -42,7 +65,17 @@ func sendRequest(client *http.Client, url string, contentType string, metric *mo
 		}()
 	}
 	if response.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(response.Body)
+		var bodyReader io.ReadCloser
+
+		if response.Header.Get("Content-Encoding") == "gzip" {
+			bodyReader, err = gzip.NewReader(response.Body)
+			if err != nil {
+				return fmt.Errorf("failed gzip reader: %w", err)
+			}
+		} else {
+			bodyReader = response.Body
+		}
+		body, err := io.ReadAll(bodyReader)
 		if err != nil {
 			return fmt.Errorf("failed to read the response body: %w (status code %d)", err, response.StatusCode)
 		}

@@ -16,6 +16,7 @@ func IndexHandlerFunc(store *repository.Store) (func(w http.ResponseWriter, r *h
 		return nil, fmt.Errorf("IndexHandlerFunc parse template: %w", err)
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		if err := tpl.Execute(w, store.GetAllData()); err != nil {
 			log.Printf("IndexHandlerFunc tpl.Execute: %v", err)

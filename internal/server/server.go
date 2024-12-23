@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 	"go.uber.org/zap"
 
@@ -29,7 +30,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 	sugaredLogger := s.logger.Sugar().Named("request")
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
 
-	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("update"))).
+	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("update")), mcompress.GzipCompressed).
 		Route("/update", func(r chi.Router) {
 			r.Post("/", controller.UpdateJSONHandlerFunc(store))
 			r.Route("/{type}", func(r chi.Router) {
@@ -41,7 +42,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 			})
 		})
 
-	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("value"))).
+	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("value")), mcompress.GzipCompressed).
 		Route("/value", func(r chi.Router) {
 			r.Post("/", controller.ValueJSONHandlerFunc(store))
 			r.Get("/{type}/{name}", controller.ValueHandlerFunc(store))
@@ -51,7 +52,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 	if err != nil {
 		return r, fmt.Errorf("NewHandler: %w", err)
 	}
-	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("index"))).
+	r.With(mlogger.SugarRequestLogger(sugaredLogger.Named("index")), mcompress.GzipCompressed).
 		Get("/", indexHandlerFunc)
 	return r, nil
 }
