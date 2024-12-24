@@ -42,6 +42,9 @@ func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *h
 			http.Error(w, http.StatusText(http.StatusBadRequest)+": invalid number", http.StatusBadRequest)
 			return
 		}
+		if err = store.SyncSave(); err != nil {
+			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc: %w", err))
+		}
 		w.WriteHeader(http.StatusOK)
 	}
 }

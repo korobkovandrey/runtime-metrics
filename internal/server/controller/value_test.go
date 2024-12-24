@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -84,7 +85,8 @@ func TestValueHandlerFunc(t *testing.T) {
 			},
 		},
 	}
-	s := repository.NewStoreMemStorage()
+	s, err := repository.NewStoreMemStorage(&config.Config{})
+	require.NoError(t, err)
 	valueFloat64 := 10.1
 	valueInt64 := int64(10)
 	require.NoError(t, s.UpdateMetric(&model.Metric{

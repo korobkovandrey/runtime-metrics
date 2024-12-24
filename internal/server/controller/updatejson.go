@@ -11,9 +11,13 @@ import (
 
 func UpdateJSONHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		const (
+			errFormat = "UpdateJSONHandlerFunc: %w"
+		)
+
 		metric, ok, err := readMetricFromRequest(w, r)
 		if err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc: %w", err))
+			log.Println(r.URL.Path, fmt.Errorf(errFormat, err))
 		}
 		if !ok {
 			return
@@ -21,7 +25,7 @@ func UpdateJSONHandlerFunc(store *repository.Store) func(w http.ResponseWriter, 
 
 		err = store.UpdateMetric(&metric)
 		if err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("UpdateJSONHandlerFunc: %w", err))
+			log.Println(r.URL.Path, fmt.Errorf(errFormat, err))
 			if errors.Is(err, repository.ErrTypeIsNotValid) || errors.Is(err, repository.ErrValueIsRequired) {
 				http.Error(w, fmt.Errorf(
 					http.StatusText(http.StatusBadRequest)+": %w", errors.Unwrap(err)).Error(),
@@ -31,9 +35,14 @@ func UpdateJSONHandlerFunc(store *repository.Store) func(w http.ResponseWriter, 
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
+
+		if err = store.SyncSave(); err != nil {
+			log.Println(r.URL.Path, fmt.Errorf(errFormat, err))
+			return
+		}
 		err = responseMetricJSON(&metric, w)
 		if err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("UpdateJSONHandlerFunc: %w", err))
+			log.Println(r.URL.Path, fmt.Errorf(errFormat, err))
 			return
 		}
 	}

@@ -32,6 +32,12 @@ func (s MemStorage) SetFloat64(t string, name string, value float64) {
 	s.data[t][name] = value
 }
 
+func (s MemStorage) SetInt64(t string, name string, value int64) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.data[t][name] = value
+}
+
 func (s MemStorage) IncrInt64(t string, name string, value int64) {
 	s.mux.Lock()
 	defer s.mux.Unlock()

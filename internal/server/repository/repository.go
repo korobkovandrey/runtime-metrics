@@ -7,6 +7,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/adapter"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage"
 )
 
@@ -17,6 +18,7 @@ type Adapter interface {
 }
 
 type Store struct {
+	config     *config.Config
 	repository adapter.Repository
 	data       map[string]Adapter
 }
@@ -88,9 +90,9 @@ func (s Store) FillMetric(metric *model.Metric) error {
 }
 
 type StorageValue struct {
-	Value any
-	T     string
-	Name  string
+	Value any    `json:"value"`
+	T     string `json:"type"`
+	Name  string `json:"name"`
 }
 
 func (s Store) GetAllData() (result []StorageValue) {
@@ -119,10 +121,11 @@ func (s Store) addAdapter(key string, a Adapter) {
 	s.data[key] = a
 }
 
-func NewStore(repository adapter.Repository) *Store {
+func NewStore(cfg *config.Config, repository adapter.Repository) *Store {
 	store := &Store{
-		repository,
-		map[string]Adapter{},
+		config:     cfg,
+		repository: repository,
+		data:       map[string]Adapter{},
 	}
 	repository.AddType(gaugeType)
 	store.addAdapter(gaugeType, adapter.NewGauge(repository, gaugeType))
@@ -131,6 +134,14 @@ func NewStore(repository adapter.Repository) *Store {
 	return store
 }
 
-func NewStoreMemStorage() *Store {
-	return NewStore(memstorage.NewMemStorage())
+func NewStoreMemStorage(cfg *config.Config) (*Store, error) {
+	store := NewStore(cfg, memstorage.NewMemStorage())
+	if store.config.Restore {
+		err := store.restore()
+		if err != nil {
+			return nil, fmt.Errorf("NewStoreMemStorage: %w", err)
+		}
+	}
+	go store.Run()
+	return store, nil
 }

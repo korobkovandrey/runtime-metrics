@@ -3,6 +3,7 @@ package controller
 import (
 	"strings"
 
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,7 +84,8 @@ func TestUpdateJsonHandlerFunc(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			s := repository.NewStoreMemStorage()
+			s, err := repository.NewStoreMemStorage(&config.Config{})
+			require.NoError(t, err)
 			var postBody io.Reader
 			if test.body == "" {
 				postBody = http.NoBody

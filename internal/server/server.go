@@ -21,11 +21,14 @@ type Server struct {
 }
 
 func New(cfg *config.Config, logger *zap.Logger) *Server {
-	return &Server{cfg, logger}
+	return &Server{config: cfg, logger: logger}
 }
 
-func (s Server) NewHandler() (http.Handler, error) {
-	store := repository.NewStoreMemStorage()
+func (s *Server) NewHandler() (http.Handler, error) {
+	store, err := repository.NewStoreMemStorage(s.config)
+	if err != nil {
+		return nil, fmt.Errorf("NewHandler: %w", err)
+	}
 	r := chi.NewRouter()
 	sugaredLogger := s.logger.Sugar().Named("request")
 	updateHandlerFunc := controller.UpdateHandlerFunc(store)
@@ -57,7 +60,7 @@ func (s Server) NewHandler() (http.Handler, error) {
 	return r, nil
 }
 
-func (s Server) Run() error {
+func (s *Server) Run() error {
 	handler, err := s.NewHandler()
 	if err != nil {
 		return fmt.Errorf("server.NewHandler: %w", err)

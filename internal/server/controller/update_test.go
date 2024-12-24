@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -140,7 +141,8 @@ func TestUpdateHandlerFunc(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			s := repository.NewStoreMemStorage()
+			s, err := repository.NewStoreMemStorage(&config.Config{})
+			require.NoError(t, err)
 			target := ""
 			for _, v := range test.pathValues {
 				target += "/" + v
