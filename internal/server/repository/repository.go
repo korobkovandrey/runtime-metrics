@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/adapter"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage"
 )
 
@@ -16,11 +18,15 @@ type Adapter interface {
 }
 
 type Store struct {
-	data map[string]Adapter
+	config     *config.Config
+	repository adapter.Repository
+	data       map[string]Adapter
 }
 
 var (
-	ErrTypeIsNotValid = errors.New("type is not valid")
+	ErrTypeIsNotValid  = errors.New("type is not valid")
+	ErrValueIsRequired = errors.New("value is required")
+	ErrMetricNotFound  = errors.New("metric not found")
 )
 
 func (s Store) Get(t string) (Adapter, error) {
@@ -30,10 +36,63 @@ func (s Store) Get(t string) (Adapter, error) {
 	return s.data[t], nil
 }
 
+const (
+	gaugeType   = "gauge"
+	counterType = "counter"
+)
+
+func (s Store) UpdateMetric(metric *model.Metric) error {
+	switch metric.MType {
+	case gaugeType:
+		if metric.Value == nil {
+			return fmt.Errorf("UpdateMetric: %w", ErrValueIsRequired)
+		}
+		s.repository.SetFloat64(metric.MType, metric.ID, *metric.Value)
+		if v, ok := s.repository.GetFloat64(metric.MType, metric.ID); ok {
+			*metric.Value = v
+		} else {
+			metric.Value = nil
+		}
+	case counterType:
+		if metric.Delta == nil {
+			return fmt.Errorf("UpdateMetric: %w", ErrValueIsRequired)
+		}
+		s.repository.IncrInt64(metric.MType, metric.ID, *metric.Delta)
+		if v, ok := s.repository.GetInt64(metric.MType, metric.ID); ok {
+			*metric.Delta = v
+		} else {
+			metric.Delta = nil
+		}
+	default:
+		return fmt.Errorf(`UpdateMetric: "%v" %w`, metric.MType, ErrTypeIsNotValid)
+	}
+	return nil
+}
+
+func (s Store) FillMetric(metric *model.Metric) error {
+	switch metric.MType {
+	case gaugeType:
+		if v, ok := s.repository.GetFloat64(metric.MType, metric.ID); ok {
+			metric.Value = &v
+		} else {
+			return fmt.Errorf(`FillMetric %s.%s: %w`, metric.MType, metric.ID, ErrMetricNotFound)
+		}
+	case counterType:
+		if v, ok := s.repository.GetInt64(metric.MType, metric.ID); ok {
+			metric.Delta = &v
+		} else {
+			return fmt.Errorf(`FillMetric %s.%s: %w`, metric.MType, metric.ID, ErrMetricNotFound)
+		}
+	default:
+		return fmt.Errorf(`FillMetric %s: %w`, metric.MType, ErrTypeIsNotValid)
+	}
+	return nil
+}
+
 type StorageValue struct {
-	Value any
-	T     string
-	Name  string
+	Value any    `json:"value"`
+	T     string `json:"type"`
+	Name  string `json:"name"`
 }
 
 func (s Store) GetAllData() (result []StorageValue) {
@@ -62,14 +121,11 @@ func (s Store) addAdapter(key string, a Adapter) {
 	s.data[key] = a
 }
 
-const (
-	gaugeType   = "gauge"
-	counterType = "counter"
-)
-
-func NewStore(repository adapter.Repository) *Store {
+func NewStore(cfg *config.Config, repository adapter.Repository) *Store {
 	store := &Store{
-		map[string]Adapter{},
+		config:     cfg,
+		repository: repository,
+		data:       map[string]Adapter{},
 	}
 	repository.AddType(gaugeType)
 	store.addAdapter(gaugeType, adapter.NewGauge(repository, gaugeType))
@@ -78,6 +134,14 @@ func NewStore(repository adapter.Repository) *Store {
 	return store
 }
 
-func NewStoreMemStorage() *Store {
-	return NewStore(memstorage.NewMemStorage())
+func NewStoreMemStorage(cfg *config.Config) (*Store, error) {
+	store := NewStore(cfg, memstorage.NewMemStorage())
+	if store.config.Restore {
+		err := store.restore()
+		if err != nil {
+			return nil, fmt.Errorf("NewStoreMemStorage: %w", err)
+		}
+	}
+	go store.Run()
+	return store, nil
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,6 @@ func TestUpdateHandlerFunc(t *testing.T) {
 	}
 	tests := []struct {
 		name       string
-		target     string
 		pathValues map[string]string
 		want       want
 	}{
@@ -69,7 +69,7 @@ func TestUpdateHandlerFunc(t *testing.T) {
 			},
 			want: want{
 				code:        400,
-				response:    "bad request: \"fail_type\" type is not valid\n",
+				response:    "Bad Request: \"fail_type\" type is not valid\n",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -82,7 +82,7 @@ func TestUpdateHandlerFunc(t *testing.T) {
 			},
 			want: want{
 				code:        400,
-				response:    "bad request: invalid number\n",
+				response:    "Bad Request: invalid number\n",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -95,7 +95,7 @@ func TestUpdateHandlerFunc(t *testing.T) {
 			},
 			want: want{
 				code:        400,
-				response:    "bad request: invalid number\n",
+				response:    "Bad Request: invalid number\n",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -121,7 +121,7 @@ func TestUpdateHandlerFunc(t *testing.T) {
 			},
 			want: want{
 				code:        400,
-				response:    "bad request: invalid number\n",
+				response:    "Bad Request: invalid number\n",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -141,7 +141,8 @@ func TestUpdateHandlerFunc(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			s := repository.NewStoreMemStorage()
+			s, err := repository.NewStoreMemStorage(&config.Config{})
+			require.NoError(t, err)
 			target := ""
 			for _, v := range test.pathValues {
 				target += "/" + v
