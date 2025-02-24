@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 )
 
@@ -23,7 +24,7 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
 	if err != nil {
-		return size, fmt.Errorf("loggingResponseWriter: %w", err)
+		return size, fmt.Errorf("mlogger[loggingResponseWriter].Write: %w", err)
 	}
 	return size, nil
 }
@@ -33,7 +34,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode
 }
 
-func SugarRequestLogger(logger *zap.SugaredLogger) func(h http.Handler) http.Handler {
+func RequestLogger(logger *logging.ZapLogger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -42,16 +43,14 @@ func SugarRequestLogger(logger *zap.SugaredLogger) func(h http.Handler) http.Han
 				status: 0,
 				size:   0,
 			}
-			lw := loggingResponseWriter{
+			h.ServeHTTP(&loggingResponseWriter{
 				ResponseWriter: w,
 				responseData:   rd,
-			}
-			h.ServeHTTP(&lw, r)
+			}, r)
 
-			logger.Infoln(
-				r.Method, r.RequestURI, time.Since(start),
-				"status", rd.status,
-				"size", rd.size,
+			logger.InfoCtx(
+				r.Context(), fmt.Sprintf("%s %s %d", r.Method, r.RequestURI, rd.status),
+				zap.Duration("duration", time.Since(start)), zap.Int("size", rd.size),
 			)
 		})
 	}

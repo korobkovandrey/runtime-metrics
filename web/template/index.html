@@ -38,7 +38,7 @@
     <tbody>
     {{range .}}
     <tr>
-        <td>{{.T}}</td><td>{{.Name}}</td><td>{{.Value}}</td>
+        <td>{{.MType}}</td><td>{{.ID}}</td><td>{{if eq .MType "counter"}}{{.Delta}}{{else}}{{.Value}}{{end}}</td>
     </tr>
     {{end}}
     </tbody>

@@ -3,48 +3,54 @@ package controller
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"go.uber.org/zap"
 )
 
-func UpdateHandlerFunc(store *repository.Store) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		t := r.PathValue("type")
-		name := r.PathValue("name")
-		value := r.PathValue("value")
-		if t == "" {
-			http.Error(w, strTypeIsRequired, http.StatusBadRequest)
-			return
+func (c *Controller) updateURI(w http.ResponseWriter, r *http.Request) {
+	t := r.PathValue("type")
+	name := r.PathValue("name")
+	value := r.PathValue("value")
+	mr, err := model.NewMetricRequest(t, name, value)
+	if err != nil {
+		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateURI: %w", err)))
+		errMsg := http.StatusText(http.StatusBadRequest)
+		if errors.Is(err, model.ErrTypeIsNotValid) {
+			errMsg += ": " + model.ErrTypeIsNotValid.Error()
+		} else if errors.Is(err, model.ErrValueIsNotValid) {
+			errMsg += ": " + model.ErrValueIsNotValid.Error()
 		}
-		if name == "" {
-			http.NotFound(w, r)
-			return
-		}
-		if value == "" {
-			http.Error(w, "Value is required.", http.StatusBadRequest)
-			return
-		}
-		m, err := store.Get(t)
-		if err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc store.Get(%v): %w", t, err))
-			if errors.Is(err, repository.ErrTypeIsNotValid) {
-				http.Error(w, fmt.Errorf(http.StatusText(http.StatusBadRequest)+": %w", err).Error(), http.StatusBadRequest)
-				return
-			}
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-
-		if err = m.Update(name, value); err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc m.Update(%s, %s): %w", name, value, err))
-			http.Error(w, http.StatusText(http.StatusBadRequest)+": invalid number", http.StatusBadRequest)
-			return
-		}
-		if err = store.SyncSave(); err != nil {
-			log.Println(r.URL.Path, fmt.Errorf("UpdateHandlerFunc: %w", err))
-		}
-		w.WriteHeader(http.StatusOK)
+		http.Error(w, errMsg, http.StatusBadRequest)
+		return
 	}
+	_, err = c.s.Update(mr)
+	if err != nil {
+		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateURI: %w", err)))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+//nolint:dupl // ignore
+func (c *Controller) updateJSON(w http.ResponseWriter, r *http.Request) {
+	mr, err := model.NewMetricRequestFromReader(r.Body)
+	if err != nil {
+		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateJSON: %w", err)))
+		errMsg := http.StatusText(http.StatusBadRequest)
+		if errors.Is(err, model.ErrMetricNotFound) {
+			errMsg += ": " + model.ErrMetricNotFound.Error()
+		}
+		http.Error(w, errMsg, http.StatusBadRequest)
+		return
+	}
+	m, err := c.s.Update(mr)
+	if err != nil {
+		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateJSON: %w", err)))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	c.responseMarshaled(m, w, r)
 }

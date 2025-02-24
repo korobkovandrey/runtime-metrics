@@ -2,6 +2,7 @@ package compress
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,12 +27,19 @@ func (c *Writer) Header() http.Header {
 	return c.w.Header()
 }
 
-//nolint:wrapcheck // unnecessary
 func (c *Writer) Write(p []byte) (int, error) {
 	if c.Compressible {
-		return c.zw.Write(p)
+		n, err := c.zw.Write(p)
+		if err != nil {
+			return n, fmt.Errorf("compress[Writer].Write: %w", err)
+		}
+		return n, nil
 	}
-	return c.w.Write(p)
+	n, err := c.w.Write(p)
+	if err != nil {
+		return n, fmt.Errorf("compress[Writer].Write: %w", err)
+	}
+	return n, nil
 }
 
 func (c *Writer) WriteHeader(statusCode int) {
@@ -46,9 +54,13 @@ func (c *Writer) WriteHeader(statusCode int) {
 	c.w.WriteHeader(statusCode)
 }
 
-//nolint:wrapcheck // unnecessary
 func (c *Writer) Close() error {
-	return c.zw.Close()
+	if c.Compressible {
+		if err := c.zw.Close(); err != nil {
+			return fmt.Errorf("compress[Writer].Close: %w", err)
+		}
+	}
+	return nil
 }
 
 type Reader struct {
@@ -68,15 +80,20 @@ func NewCompressReader(r io.ReadCloser) (*Reader, error) {
 	}, nil
 }
 
-//nolint:wrapcheck // unnecessary
-func (c *Reader) Read(p []byte) (n int, err error) {
-	return c.zr.Read(p)
+func (c *Reader) Read(p []byte) (int, error) {
+	n, err := c.zr.Read(p)
+	if !errors.Is(err, io.EOF) {
+		err = fmt.Errorf("compress[Reader].Read: %w", err)
+	}
+	return n, err
 }
 
-//nolint:wrapcheck // unnecessary
 func (c *Reader) Close() error {
 	if err := c.r.Close(); err != nil {
-		return fmt.Errorf("compress.Close: %w", err)
+		return fmt.Errorf("compress[Reader].Close: %w", err)
 	}
-	return c.zr.Close()
+	if err := c.zr.Close(); err != nil {
+		return fmt.Errorf("compress[Reader].Close: %w", err)
+	}
+	return nil
 }

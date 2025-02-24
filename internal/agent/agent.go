@@ -3,64 +3,59 @@ package agent
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/service"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
+	"go.uber.org/zap"
 )
 
 type Agent struct {
 	gaugeSource *service.Source
 	config      *config.Config
+	l           *logging.ZapLogger
+	client      *http.Client
 }
 
-func sendRequest(client *http.Client, url string, contentType string, metric *model.Metric) error {
+func (a *Agent) sendMetric(ctx context.Context, metric model.Metric) error {
 	var postBody io.Reader
-	isGzipped := false
-	if metric == nil {
-		postBody = http.NoBody
-	} else {
-		m, err := json.Marshal(metric)
-		if err != nil {
-			return fmt.Errorf("failed marshled metric: %w", err)
-		}
+	const errMsg = "sendMetric: %w"
+	m, err := json.Marshal(metric)
+	if err == nil {
 		buf := bytes.NewBuffer(nil)
 		gz := gzip.NewWriter(buf)
 		_, err = gz.Write(m)
-		if err != nil {
-			return fmt.Errorf("failed gzip write: %w", err)
+		if err == nil {
+			err = gz.Close()
+			postBody = buf
 		}
-		err = gz.Close()
-		if err != nil {
-			return fmt.Errorf("failed gzip close: %w", err)
-		}
-		postBody = buf
-		isGzipped = true
 	}
-	req, err := http.NewRequest(http.MethodPost, url, postBody)
 	if err != nil {
-		return fmt.Errorf("sendRequest: %w", err)
+		return fmt.Errorf(errMsg, err)
 	}
-	req.Header.Set("Content-Type", contentType)
+	req, err := http.NewRequest(http.MethodPost, a.config.UpdateURL, postBody)
+	if err != nil {
+		return fmt.Errorf(errMsg, err)
+	}
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept-Encoding", "gzip")
-	if isGzipped {
-		req.Header.Set("Content-Encoding", "gzip")
-	}
+	req.Header.Set("Content-Encoding", "gzip")
 
-	response, err := client.Do(req)
+	response, err := a.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed send request: %w", err)
+		return fmt.Errorf(errMsg, err)
 	}
 	if response != nil {
 		defer func() {
 			if err := response.Body.Close(); err != nil {
-				log.Printf("failed to close the response body: %v", err)
+				a.l.ErrorCtx(ctx, "failed to close the response body", zap.Error(err))
 			}
 		}()
 	}
@@ -70,7 +65,7 @@ func sendRequest(client *http.Client, url string, contentType string, metric *mo
 		if response.Header.Get("Content-Encoding") == "gzip" {
 			bodyReader, err = gzip.NewReader(response.Body)
 			if err != nil {
-				return fmt.Errorf("failed gzip reader: %w", err)
+				return fmt.Errorf(errMsg, err)
 			}
 		} else {
 			bodyReader = response.Body
@@ -84,10 +79,12 @@ func sendRequest(client *http.Client, url string, contentType string, metric *mo
 	return nil
 }
 
-func New(cfg *config.Config) *Agent {
+func New(cfg *config.Config, l *logging.ZapLogger) *Agent {
 	return &Agent{
 		gaugeSource: service.NewGaugeSource(),
 		config:      cfg,
+		l:           l,
+		client:      &http.Client{},
 	}
 }
 
@@ -99,7 +96,6 @@ func (a *Agent) Run() {
 		}
 	}()
 
-	client := &http.Client{}
 	var pollCount, pollCountDelta, sentPollCount int64
 	var err error
 	metricPollCount := model.Metric{
@@ -110,22 +106,24 @@ func (a *Agent) Run() {
 	metricGauge := model.Metric{
 		MType: "gauge",
 	}
+	ctx := context.Background()
+
 	for range time.Tick(time.Duration(a.config.ReportInterval) * time.Second) {
 		pollCount = a.gaugeSource.GetPollCount()
 		pollCountDelta = pollCount - sentPollCount
-		err = sendRequest(client, a.config.UpdateURL, "application/json", &metricPollCount)
+		err = a.sendMetric(a.l.WithContextFields(ctx, zap.Int64("PollCount", pollCountDelta)), metricPollCount)
 		if err == nil {
 			sentPollCount = pollCount
 		} else {
-			log.Printf("fail send %s: %v", "PollCount", err)
+			a.l.ErrorCtx(ctx, "fail send PollCount", zap.Error(err))
 		}
 		dataForSend := a.gaugeSource.GetDataForSend()
 		for i, v := range dataForSend {
 			metricGauge.ID = i
 			metricGauge.Value = &v
-			err = sendRequest(client, a.config.UpdateURL, "application/json", &metricGauge)
+			err = a.sendMetric(a.l.WithContextFields(ctx, zap.Float64(i, v)), metricGauge)
 			if err != nil {
-				log.Printf("fail send %s: %v", i, err)
+				a.l.ErrorCtx(ctx, "fail send "+i, zap.Error(err))
 			}
 		}
 	}
