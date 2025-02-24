@@ -37,9 +37,9 @@ func (m *Metric) Clone() *Metric {
 
 func (m *Metric) AnyValue() any {
 	if m.MType == TypeCounter {
-		return m.Delta
+		return *m.Delta
 	}
-	return m.Value
+	return *m.Value
 }
 
 func NewMetricGauge(id string, value float64) Metric {

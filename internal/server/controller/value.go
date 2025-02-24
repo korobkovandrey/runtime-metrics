@@ -26,7 +26,7 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	m, err := c.s.Find(mr)
 	if err != nil {
 		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueURI: %w", err)))
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		http.NotFound(w, r)
 		return
 	}
 	_, err = fmt.Fprint(w, m.AnyValue())
