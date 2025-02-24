@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/korobkovandrey/runtime-metrics/__old/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"go.uber.org/zap"
 )
@@ -27,7 +26,7 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	m, err := c.s.Find(mr)
 	if err != nil {
 		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueURI: %w", err)))
-		if errors.Is(err, repository.ErrMetricNotFound) {
+		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return
 		}
@@ -57,7 +56,7 @@ func (c *Controller) valueJSON(w http.ResponseWriter, r *http.Request) {
 	m, err := c.s.Find(mr)
 	if err != nil {
 		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueJSON: %w", err)))
-		if errors.Is(err, repository.ErrMetricNotFound) {
+		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return
 		}
