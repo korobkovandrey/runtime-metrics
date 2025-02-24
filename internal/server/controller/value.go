@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/korobkovandrey/runtime-metrics/__old/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"go.uber.org/zap"
 )
@@ -26,7 +27,11 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	m, err := c.s.Find(mr)
 	if err != nil {
 		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueURI: %w", err)))
-		http.NotFound(w, r)
+		if errors.Is(err, repository.ErrMetricNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	_, err = fmt.Fprint(w, m.AnyValue())
@@ -52,7 +57,11 @@ func (c *Controller) valueJSON(w http.ResponseWriter, r *http.Request) {
 	m, err := c.s.Find(mr)
 	if err != nil {
 		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueJSON: %w", err)))
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		if errors.Is(err, repository.ErrMetricNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	c.responseMarshaled(m, w, r)
