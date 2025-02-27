@@ -18,45 +18,49 @@ type Writer struct {
 func NewCompressWriter(w http.ResponseWriter) *Writer {
 	return &Writer{
 		w:            w,
-		zw:           gzip.NewWriter(w),
 		Compressible: false,
 	}
 }
 
-func (c *Writer) Header() http.Header {
-	return c.w.Header()
+func (w *Writer) Header() http.Header {
+	return w.w.Header()
 }
 
-func (c *Writer) Write(p []byte) (int, error) {
-	if c.Compressible {
-		n, err := c.zw.Write(p)
+func (w *Writer) Write(p []byte) (int, error) {
+	if w.Compressible {
+		if w.zw == nil {
+			w.zw = gzip.NewWriter(w.w)
+		} else {
+			w.zw.Reset(w.w)
+		}
+		n, err := w.zw.Write(p)
 		if err != nil {
 			return n, fmt.Errorf("compress[Writer].Write: %w", err)
 		}
 		return n, nil
 	}
-	n, err := c.w.Write(p)
+	n, err := w.w.Write(p)
 	if err != nil {
 		return n, fmt.Errorf("compress[Writer].Write: %w", err)
 	}
 	return n, nil
 }
 
-func (c *Writer) WriteHeader(statusCode int) {
-	contentType := c.Header().Get("Content-Type")
+func (w *Writer) WriteHeader(statusCode int) {
+	contentType := w.Header().Get("Content-Type")
 	isHTML := strings.Contains(contentType, "text/html")
 	isJSON := strings.Contains(contentType, "application/json")
 	if statusCode < 300 && (isHTML || isJSON) {
-		c.w.Header().Set("Content-Encoding", "gzip")
-		c.w.Header().Del("Content-Length")
-		c.Compressible = true
+		w.w.Header().Set("Content-Encoding", "gzip")
+		w.w.Header().Del("Content-Length")
+		w.Compressible = true
 	}
-	c.w.WriteHeader(statusCode)
+	w.w.WriteHeader(statusCode)
 }
 
-func (c *Writer) Close() error {
-	if c.Compressible {
-		if err := c.zw.Close(); err != nil {
+func (w *Writer) Close() error {
+	if w.zw != nil {
+		if err := w.zw.Close(); err != nil {
 			return fmt.Errorf("compress[Writer].Close: %w", err)
 		}
 	}
@@ -73,26 +77,25 @@ func NewCompressReader(r io.ReadCloser) (*Reader, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewCompressReader: %w", err)
 	}
-
 	return &Reader{
 		r:  r,
 		zr: zr,
 	}, nil
 }
 
-func (c *Reader) Read(p []byte) (int, error) {
-	n, err := c.zr.Read(p)
+func (r *Reader) Read(p []byte) (int, error) {
+	n, err := r.zr.Read(p)
 	if !errors.Is(err, io.EOF) {
 		err = fmt.Errorf("compress[Reader].Read: %w", err)
 	}
 	return n, err
 }
 
-func (c *Reader) Close() error {
-	if err := c.r.Close(); err != nil {
+func (r *Reader) Close() error {
+	if err := r.r.Close(); err != nil {
 		return fmt.Errorf("compress[Reader].Close: %w", err)
 	}
-	if err := c.zr.Close(); err != nil {
+	if err := r.zr.Close(); err != nil {
 		return fmt.Errorf("compress[Reader].Close: %w", err)
 	}
 	return nil

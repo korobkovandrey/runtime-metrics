@@ -8,6 +8,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+//go:generate mockgen -source=service.go -destination=../mocks/repository.go -package=mocks
 type Repository interface {
 	Find(mr *model.MetricRequest) (*model.Metric, error)
 	FindAll() ([]*model.Metric, error)
@@ -27,15 +28,15 @@ func NewService(r Repository) *Service {
 
 func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	m, err := s.r.Find(mr)
-	if err != nil && !errors.Is(err, model.ErrMetricNotFound) {
-		return m, fmt.Errorf("service.Update: %w", err)
-	}
-	if m == nil {
-		m, err = s.r.Create(mr)
-		if err != nil {
-			return m, fmt.Errorf("service.Update: %w", err)
+	if err != nil {
+		if errors.Is(err, model.ErrMetricNotFound) {
+			m, err = s.r.Create(mr)
+			if err != nil {
+				return m, fmt.Errorf("service.Update: %w", err)
+			}
+			return m, nil
 		}
-		return m, nil
+		return m, fmt.Errorf("service.Update: %w", err)
 	}
 
 	needUpdate := false

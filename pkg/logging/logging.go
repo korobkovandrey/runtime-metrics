@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"go.uber.org/zap"
@@ -59,10 +58,6 @@ func (z *ZapLogger) WithContextFields(ctx context.Context, fields ...zap.Field) 
 
 	merged := ctxFields.Append(fields...)
 	return context.WithValue(ctx, zapFieldsKey, merged)
-}
-
-func (z *ZapLogger) RequestWithContextFields(r *http.Request, fields ...zap.Field) {
-	*r = *r.WithContext(z.WithContextFields(r.Context(), fields...))
 }
 
 func (z *ZapLogger) maskField(f zap.Field) zap.Field {

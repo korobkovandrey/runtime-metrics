@@ -5,8 +5,6 @@ import (
 
 	"html/template"
 	"net/http"
-
-	"go.uber.org/zap"
 )
 
 func (c *Controller) indexFunc() (func(w http.ResponseWriter, r *http.Request), error) {
@@ -18,13 +16,13 @@ func (c *Controller) indexFunc() (func(w http.ResponseWriter, r *http.Request), 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		data, err := c.s.FindAll()
 		if err != nil {
-			c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.indexFunc: %w", err)))
+			c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.indexFunc: %w", err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 		if err = tpl.Execute(w, data); err != nil {
-			c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.indexFunc: %w", err)))
+			c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.indexFunc: %w", err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}

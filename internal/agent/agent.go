@@ -67,6 +67,11 @@ func (a *Agent) sendMetric(ctx context.Context, metric model.Metric) error {
 			if err != nil {
 				return fmt.Errorf(errMsg, err)
 			}
+			defer func(bodyReader io.ReadCloser) {
+				if err := bodyReader.Close(); err != nil {
+					a.l.ErrorCtx(ctx, "failed to close the gzip reader", zap.Error(err))
+				}
+			}(bodyReader)
 		} else {
 			bodyReader = response.Body
 		}
@@ -101,10 +106,10 @@ func (a *Agent) Run() {
 	metricPollCount := model.Metric{
 		Delta: &pollCountDelta,
 		ID:    "PollCount",
-		MType: "counter",
+		MType: model.TypeCounter,
 	}
 	metricGauge := model.Metric{
-		MType: "gauge",
+		MType: model.TypeGauge,
 	}
 	ctx := context.Background()
 

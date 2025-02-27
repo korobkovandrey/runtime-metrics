@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	"go.uber.org/zap"
 )
 
 func (c *Controller) updateURI(w http.ResponseWriter, r *http.Request) {
@@ -15,7 +14,7 @@ func (c *Controller) updateURI(w http.ResponseWriter, r *http.Request) {
 	value := r.PathValue("value")
 	mr, err := model.NewMetricRequest(t, name, value)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateURI: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateURI: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
 		if errors.Is(err, model.ErrTypeIsNotValid) {
 			errMsg += ": " + model.ErrTypeIsNotValid.Error()
@@ -27,7 +26,7 @@ func (c *Controller) updateURI(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = c.s.Update(mr)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateURI: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateURI: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return
@@ -40,9 +39,9 @@ func (c *Controller) updateURI(w http.ResponseWriter, r *http.Request) {
 
 //nolint:dupl // ignore
 func (c *Controller) updateJSON(w http.ResponseWriter, r *http.Request) {
-	mr, err := model.NewMetricRequestFromReader(r.Body)
+	mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateJSON: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateJSON: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
 		if errors.Is(err, model.ErrMetricNotFound) {
 			errMsg += ": " + model.ErrMetricNotFound.Error()
@@ -52,7 +51,7 @@ func (c *Controller) updateJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	m, err := c.s.Update(mr)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.updateJSON: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateJSON: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return

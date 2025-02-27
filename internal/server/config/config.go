@@ -12,11 +12,13 @@ type Config struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
 	StoreInterval   int64  `env:"STORE_INTERVAL"`
+	ShutdownTimeout int64
 }
 
 func GetConfig() (*Config, error) {
 	const (
-		storeInterval = 0
+		storeInterval   = 0
+		shutdownTimeout = 5
 	)
 	cfg := &Config{}
 	flag.StringVar(&cfg.Addr, "a", "localhost:8080", "server host")
@@ -30,6 +32,8 @@ func GetConfig() (*Config, error) {
 	if err != nil {
 		return cfg, fmt.Errorf("GetConfig: %w", err)
 	}
+
+	cfg.ShutdownTimeout = shutdownTimeout
 
 	return cfg, nil
 }

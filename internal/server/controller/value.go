@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	"go.uber.org/zap"
 )
 
 func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
@@ -15,7 +14,7 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	value := "0"
 	mr, err := model.NewMetricRequest(t, name, value)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueURI: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueURI: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
 		if errors.Is(err, model.ErrTypeIsNotValid) {
 			errMsg += ": " + model.ErrTypeIsNotValid.Error()
@@ -25,7 +24,7 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	}
 	m, err := c.s.Find(mr)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueURI: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueURI: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return
@@ -35,7 +34,7 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = fmt.Fprint(w, m.AnyValue())
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueURI: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueURI: %w", err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -43,9 +42,9 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 
 //nolint:dupl // ignore
 func (c *Controller) valueJSON(w http.ResponseWriter, r *http.Request) {
-	mr, err := model.NewMetricRequestFromReader(r.Body)
+	mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueJSON: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueJSON: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
 		if errors.Is(err, model.ErrMetricNotFound) {
 			errMsg += ": " + model.ErrMetricNotFound.Error()
@@ -55,7 +54,7 @@ func (c *Controller) valueJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	m, err := c.s.Find(mr)
 	if err != nil {
-		c.l.RequestWithContextFields(r, zap.Error(fmt.Errorf("controller.valueJSON: %w", err)))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueJSON: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return

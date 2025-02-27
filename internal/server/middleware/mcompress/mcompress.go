@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/korobkovandrey/runtime-metrics/internal/server/compress"
+	"github.com/korobkovandrey/runtime-metrics/pkg/compress"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 )

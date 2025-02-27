@@ -37,21 +37,27 @@ func (m *Metric) Clone() *Metric {
 
 func (m *Metric) AnyValue() any {
 	if m.MType == TypeCounter {
+		if m.Delta == nil {
+			return nil
+		}
 		return *m.Delta
+	}
+	if m.Value == nil {
+		return nil
 	}
 	return *m.Value
 }
 
-func NewMetricGauge(id string, value float64) Metric {
-	return Metric{
+func NewMetricGauge(id string, value float64) *Metric {
+	return &Metric{
 		Value: &value,
 		MType: TypeGauge,
 		ID:    id,
 	}
 }
 
-func NewMetricCounter(id string, delta int64) Metric {
-	return Metric{
+func NewMetricCounter(id string, delta int64) *Metric {
+	return &Metric{
 		Delta: &delta,
 		MType: TypeCounter,
 		ID:    id,
@@ -59,11 +65,11 @@ func NewMetricCounter(id string, delta int64) Metric {
 }
 
 type MetricRequest struct {
-	Metric
+	*Metric
 }
 
 func NewMetricRequest(t string, name string, value string) (*MetricRequest, error) {
-	var m Metric
+	var m *Metric
 	switch t {
 	case TypeGauge:
 		number, err := strconv.ParseFloat(value, 64)
@@ -83,18 +89,21 @@ func NewMetricRequest(t string, name string, value string) (*MetricRequest, erro
 	return &MetricRequest{m}, nil
 }
 
-func NewMetricRequestFromReader(r io.Reader) (*MetricRequest, error) {
+func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) {
 	body, err := io.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("readMetricFromRequest %w: %w", ErrMetricNotFound, err)
+		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w: %w", ErrMetricNotFound, err)
 	}
 	if len(body) == 0 {
-		return nil, fmt.Errorf("readMetricFromRequest %w", ErrMetricNotFound)
+		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w", ErrMetricNotFound)
 	}
 	var metric *MetricRequest
 	err = json.Unmarshal(body, &metric)
 	if err != nil {
-		return nil, fmt.Errorf("readMetricFromRequest %w: %w", ErrMetricNotFound, err)
+		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w: %w", ErrMetricNotFound, err)
+	}
+	if metric == nil || metric.Metric == nil {
+		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w", ErrMetricNotFound)
 	}
 	return metric, nil
 }
