@@ -8,7 +8,8 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
-//go:generate mockgen -source=service.go -destination=../mocks/repository.go -package=mocks
+//go:generate mockgen -source=service.go -destination=../mocks/service.go -package=mocks
+
 type Repository interface {
 	Find(mr *model.MetricRequest) (*model.Metric, error)
 	FindAll() ([]*model.Metric, error)

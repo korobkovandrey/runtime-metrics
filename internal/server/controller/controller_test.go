@@ -28,23 +28,24 @@ func TestController_routes(t *testing.T) {
 	cfg := &config.Config{}
 
 	tests := []struct {
-		name            string
-		method          string
-		url             string
-		postBody        string
-		mockSetup       func(mockService *mocks.MockService)
-		wantCode        int
-		wantContentType string
-		wantJSON        string
-		wantBody        string
-		containsStrings []string
+		name             string
+		method           string
+		url              string
+		postBody         string
+		mockServiceSetup func(mockService *mocks.MockService)
+		mockDBSetup      func(mockDB *mocks.MockDB)
+		wantCode         int
+		wantContentType  string
+		wantJSON         string
+		wantBody         string
+		containsStrings  []string
 	}{
 		// index group
 		{
 			name:   "index ok",
 			method: http.MethodGet,
 			url:    "/",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					FindAll().
 					Return([]*model.Metric{
@@ -65,7 +66,7 @@ func TestController_routes(t *testing.T) {
 			name:   "index service error",
 			method: http.MethodGet,
 			url:    "/",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					FindAll().
 					Return(nil, errors.New("service error"))
@@ -77,7 +78,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI gauge valid",
 			method: http.MethodPost,
 			url:    "/update/gauge/test/1",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("test", 1)})).
 					Return(model.NewMetricGauge("test", 1), nil)
@@ -88,7 +89,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI counter valid",
 			method: http.MethodPost,
 			url:    "/update/counter/test/1",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 1)})).
 					Return(model.NewMetricCounter("test", 1), nil)
@@ -99,7 +100,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI service error",
 			method: http.MethodPost,
 			url:    "/update/counter/test/1",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 1)})).
 					Return(nil, errors.New("service error"))
@@ -110,7 +111,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI service error not found",
 			method: http.MethodPost,
 			url:    "/update/counter/test/1",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 1)})).
 					Return(nil, model.ErrMetricNotFound)
@@ -121,7 +122,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI fail value",
 			method: http.MethodPost,
 			url:    "/update/counter/test/fail",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -131,7 +132,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI without value",
 			method: http.MethodPost,
 			url:    "/update/counter/test",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -141,7 +142,7 @@ func TestController_routes(t *testing.T) {
 			name:   "updateURI without name",
 			method: http.MethodPost,
 			url:    "/update/gauge",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
 			wantCode: http.StatusNotFound,
@@ -152,7 +153,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/update",
 			postBody: `{"type":"gauge","id":"test","value":12.34}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("test", 12.34)})).
 					Return(model.NewMetricGauge("test", 12.34), nil)
@@ -166,7 +167,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/update",
 			postBody: `{"type":"counter","id":"test","delta":1}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 1)})).
 					Return(model.NewMetricCounter("test", 1), nil)
@@ -180,7 +181,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/update",
 			postBody: `invalid`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -191,7 +192,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/update",
 			postBody: `{"type":"gauge","id":"error","value":12.34}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Update(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("error", 12.34)})).
 					Return(nil, errors.New("service error"))
@@ -203,7 +204,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/update",
 			postBody: `{"type":"fail","id":"test"}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -214,7 +215,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/update",
 			postBody: `{"type":"gauge","id":"test"}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -225,7 +226,7 @@ func TestController_routes(t *testing.T) {
 			name:   "valueURI gauge valid",
 			method: http.MethodGet,
 			url:    "/value/gauge/test",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("test", 0)})).
 					Return(model.NewMetricGauge("test", 10), nil)
@@ -238,7 +239,7 @@ func TestController_routes(t *testing.T) {
 			name:   "valueURI counter valid",
 			method: http.MethodGet,
 			url:    "/value/counter/test",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 0)})).
 					Return(model.NewMetricCounter("test", 111), nil)
@@ -251,7 +252,7 @@ func TestController_routes(t *testing.T) {
 			name:   "valueURI service error",
 			method: http.MethodGet,
 			url:    "/value/counter/test",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 0)})).
 					Return(nil, errors.New("service error"))
@@ -262,7 +263,7 @@ func TestController_routes(t *testing.T) {
 			name:   "valueURI not found metric",
 			method: http.MethodGet,
 			url:    "/value/counter/test",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricCounter("test", 0)})).
 					Return(nil, model.ErrMetricNotFound)
@@ -273,7 +274,7 @@ func TestController_routes(t *testing.T) {
 			name:   "valueURI fail type",
 			method: http.MethodGet,
 			url:    "/value/fail/name",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -283,7 +284,7 @@ func TestController_routes(t *testing.T) {
 			name:   "valueURI without name",
 			method: http.MethodGet,
 			url:    "/value/counter",
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
 			},
 			wantCode: http.StatusNotFound,
@@ -294,7 +295,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/value",
 			postBody: `{"type":"gauge","id":"test"}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: &model.Metric{
 						MType: model.TypeGauge,
@@ -310,7 +311,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/value",
 			postBody: `{"type":"counter","id":"test"}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: &model.Metric{
 						MType: model.TypeCounter,
@@ -326,7 +327,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/value",
 			postBody: `invalid`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
@@ -337,7 +338,7 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/value",
 			postBody: `{"type":"gauge","id":"error"}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
 					Find(gomock.Eq(&model.MetricRequest{Metric: &model.Metric{
 						MType: model.TypeGauge,
@@ -351,19 +352,53 @@ func TestController_routes(t *testing.T) {
 			method:   http.MethodPost,
 			url:      "/value",
 			postBody: `{"type":"fail","id":"test"}`,
-			mockSetup: func(mockService *mocks.MockService) {
+			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"type is not valid"},
+		},
+
+		// ping group
+		{
+			name:   "ping ok",
+			method: http.MethodGet,
+			url:    "/ping",
+			mockDBSetup: func(mockDB *mocks.MockDB) {
+				mockDB.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
+			},
+			wantCode: http.StatusOK,
+		},
+		{
+			name:     "ping without db",
+			method:   http.MethodGet,
+			url:      "/ping",
+			wantCode: http.StatusOK,
+		},
+		{
+			name:   "ping error",
+			method: http.MethodGet,
+			url:    "/ping",
+			mockDBSetup: func(mockDB *mocks.MockDB) {
+				mockDB.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
+			},
+			wantCode: http.StatusInternalServerError,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockService := mocks.NewMockService(ctrl)
-			tt.mockSetup(mockService)
+			if tt.mockServiceSetup != nil {
+				tt.mockServiceSetup(mockService)
+			}
 			c := NewController(cfg, mockService, l)
+			if tt.mockDBSetup != nil {
+				mockDB := mocks.NewMockDB(ctrl)
+				tt.mockDBSetup(mockDB)
+				c.WithDB(mockDB)
+			}
+
 			currentDir, err := os.Getwd()
 			require.NoError(t, err)
 			err = os.Chdir("../../..")
