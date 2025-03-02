@@ -10,6 +10,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/db"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/service"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
@@ -37,6 +38,14 @@ func main() {
 		l.FatalCtx(ctx, "failed to get config", zap.Error(err))
 	}
 
+	dbDriver, err := db.Factory(ctx, cfg.GetDBConfig(), l)
+	if err != nil && !errors.Is(err, db.ErrNoDBConfig) {
+		l.FatalCtx(ctx, "failed init db driver", zap.Error(err))
+	}
+	if dbDriver != nil {
+		defer dbDriver.Close()
+	}
+
 	r, err := repository.Factory(ctx, cfg, l)
 	if err != nil {
 		l.FatalCtx(ctx, "failed to start store", zap.Error(err))
@@ -48,7 +57,8 @@ func main() {
 		}
 	}(r)
 
-	c := controller.NewController(cfg, service.NewService(r), l)
+	c := controller.NewController(cfg, service.NewService(r), l).
+		WithDB(dbDriver)
 	if err = c.ListenAndServe(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		l.FatalCtx(ctx, "failed to start server", zap.Error(err))
 	}

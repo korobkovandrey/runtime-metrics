@@ -10,13 +10,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/db"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -source=controller.go -destination=../mocks/service.go -package=mocks
+//go:generate mockgen -source=controller.go -destination=../mocks/controller.go -package=mocks
+
 type Service interface {
 	Update(mr *model.MetricRequest) (*model.Metric, error)
 	Find(mr *model.MetricRequest) (*model.Metric, error)
@@ -26,6 +28,7 @@ type Service interface {
 type Controller struct {
 	cfg *config.Config
 	s   Service
+	db  db.DB
 	l   *logging.ZapLogger
 	r   chi.Router
 }
@@ -37,6 +40,11 @@ func NewController(cfg *config.Config, service Service, logger *logging.ZapLogge
 		l:   logger,
 		r:   chi.NewRouter(),
 	}
+}
+
+func (c *Controller) WithDB(dbDriver db.DB) *Controller {
+	c.db = dbDriver
+	return c
 }
 
 func (c *Controller) routes() error {
@@ -58,6 +66,7 @@ func (c *Controller) routes() error {
 		r.Post("/", c.valueJSON)
 		r.Get("/{type}/{name}", c.valueURI)
 	})
+	c.r.Get("/ping", c.ping)
 	indexFunc, err := c.indexFunc()
 	if err != nil {
 		return fmt.Errorf("controller.routes: %w", err)
