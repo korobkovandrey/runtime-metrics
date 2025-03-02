@@ -168,7 +168,6 @@ func TestGzipCompressed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
 			var postBody io.Reader
 			if tt.send.encodingGzip {
 				buf := bytes.NewBuffer(nil)
@@ -188,6 +187,7 @@ func TestGzipCompressed(t *testing.T) {
 			if tt.send.acceptGzip {
 				r.Header.Set("Accept-Encoding", "gzip")
 			}
+			w := httptest.NewRecorder()
 			GzipCompressed(l)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				body, err := io.ReadAll(r.Body)
 				require.NoError(t, err)
@@ -201,6 +201,7 @@ func TestGzipCompressed(t *testing.T) {
 				require.NoError(t, err)
 			})).ServeHTTP(w, r)
 
+			require.Equal(t, http.StatusOK, w.Code)
 			var body []byte
 			if tt.wantGzip {
 				require.Contains(t, w.Header().Get("Content-Encoding"), "gzip")

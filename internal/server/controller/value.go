@@ -40,14 +40,18 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//nolint:dupl // ignore
 func (c *Controller) valueJSON(w http.ResponseWriter, r *http.Request) {
 	mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
+	if err == nil {
+		err = mr.ValidateType()
+	}
 	if err != nil {
 		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueJSON: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
 		if errors.Is(err, model.ErrMetricNotFound) {
 			errMsg += ": " + model.ErrMetricNotFound.Error()
+		} else if errors.Is(err, model.ErrTypeIsNotValid) {
+			errMsg += ": " + model.ErrTypeIsNotValid.Error()
 		}
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return

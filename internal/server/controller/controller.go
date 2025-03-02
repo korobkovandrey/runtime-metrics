@@ -39,12 +39,8 @@ func NewController(cfg *config.Config, service Service, logger *logging.ZapLogge
 	}
 }
 
-type key string
-
-const logMessageKey key = "logMessage"
-
 func (c *Controller) routes() error {
-	c.r.Use(mcompress.GzipCompressed(c.l), mlogger.RequestLogger(c.l, string(logMessageKey)))
+	c.r.Use(mcompress.GzipCompressed(c.l), mlogger.RequestLogger(c.l))
 	c.r.Route("/update", func(r chi.Router) {
 		r.Post("/", c.updateJSON)
 		r.Route("/{type}", func(r chi.Router) {
@@ -70,10 +66,10 @@ func (c *Controller) routes() error {
 	return nil
 }
 
-func (c *Controller) ServeHTTP(ctx context.Context) error {
+func (c *Controller) ListenAndServe(ctx context.Context) error {
 	err := c.routes()
 	if err != nil {
-		return fmt.Errorf("controller.ServeHTTP: %w", err)
+		return fmt.Errorf("controller.ListenAndServe: %w", err)
 	}
 	c.l.InfoCtx(ctx, "Server started on http://"+c.cfg.Addr+"/")
 	server := http.Server{
@@ -88,13 +84,13 @@ func (c *Controller) ServeHTTP(ctx context.Context) error {
 		defer cancel()
 		c.l.InfoCtx(ctx, "Shutting down the HTTP server...")
 		if err := server.Shutdown(ctx); err != nil {
-			c.l.ErrorCtx(ctx, "controller.ServeHTTP", zap.Error(err))
+			c.l.ErrorCtx(ctx, "controller.ListenAndServe", zap.Error(err))
 		}
 	}(ctx)
 
 	err = server.ListenAndServe()
 	if err != nil {
-		return fmt.Errorf("controller.ServeHTTP: %w", err)
+		return fmt.Errorf("controller.ListenAndServe: %w", err)
 	}
 	return nil
 }
@@ -119,7 +115,7 @@ func (c *Controller) responseMarshaled(data any, w http.ResponseWriter, r *http.
 }*/
 
 func (c *Controller) requestCtxWithLogMessage(r *http.Request, msg string) {
-	*r = *r.WithContext(context.WithValue(r.Context(), logMessageKey, msg))
+	*r = *r.WithContext(context.WithValue(r.Context(), mlogger.LogMessageKey, msg))
 }
 
 func (c *Controller) requestCtxWithLogMessageFromError(r *http.Request, err error) {

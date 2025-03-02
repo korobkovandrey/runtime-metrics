@@ -30,8 +30,6 @@ func (w *Writer) Write(p []byte) (int, error) {
 	if w.Compressible {
 		if w.zw == nil {
 			w.zw = gzip.NewWriter(w.w)
-		} else {
-			w.zw.Reset(w.w)
 		}
 		n, err := w.zw.Write(p)
 		if err != nil {

@@ -37,14 +37,21 @@ func (c *Controller) updateURI(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-//nolint:dupl // ignore
 func (c *Controller) updateJSON(w http.ResponseWriter, r *http.Request) {
 	mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
+	if err == nil {
+		err = mr.RequiredValue()
+	}
 	if err != nil {
 		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateJSON: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
-		if errors.Is(err, model.ErrMetricNotFound) {
+		switch {
+		case errors.Is(err, model.ErrMetricNotFound):
 			errMsg += ": " + model.ErrMetricNotFound.Error()
+		case errors.Is(err, model.ErrTypeIsNotValid):
+			errMsg += ": " + model.ErrTypeIsNotValid.Error()
+		case errors.Is(err, model.ErrValueIsNotValid):
+			errMsg += ": " + model.ErrValueIsNotValid.Error()
 		}
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return

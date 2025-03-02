@@ -15,8 +15,7 @@ func TestNewService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepository := mocks.NewMockRepository(ctrl)
-	s := NewService(mockRepository)
-	assert.Equal(t, s, &Service{mockRepository})
+	assert.Equal(t, &Service{r: mockRepository}, NewService(mockRepository))
 }
 
 func TestService_Find(t *testing.T) {

@@ -68,7 +68,30 @@ type MetricRequest struct {
 	*Metric
 }
 
-func NewMetricRequest(t string, name string, value string) (*MetricRequest, error) {
+func (mr *MetricRequest) RequiredValue() error {
+	switch mr.MType {
+	case TypeGauge:
+		if mr.Value == nil {
+			return ErrValueIsNotValid
+		}
+	case TypeCounter:
+		if mr.Delta == nil {
+			return ErrValueIsNotValid
+		}
+	default:
+		return ErrTypeIsNotValid
+	}
+	return nil
+}
+
+func (mr *MetricRequest) ValidateType() error {
+	if mr.MType != TypeGauge && mr.MType != TypeCounter {
+		return ErrTypeIsNotValid
+	}
+	return nil
+}
+
+func NewMetricRequest(t string, id string, value string) (*MetricRequest, error) {
 	var m *Metric
 	switch t {
 	case TypeGauge:
@@ -76,13 +99,13 @@ func NewMetricRequest(t string, name string, value string) (*MetricRequest, erro
 		if err != nil {
 			return nil, fmt.Errorf("NewMetricRequest %w: %w", ErrValueIsNotValid, err)
 		}
-		m = NewMetricGauge(name, number)
+		m = NewMetricGauge(id, number)
 	case TypeCounter:
 		number, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("NewMetricRequest %w: %w", ErrValueIsNotValid, err)
 		}
-		m = NewMetricCounter(name, number)
+		m = NewMetricCounter(id, number)
 	default:
 		return nil, ErrTypeIsNotValid
 	}

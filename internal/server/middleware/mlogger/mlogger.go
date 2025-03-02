@@ -34,7 +34,11 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode
 }
 
-func RequestLogger(logger *logging.ZapLogger, logMessageKey string) func(h http.Handler) http.Handler {
+type key string
+
+const LogMessageKey key = "logMessage"
+
+func RequestLogger(logger *logging.ZapLogger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -50,13 +54,11 @@ func RequestLogger(logger *logging.ZapLogger, logMessageKey string) func(h http.
 
 			ctx := r.Context()
 			msg := ""
-			if logMessageKey != "" {
-				if m := ctx.Value(logMessageKey); m != nil {
-					msg, _ = m.(string)
-				}
+			if m := ctx.Value(LogMessageKey); m != nil {
+				msg, _ = m.(string)
 			}
 			logger.InfoCtx(
-				r.Context(), msg, zap.Int("status", rd.status),
+				ctx, msg, zap.Int("status", rd.status),
 				zap.String("method", r.Method), zap.String("uri", r.RequestURI),
 				zap.Duration("duration", time.Since(start)), zap.Int("size", rd.size),
 			)

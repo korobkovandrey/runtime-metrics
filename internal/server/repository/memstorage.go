@@ -87,6 +87,14 @@ func (ms *MemStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	return ms.unsafeUpdate(mr)
 }
 
+func (ms *MemStorage) Close() error {
+	ms.mux.Lock()
+	defer ms.mux.Unlock()
+	ms.index = map[string]map[string]int{}
+	ms.data = []*model.Metric{}
+	return nil
+}
+
 func (ms *MemStorage) fill(data []*model.Metric) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/controller"
@@ -24,32 +23,33 @@ func main() {
 	}
 	defer l.Sync()
 
-	ctx := context.Background()
-	ctxStopSignal, cancelStopSignal := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	go func(cancel context.CancelFunc) {
 		defer cancel()
 		stop := make(chan os.Signal, 1)
+		defer close(stop)
 		signal.Notify(stop, os.Interrupt)
 		<-stop
-	}(cancelStopSignal)
+	}(cancel)
 
 	cfg, err := config.GetConfig()
 	if err != nil {
-		l.FatalCtx(ctxStopSignal, "failed to get config", zap.Error(err))
+		l.FatalCtx(ctx, "failed to get config", zap.Error(err))
 	}
 
-	wg := &sync.WaitGroup{}
-	ctxWg, cancelWg := context.WithCancel(ctx)
-	defer func(cancel context.CancelFunc, wg *sync.WaitGroup) {
-		cancel()
-		wg.Wait()
-	}(cancelWg, wg)
-	r, err := repository.Factory(ctxWg, wg, cfg, l)
+	r, err := repository.Factory(ctx, cfg, l)
 	if err != nil {
-		l.FatalCtx(ctxWg, "failed to start store", zap.Error(err))
+		l.FatalCtx(ctx, "failed to start store", zap.Error(err))
 	}
+	defer func(r service.Repository) {
+		l.InfoCtx(ctx, "Closing repository...")
+		if err := r.Close(); err != nil {
+			l.ErrorCtx(ctx, "failed to close repository", zap.Error(err))
+		}
+	}(r)
+
 	c := controller.NewController(cfg, service.NewService(r), l)
-	if err = c.ServeHTTP(ctxStopSignal); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		l.FatalCtx(ctxStopSignal, "failed to start server", zap.Error(err))
+	if err = c.ListenAndServe(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		l.FatalCtx(ctx, "failed to start server", zap.Error(err))
 	}
 }

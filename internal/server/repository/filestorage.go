@@ -65,6 +65,18 @@ func (fs *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
+func (fs *FileStorage) Close() error {
+	err := fs.sync(true)
+	if err != nil {
+		err = fmt.Errorf("filestorage.Close: %w", err)
+		if errMs := fs.MemStorage.Close(); errMs != nil {
+			err = fmt.Errorf("%w; %w", err, errMs)
+		}
+		return err
+	}
+	return fs.MemStorage.Close()
+}
+
 func (fs *FileStorage) restore() error {
 	if fs.cfg.FileStoragePath == "" {
 		return nil

@@ -14,6 +14,7 @@ type Repository interface {
 	FindAll() ([]*model.Metric, error)
 	Create(mr *model.MetricRequest) (*model.Metric, error)
 	Update(mr *model.MetricRequest) (*model.Metric, error)
+	Close() error
 }
 
 type Service struct {
