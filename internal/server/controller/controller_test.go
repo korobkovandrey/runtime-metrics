@@ -33,7 +33,7 @@ func TestController_routes(t *testing.T) {
 		url              string
 		postBody         string
 		mockServiceSetup func(mockService *mocks.MockService)
-		mockDBSetup      func(mockDB *mocks.MockDB)
+		mockPingerSetup  func(mockPinger *mocks.MockPinger)
 		wantCode         int
 		wantContentType  string
 		wantJSON         string
@@ -364,8 +364,8 @@ func TestController_routes(t *testing.T) {
 			name:   "ping ok",
 			method: http.MethodGet,
 			url:    "/ping",
-			mockDBSetup: func(mockDB *mocks.MockDB) {
-				mockDB.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
+			mockPingerSetup: func(mockPinger *mocks.MockPinger) {
+				mockPinger.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
 			},
 			wantCode: http.StatusOK,
 		},
@@ -379,8 +379,8 @@ func TestController_routes(t *testing.T) {
 			name:   "ping error",
 			method: http.MethodGet,
 			url:    "/ping",
-			mockDBSetup: func(mockDB *mocks.MockDB) {
-				mockDB.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
+			mockPingerSetup: func(mockPinger *mocks.MockPinger) {
+				mockPinger.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
 			},
 			wantCode: http.StatusInternalServerError,
 		},
@@ -393,10 +393,10 @@ func TestController_routes(t *testing.T) {
 				tt.mockServiceSetup(mockService)
 			}
 			c := NewController(cfg, mockService, l)
-			if tt.mockDBSetup != nil {
-				mockDB := mocks.NewMockDB(ctrl)
-				tt.mockDBSetup(mockDB)
-				c.WithDB(mockDB)
+			if tt.mockPingerSetup != nil {
+				mockPinger := mocks.NewMockPinger(ctrl)
+				tt.mockPingerSetup(mockPinger)
+				c.WithPinger(mockPinger)
 			}
 
 			currentDir, err := os.Getwd()

@@ -15,7 +15,6 @@ type Repository interface {
 	FindAll() ([]*model.Metric, error)
 	Create(mr *model.MetricRequest) (*model.Metric, error)
 	Update(mr *model.MetricRequest) (*model.Metric, error)
-	Close() error
 }
 
 type Service struct {
@@ -29,16 +28,23 @@ func NewService(r Repository) *Service {
 }
 
 func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
+	const errorMsg = "service.Update: %w"
 	m, err := s.r.Find(mr)
 	if err != nil {
-		if errors.Is(err, model.ErrMetricNotFound) {
-			m, err = s.r.Create(mr)
-			if err != nil {
-				return m, fmt.Errorf("service.Update: %w", err)
-			}
+		if !errors.Is(err, model.ErrMetricNotFound) {
+			return m, fmt.Errorf(errorMsg, err)
+		}
+		m, err = s.r.Create(mr)
+		if err == nil {
 			return m, nil
 		}
-		return m, fmt.Errorf("service.Update: %w", err)
+		if !errors.Is(err, model.ErrMetricAlreadyExist) {
+			return m, fmt.Errorf(errorMsg, err)
+		}
+		m, err = s.r.Find(mr)
+		if err != nil {
+			return m, fmt.Errorf(errorMsg, err)
+		}
 	}
 
 	needUpdate := false
@@ -58,7 +64,7 @@ func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	if needUpdate {
 		m, err = s.r.Update(mr)
 		if err != nil {
-			return m, fmt.Errorf("service.Update: %w", err)
+			return m, fmt.Errorf(errorMsg, err)
 		}
 		return m, nil
 	}

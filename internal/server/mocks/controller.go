@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/korobkovandrey/runtime-metrics/internal/model"
@@ -83,4 +84,42 @@ func (m *MockService) Update(mr *model.MetricRequest) (*model.Metric, error) {
 func (mr_2 *MockServiceMockRecorder) Update(mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
 	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Update", reflect.TypeOf((*MockService)(nil).Update), mr)
+}
+
+// MockPinger is a mock of Pinger interface.
+type MockPinger struct {
+	ctrl     *gomock.Controller
+	recorder *MockPingerMockRecorder
+	isgomock struct{}
+}
+
+// MockPingerMockRecorder is the mock recorder for MockPinger.
+type MockPingerMockRecorder struct {
+	mock *MockPinger
+}
+
+// NewMockPinger creates a new mock instance.
+func NewMockPinger(ctrl *gomock.Controller) *MockPinger {
+	mock := &MockPinger{ctrl: ctrl}
+	mock.recorder = &MockPingerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPinger) EXPECT() *MockPingerMockRecorder {
+	return m.recorder
+}
+
+// Ping mocks base method.
+func (m *MockPinger) Ping(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping.
+func (mr *MockPingerMockRecorder) Ping(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockPinger)(nil).Ping), ctx)
 }

@@ -3,25 +3,26 @@ package config
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/db"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/db/pgxdriver"
 )
 
 type Config struct {
-	Addr            string `env:"ADDRESS"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseDSN     string `env:"DATABASE_DSN"`
-	Restore         bool   `env:"RESTORE"`
-	StoreInterval   int64  `env:"STORE_INTERVAL"`
-	ShutdownTimeout int64
+	Addr                string `env:"ADDRESS"`
+	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
+	DatabaseDSN         string `env:"DATABASE_DSN"`
+	Restore             bool   `env:"RESTORE"`
+	StoreInterval       int64  `env:"STORE_INTERVAL"`
+	ShutdownTimeout     time.Duration
+	DatabasePingTimeout time.Duration
 }
 
 func GetConfig() (*Config, error) {
 	const (
 		storeInterval   = 0
 		shutdownTimeout = 5
+		databasePingTimeout
 	)
 	cfg := &Config{}
 	flag.StringVar(&cfg.Addr, "a", "localhost:8080", "server host")
@@ -37,15 +38,8 @@ func GetConfig() (*Config, error) {
 		return cfg, fmt.Errorf("GetConfig: %w", err)
 	}
 
-	cfg.ShutdownTimeout = shutdownTimeout
+	cfg.ShutdownTimeout = shutdownTimeout * time.Second
+	cfg.DatabasePingTimeout = databasePingTimeout * time.Second
 
 	return cfg, nil
-}
-
-func (cfg *Config) GetDBConfig() *db.Config {
-	dbCfg := &db.Config{}
-	if cfg.DatabaseDSN != "" {
-		dbCfg.PGXDriver = &pgxdriver.Config{DSN: cfg.DatabaseDSN}
-	}
-	return dbCfg
 }

@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/db"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 )
@@ -25,12 +24,16 @@ type Service interface {
 	FindAll() ([]*model.Metric, error)
 }
 
+type Pinger interface {
+	repository.Pinger
+}
+
 type Controller struct {
-	cfg *config.Config
-	s   Service
-	db  db.DB
-	l   *logging.ZapLogger
-	r   chi.Router
+	cfg    *config.Config
+	s      Service
+	pinger Pinger
+	l      *logging.ZapLogger
+	r      chi.Router
 }
 
 func NewController(cfg *config.Config, service Service, logger *logging.ZapLogger) *Controller {
@@ -42,8 +45,8 @@ func NewController(cfg *config.Config, service Service, logger *logging.ZapLogge
 	}
 }
 
-func (c *Controller) WithDB(dbDriver db.DB) *Controller {
-	c.db = dbDriver
+func (c *Controller) WithPinger(pinger Pinger) *Controller {
+	c.pinger = pinger
 	return c
 }
 
@@ -89,7 +92,7 @@ func (c *Controller) ListenAndServe(ctx context.Context) error {
 	go func(ctx context.Context) {
 		ctxWithoutCancel := context.WithoutCancel(ctx)
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(ctxWithoutCancel, time.Duration(c.cfg.ShutdownTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(ctxWithoutCancel, c.cfg.ShutdownTimeout)
 		defer cancel()
 		c.l.InfoCtx(ctx, "Shutting down the HTTP server...")
 		if err := server.Shutdown(ctx); err != nil {

@@ -17,16 +17,14 @@ import (
 type FileStorage struct {
 	*MemStorage
 	cfg       *config.Config
-	l         *logging.ZapLogger
 	isSync    bool
 	isChanged bool
 }
 
-func NewFileStorage(ms *MemStorage, cfg *config.Config, l *logging.ZapLogger) *FileStorage {
+func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage {
 	return &FileStorage{
 		MemStorage: ms,
 		cfg:        cfg,
-		l:          l,
 		isSync:     cfg.StoreInterval <= 0,
 	}
 }
@@ -66,15 +64,7 @@ func (fs *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 }
 
 func (fs *FileStorage) Close() error {
-	err := fs.sync(true)
-	if err != nil {
-		err = fmt.Errorf("filestorage.Close: %w", err)
-		if errMs := fs.MemStorage.Close(); errMs != nil {
-			err = fmt.Errorf("%w; %w", err, errMs)
-		}
-		return err
-	}
-	return fs.MemStorage.Close()
+	return fs.sync(true)
 }
 
 func (fs *FileStorage) restore() error {

@@ -23,14 +23,14 @@ func TestController_ping(t *testing.T) {
 	cfg := &config.Config{}
 
 	tests := []struct {
-		name        string
-		mockDBSetup func(mockDB *mocks.MockDB)
-		wantCode    int
+		name            string
+		mockPingerSetup func(mockPinger *mocks.MockPinger)
+		wantCode        int
 	}{
 		{
 			name: "ping ok",
-			mockDBSetup: func(mockDB *mocks.MockDB) {
-				mockDB.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
+			mockPingerSetup: func(mockPinger *mocks.MockPinger) {
+				mockPinger.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
 			},
 			wantCode: http.StatusOK,
 		},
@@ -40,8 +40,8 @@ func TestController_ping(t *testing.T) {
 		},
 		{
 			name: "ping error",
-			mockDBSetup: func(mockDB *mocks.MockDB) {
-				mockDB.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
+			mockPingerSetup: func(mockPinger *mocks.MockPinger) {
+				mockPinger.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
 			},
 			wantCode: http.StatusInternalServerError,
 		},
@@ -54,10 +54,10 @@ func TestController_ping(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/ping", http.NoBody)
 			w := httptest.NewRecorder()
 
-			if tt.mockDBSetup != nil {
-				mockDB := mocks.NewMockDB(ctrl)
-				tt.mockDBSetup(mockDB)
-				c.WithDB(mockDB)
+			if tt.mockPingerSetup != nil {
+				mockPinger := mocks.NewMockPinger(ctrl)
+				tt.mockPingerSetup(mockPinger)
+				c.WithPinger(mockPinger)
 			}
 
 			c.ping(w, r)
