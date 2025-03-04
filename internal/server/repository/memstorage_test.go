@@ -383,51 +383,6 @@ func TestMemStorage_fill(t *testing.T) {
 	}
 }
 
-func TestMemStorage_Close(t *testing.T) {
-	type fields struct {
-		index map[string]map[string]int
-		data  []*model.Metric
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "ok",
-			fields: fields{
-				index: map[string]map[string]int{
-					model.TypeGauge: {
-						"test":  0,
-						"test1": 1,
-					},
-				},
-				data: []*model.Metric{
-					model.NewMetricCounter("test", 10),
-					model.NewMetricGauge("test1", 1.1),
-				},
-			},
-			wantErr: assert.NoError,
-		},
-		{
-			name: "empty",
-			fields: fields{
-				index: map[string]map[string]int{},
-				data:  []*model.Metric{},
-			},
-			wantErr: assert.NoError,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			tt.wantErr(t, ms.Close())
-			assert.Equal(t, map[string]map[string]int{}, ms.index)
-			assert.Equal(t, []*model.Metric{}, ms.data)
-		})
-	}
-}
-
 func newMemStorageWithDataAndIndex(data []*model.Metric, index map[string]map[string]int) *MemStorage {
 	return &MemStorage{
 		mux:   new(sync.Mutex),

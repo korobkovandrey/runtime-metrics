@@ -5,29 +5,35 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -source=controller.go -destination=../mocks/service.go -package=mocks
+//go:generate mockgen -source=controller.go -destination=../mocks/controller.go -package=mocks
+
 type Service interface {
 	Update(mr *model.MetricRequest) (*model.Metric, error)
 	Find(mr *model.MetricRequest) (*model.Metric, error)
 	FindAll() ([]*model.Metric, error)
 }
 
+type Pinger interface {
+	repository.Pinger
+}
+
 type Controller struct {
-	cfg *config.Config
-	s   Service
-	l   *logging.ZapLogger
-	r   chi.Router
+	cfg    *config.Config
+	s      Service
+	pinger Pinger
+	l      *logging.ZapLogger
+	r      chi.Router
 }
 
 func NewController(cfg *config.Config, service Service, logger *logging.ZapLogger) *Controller {
@@ -37,6 +43,11 @@ func NewController(cfg *config.Config, service Service, logger *logging.ZapLogge
 		l:   logger,
 		r:   chi.NewRouter(),
 	}
+}
+
+func (c *Controller) WithPinger(pinger Pinger) *Controller {
+	c.pinger = pinger
+	return c
 }
 
 func (c *Controller) routes() error {
@@ -58,6 +69,7 @@ func (c *Controller) routes() error {
 		r.Post("/", c.valueJSON)
 		r.Get("/{type}/{name}", c.valueURI)
 	})
+	c.r.Get("/ping", c.ping)
 	indexFunc, err := c.indexFunc()
 	if err != nil {
 		return fmt.Errorf("controller.routes: %w", err)
@@ -80,7 +92,7 @@ func (c *Controller) ListenAndServe(ctx context.Context) error {
 	go func(ctx context.Context) {
 		ctxWithoutCancel := context.WithoutCancel(ctx)
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(ctxWithoutCancel, time.Duration(c.cfg.ShutdownTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(ctxWithoutCancel, c.cfg.ShutdownTimeout)
 		defer cancel()
 		c.l.InfoCtx(ctx, "Shutting down the HTTP server...")
 		if err := server.Shutdown(ctx); err != nil {

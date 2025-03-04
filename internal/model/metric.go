@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+
+	"github.com/jackc/pgx/v5"
 )
 
 const (
@@ -46,6 +48,16 @@ func (m *Metric) AnyValue() any {
 		return nil
 	}
 	return *m.Value
+}
+
+//nolint:wrapcheck // ignore
+func (m *Metric) ScanRow(row pgx.Row) error {
+	return row.Scan(
+		&m.MType,
+		&m.ID,
+		&m.Value,
+		&m.Delta,
+	)
 }
 
 func NewMetricGauge(id string, value float64) *Metric {
