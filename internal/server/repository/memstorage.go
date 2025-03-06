@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
@@ -20,10 +21,15 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
+func (ms *MemStorage) unsafeIndex(mr *model.MetricRequest) (int, bool) {
+	i, ok := ms.index[mr.MType][mr.ID]
+	return i, ok && i < len(ms.data)
+}
+
 func (ms *MemStorage) Find(mr *model.MetricRequest) (*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
-	if i, ok := ms.index[mr.MType][mr.ID]; ok && i < len(ms.data) {
+	if i, ok := ms.unsafeIndex(mr); ok {
 		return ms.data[i].Clone(), nil
 	}
 	return nil, model.ErrMetricNotFound
@@ -43,8 +49,20 @@ func (ms *MemStorage) FindAll() ([]*model.Metric, error) {
 	return ms.unsafeFindAll(), nil
 }
 
+func (ms *MemStorage) FindBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	ms.mux.Lock()
+	defer ms.mux.Unlock()
+	var res []*model.Metric
+	for _, mr := range mrs {
+		if i, ok := ms.unsafeIndex(mr); ok {
+			res = append(res, ms.data[i].Clone())
+		}
+	}
+	return res, nil
+}
+
 func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, error) {
-	if _, ok := ms.index[mr.MType][mr.ID]; ok {
+	if _, ok := ms.unsafeIndex(mr); ok {
 		return nil, model.ErrMetricAlreadyExist
 	}
 	if _, ok := ms.index[mr.MType]; !ok {
@@ -62,8 +80,8 @@ func (ms *MemStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
 }
 
 func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, error) {
-	i, ok := ms.index[mr.MType][mr.ID]
-	if !ok || i >= len(ms.data) {
+	i, ok := ms.unsafeIndex(mr)
+	if !ok {
 		return nil, model.ErrMetricNotFound
 	}
 	if mr.Value != nil {
@@ -85,6 +103,33 @@ func (ms *MemStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	return ms.unsafeUpdate(mr)
+}
+
+func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	res := make([]*model.Metric, len(mrs))
+	for i, mr := range mrs {
+		var m *model.Metric
+		var err error
+		if _, ok := ms.unsafeIndex(mr); ok {
+			m, err = ms.unsafeUpdate(mr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update metric: %w", err)
+			}
+		} else {
+			m, err = ms.unsafeCreate(mr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create metric: %w", err)
+			}
+		}
+		res[i] = m
+	}
+	return res, nil
+}
+
+func (ms *MemStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	ms.mux.Lock()
+	defer ms.mux.Unlock()
+	return ms.unsafeCreateOrUpdateBatch(mrs)
 }
 
 func (ms *MemStorage) fill(data []*model.Metric) {

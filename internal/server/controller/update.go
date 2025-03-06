@@ -43,7 +43,7 @@ func (c *Controller) updateJSON(w http.ResponseWriter, r *http.Request) {
 		err = mr.RequiredValue()
 	}
 	if err != nil {
-		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateJSON: %w", err))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed unmarshal: %w", err))
 		errMsg := http.StatusText(http.StatusBadRequest)
 		switch {
 		case errors.Is(err, model.ErrMetricNotFound):
@@ -58,7 +58,7 @@ func (c *Controller) updateJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	m, err := c.s.Update(mr)
 	if err != nil {
-		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.updateJSON: %w", err))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed update: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {
 			http.NotFound(w, r)
 			return

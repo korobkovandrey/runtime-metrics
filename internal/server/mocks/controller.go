@@ -86,6 +86,21 @@ func (mr_2 *MockServiceMockRecorder) Update(mr any) *gomock.Call {
 	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Update", reflect.TypeOf((*MockService)(nil).Update), mr)
 }
 
+// UpdateBatch mocks base method.
+func (m *MockService) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBatch", mrs)
+	ret0, _ := ret[0].([]*model.Metric)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateBatch indicates an expected call of UpdateBatch.
+func (mr *MockServiceMockRecorder) UpdateBatch(mrs any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBatch", reflect.TypeOf((*MockService)(nil).UpdateBatch), mrs)
+}
+
 // MockPinger is a mock of Pinger interface.
 type MockPinger struct {
 	ctrl     *gomock.Controller

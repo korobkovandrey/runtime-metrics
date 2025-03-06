@@ -23,14 +23,8 @@ func main() {
 	}
 	defer l.Sync()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func(cancel context.CancelFunc) {
-		defer cancel()
-		stop := make(chan os.Signal, 1)
-		defer close(stop)
-		signal.Notify(stop, os.Interrupt)
-		<-stop
-	}(cancel)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
 	cfg, err := config.GetConfig()
 	if err != nil {

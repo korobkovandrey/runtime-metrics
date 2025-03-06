@@ -59,7 +59,6 @@ func TestMemStorage_Create(t *testing.T) {
 			wantErr: model.ErrMetricAlreadyExist,
 		},
 	}
-	//nolint:dupl // ignore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
@@ -140,7 +139,6 @@ func TestMemStorage_Find(t *testing.T) {
 			wantErr: model.ErrMetricNotFound,
 		},
 	}
-	//nolint:dupl // ignore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
@@ -281,7 +279,6 @@ func TestMemStorage_Update(t *testing.T) {
 			wantErr: model.ErrMetricNotFound,
 		},
 	}
-	//nolint:dupl // ignore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)

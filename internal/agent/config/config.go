@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 )
 
 type Config struct {
 	Addr           string `env:"ADDRESS"`
-	UpdateURL      string
-	PollInterval   int `env:"POLL_INTERVAL"`
-	ReportInterval int `env:"REPORT_INTERVAL"`
+	PollInterval   int    `env:"POLL_INTERVAL"`
+	ReportInterval int    `env:"REPORT_INTERVAL"`
+	Sender         *sender.Config
 }
 
 func GetConfig() (*Config, error) {
@@ -46,7 +47,10 @@ func GetConfig() (*Config, error) {
 			cfg.ReportInterval, cfg.PollInterval)
 	}
 
-	cfg.UpdateURL = "http://" + cfg.Addr + "/update/"
-
+	baseURL := "http://" + cfg.Addr
+	cfg.Sender = &sender.Config{
+		UpdateURL:  baseURL + "/update/",
+		UpdatesURL: baseURL + "/updates/",
+	}
 	return cfg, nil
 }

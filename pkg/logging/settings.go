@@ -15,8 +15,8 @@ func defaultSettings(level zap.AtomicLevel) *settings {
 		Level:       level,
 		Development: false,
 		Sampling: &zap.SamplingConfig{
-			Initial:    100, //nolint:mnd // ignore
-			Thereafter: 100, //nolint:mnd // ignore
+			Initial:    100,
+			Thereafter: 100,
 		},
 		Encoding: "json",
 		EncoderConfig: zapcore.EncoderConfig{

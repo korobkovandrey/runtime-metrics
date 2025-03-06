@@ -13,8 +13,10 @@ import (
 type Repository interface {
 	Find(mr *model.MetricRequest) (*model.Metric, error)
 	FindAll() ([]*model.Metric, error)
+	FindBatch(mrs []*model.MetricRequest) ([]*model.Metric, error)
 	Create(mr *model.MetricRequest) (*model.Metric, error)
 	Update(mr *model.MetricRequest) (*model.Metric, error)
+	CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
 type Service struct {
@@ -69,6 +71,32 @@ func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
 		return m, nil
 	}
 	return m, nil
+}
+
+func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	const errorMsg = "service.UpdateBatch: %w"
+	var mrsCounter []*model.MetricRequest
+	mrsCounterMap := map[string]*model.MetricRequest{}
+	for _, mr := range mrs {
+		if mr.MType == model.TypeCounter {
+			mrsCounterMap[mr.ID] = mr
+			mrsCounter = append(mrsCounter, mr)
+		}
+	}
+	if len(mrsCounter) > 0 {
+		mCounterExist, err := s.r.FindBatch(mrsCounter)
+		if err != nil {
+			return nil, fmt.Errorf(errorMsg, err)
+		}
+		for _, mr := range mCounterExist {
+			*mrsCounterMap[mr.ID].Delta += *mr.Delta
+		}
+	}
+	res, err := s.r.CreateOrUpdateBatch(mrs)
+	if err != nil {
+		return res, fmt.Errorf(errorMsg, err)
+	}
+	return res, nil
 }
 
 func (s *Service) Find(mr *model.MetricRequest) (*model.Metric, error) {

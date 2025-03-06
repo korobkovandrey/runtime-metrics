@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -184,8 +185,7 @@ func TestController_routes(t *testing.T) {
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Update(gomock.Any()).MaxTimes(0)
 			},
-			wantCode:        http.StatusBadRequest,
-			containsStrings: []string{"metric not found"},
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "updateJSON service error",
@@ -330,8 +330,7 @@ func TestController_routes(t *testing.T) {
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
 			},
-			wantCode:        http.StatusBadRequest,
-			containsStrings: []string{"metric not found"},
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name:     "valueJSON service error",
@@ -441,7 +440,7 @@ func testRequest(
 	t *testing.T, ts *httptest.Server,
 	method, path string, postBody io.Reader) (body []byte, statusCode int, contentType string) {
 	t.Helper()
-	req, err := http.NewRequest(method, ts.URL+path, postBody)
+	req, err := http.NewRequestWithContext(context.TODO(), method, ts.URL+path, postBody)
 	require.NoError(t, err)
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)

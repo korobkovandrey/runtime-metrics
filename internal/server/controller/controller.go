@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
@@ -22,6 +23,7 @@ type Service interface {
 	Update(mr *model.MetricRequest) (*model.Metric, error)
 	Find(mr *model.MetricRequest) (*model.Metric, error)
 	FindAll() ([]*model.Metric, error)
+	UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
 type Pinger interface {
@@ -65,6 +67,7 @@ func (c *Controller) routes() error {
 			})
 		})
 	})
+	c.r.Post("/updates/", c.updatesJSON)
 	c.r.Route("/value", func(r chi.Router) {
 		r.Post("/", c.valueJSON)
 		r.Get("/{type}/{name}", c.valueURI)
@@ -85,9 +88,10 @@ func (c *Controller) ListenAndServe(ctx context.Context) error {
 	}
 	c.l.InfoCtx(ctx, "Server started on http://"+c.cfg.Addr+"/")
 	server := http.Server{
-		Addr:     c.cfg.Addr,
-		ErrorLog: c.l.Std(),
-		Handler:  c.r,
+		Addr:              c.cfg.Addr,
+		ErrorLog:          c.l.Std(),
+		Handler:           c.r,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 	go func(ctx context.Context) {
 		ctxWithoutCancel := context.WithoutCancel(ctx)
@@ -115,7 +119,7 @@ func (c *Controller) responseMarshaled(data any, w http.ResponseWriter, r *http.
 		_, err = w.Write(response)
 	}
 	if err != nil {
-		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.responseMarshaled: %w", err))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed response: %w", err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

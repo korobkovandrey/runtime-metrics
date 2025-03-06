@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -103,7 +104,7 @@ func (mr *MetricRequest) ValidateType() error {
 	return nil
 }
 
-func NewMetricRequest(t string, id string, value string) (*MetricRequest, error) {
+func NewMetricRequest(t, id, value string) (*MetricRequest, error) {
 	var m *Metric
 	switch t {
 	case TypeGauge:
@@ -127,18 +128,37 @@ func NewMetricRequest(t string, id string, value string) (*MetricRequest, error)
 func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) {
 	body, err := io.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w: %w", ErrMetricNotFound, err)
+		return nil, fmt.Errorf("failed to read body: %w", err)
 	}
 	if len(body) == 0 {
-		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w", ErrMetricNotFound)
+		return nil, errors.New("empty body")
 	}
 	var metric *MetricRequest
 	err = json.Unmarshal(body, &metric)
 	if err != nil {
-		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w: %w", ErrMetricNotFound, err)
+		return nil, fmt.Errorf("failed to unmarshal body: %w", err)
 	}
 	if metric == nil || metric.Metric == nil {
-		return nil, fmt.Errorf("UnmarshalMetricRequestFromReader %w", ErrMetricNotFound)
+		return nil, ErrMetricNotFound
 	}
 	return metric, nil
+}
+
+func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) {
+	body, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body: %w", err)
+	}
+	if len(body) == 0 {
+		return nil, errors.New("empty body")
+	}
+	var metrics []*MetricRequest
+	err = json.Unmarshal(body, &metrics)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal body: %w", err)
+	}
+	if len(metrics) == 0 {
+		return nil, errors.New("empty body")
+	}
+	return metrics, nil
 }

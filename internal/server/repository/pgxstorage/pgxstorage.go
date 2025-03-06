@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,14 +58,38 @@ func (ps *PGXStorage) Find(mr *model.MetricRequest) (*model.Metric, error) {
 }
 
 func (ps *PGXStorage) FindAll() ([]*model.Metric, error) {
-	rows, err := ps.db.Query(`SELECT type, id, value, delta FROM metrics ORDER BY type, id;`)
+	rows, err := ps.db.Query("SELECT type, id, value, delta FROM metrics ORDER BY type, id;")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
 	}()
+	return scanMetricsFromRows(rows)
+}
 
+func (ps *PGXStorage) FindBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	const numColumns = 2
+	params := make([]any, 0, len(mrs)*numColumns)
+	args := make([]string, 0, len(mrs))
+	for i, mr := range mrs {
+		k := i*numColumns + 1
+		args = append(args, "(type=$"+strconv.Itoa(k)+" AND id=$"+strconv.Itoa(k+1)+")")
+		params = append(params, mr.MType, mr.ID)
+	}
+	rows, err := ps.db.Query(fmt.Sprintf(
+		`SELECT type, id, value, delta FROM metrics WHERE %s ORDER BY type, id;`,
+		strings.Join(args, " OR ")), params...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %w", err)
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+	return scanMetricsFromRows(rows)
+}
+
+func scanMetricsFromRows(rows *sql.Rows) ([]*model.Metric, error) {
 	var metrics []*model.Metric
 	for rows.Next() {
 		m := &model.Metric{}
@@ -109,6 +134,30 @@ func (ps *PGXStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 		return nil, fmt.Errorf("failed to scan row: %w", err)
 	}
 	return m, nil
+}
+
+func (ps *PGXStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	const numColumns = 4
+	params := make([]any, 0, len(mrs)*numColumns)
+	args := make([]string, 0, len(mrs))
+	for i, mr := range mrs {
+		k := i*numColumns + 1
+		args = append(args,
+			"($"+strconv.Itoa(k)+", $"+strconv.Itoa(k+1)+
+				", $"+strconv.Itoa(k+2)+", $"+strconv.Itoa(k+3)+")")
+		params = append(params, mr.MType, mr.ID, mr.Value, mr.Delta)
+	}
+	rows, err := ps.db.Query(fmt.Sprintf(
+		`INSERT INTO metrics (type, id, value, delta) VALUES %s 
+            ON CONFLICT (type, id) DO UPDATE SET value = EXCLUDED.value, delta = EXCLUDED.delta
+            RETURNING type, id, value, delta;`, strings.Join(args, ", ")), params...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %w", err)
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+	return scanMetricsFromRows(rows)
 }
 
 //nolint:wrapcheck // ignore

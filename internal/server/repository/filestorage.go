@@ -63,6 +63,23 @@ func (fs *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
+func (fs *FileStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	fs.mux.Lock()
+	defer fs.mux.Unlock()
+	fs.isChanged = true
+	res, err := fs.unsafeCreateOrUpdateBatch(mrs)
+	if err != nil {
+		return res, fmt.Errorf("filestorage.UpdateBatch: %w", err)
+	}
+	if fs.isSync {
+		err = fs.sync(false)
+		if err != nil {
+			return res, fmt.Errorf("filestorage.UpdateBatch: %w", err)
+		}
+	}
+	return res, nil
+}
+
 func (fs *FileStorage) Close() error {
 	return fs.sync(true)
 }

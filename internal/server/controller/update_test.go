@@ -127,7 +127,6 @@ func TestController_updateURI(t *testing.T) {
 	}
 }
 
-//nolint:dupl // ignore
 func TestController_updateJSON(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -164,7 +163,7 @@ func TestController_updateJSON(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 			wantJSON: "",
 			containsStrings: []string{
-				"Bad Request", "metric not found",
+				"Bad Request",
 			},
 		},
 		{
