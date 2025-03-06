@@ -50,9 +50,9 @@ func (ps *PGXStorage) Find(mr *model.MetricRequest) (*model.Metric, error) {
 	err := m.ScanRow(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, model.ErrMetricNotFound
+			err = model.ErrMetricNotFound
 		}
-		return nil, fmt.Errorf("pxgstorage.Find: %w", err)
+		return nil, fmt.Errorf("failed to find metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)
 	}
 	return m, nil
 }

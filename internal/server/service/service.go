@@ -74,27 +74,40 @@ func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
 }
 
 func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
-	const errorMsg = "service.UpdateBatch: %w"
-	var mrsCounter []*model.MetricRequest
+	var mrsReq []*model.MetricRequest
+	mrsGaugeIndexMap := map[string]int{}
 	mrsCounterMap := map[string]*model.MetricRequest{}
-	for _, mr := range mrs {
+	for i, mr := range mrs {
 		if mr.MType == model.TypeCounter {
-			mrsCounterMap[mr.ID] = mr
-			mrsCounter = append(mrsCounter, mr)
+			if _, ok := mrsCounterMap[mr.ID]; ok {
+				*mrsCounterMap[mr.ID].Delta += *mr.Delta
+			} else {
+				mrsCounterMap[mr.ID] = mr
+			}
+			mrsReq = append(mrsReq, mr)
+		} else {
+			mrsGaugeIndexMap[mr.ID] = i
 		}
 	}
-	if len(mrsCounter) > 0 {
-		mCounterExist, err := s.r.FindBatch(mrsCounter)
+
+	if len(mrsReq) > 0 {
+		mCounterExist, err := s.r.FindBatch(mrsReq)
 		if err != nil {
-			return nil, fmt.Errorf(errorMsg, err)
+			return nil, fmt.Errorf("failed to find batch: %w", err)
 		}
 		for _, mr := range mCounterExist {
 			*mrsCounterMap[mr.ID].Delta += *mr.Delta
 		}
 	}
-	res, err := s.r.CreateOrUpdateBatch(mrs)
+	for _, i := range mrsGaugeIndexMap {
+		mrsReq = append(mrsReq, mrs[i])
+	}
+	if len(mrsReq) == 0 {
+		return []*model.Metric{}, nil
+	}
+	res, err := s.r.CreateOrUpdateBatch(mrsReq)
 	if err != nil {
-		return res, fmt.Errorf(errorMsg, err)
+		return res, fmt.Errorf("failed to update batch: %w", err)
 	}
 	return res, nil
 }
