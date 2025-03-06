@@ -83,8 +83,8 @@ func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, erro
 				*mrsCounterMap[mr.ID].Delta += *mr.Delta
 			} else {
 				mrsCounterMap[mr.ID] = mr
+				mrsReq = append(mrsReq, mr)
 			}
-			mrsReq = append(mrsReq, mr)
 		} else {
 			mrsGaugeIndexMap[mr.ID] = i
 		}
