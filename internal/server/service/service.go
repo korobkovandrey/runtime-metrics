@@ -89,7 +89,6 @@ func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, erro
 			mrsGaugeIndexMap[mr.ID] = i
 		}
 	}
-
 	if len(mrsReq) > 0 {
 		mCounterExist, err := s.r.FindBatch(mrsReq)
 		if err != nil {

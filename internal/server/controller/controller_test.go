@@ -221,6 +221,87 @@ func TestController_routes(t *testing.T) {
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"value is not valid"},
 		},
+		// updatesJSON group
+		{
+			name:   "updatesJSON valid",
+			method: http.MethodPost,
+			url:    "/updates/",
+			postBody: `[{"type":"gauge","id":"test","value":66.34},
+						{"type":"counter","id":"test","delta":10}]`,
+			mockServiceSetup: func(mockService *mocks.MockService) {
+				mockService.EXPECT().
+					UpdateBatch([]*model.MetricRequest{
+						{Metric: model.NewMetricGauge("test", 66.34)},
+						{Metric: model.NewMetricCounter("test", 10)},
+					}).
+					Return([]*model.Metric{
+						model.NewMetricGauge("test", 66.34),
+						model.NewMetricCounter("test", 10),
+					}, nil)
+			},
+			wantCode:        http.StatusOK,
+			wantContentType: "application/json",
+			wantJSON:        `[{"type":"gauge","id":"test","value":66.34},{"type":"counter","id":"test","delta":10}]`,
+		},
+		{
+			name:   "updatesJSON invalid type",
+			method: http.MethodPost,
+			url:    "/updates/",
+			postBody: `[{"type":"invalid","id":"test","value":66.34},
+						{"type":"counter","id":"test","delta":10}]`,
+			mockServiceSetup: func(mockService *mocks.MockService) {
+				mockService.EXPECT().
+					UpdateBatch(gomock.Any()).MaxTimes(0)
+			},
+			wantCode:        http.StatusBadRequest,
+			containsStrings: []string{"Bad Request", "type is not valid"},
+		},
+		{
+			name:   "updatesJSON missing value",
+			method: http.MethodPost,
+			url:    "/updates/",
+			postBody: `[{"type":"gauge","id":"test","value":1.23},
+						{"type":"counter","id":"test"}]`,
+			mockServiceSetup: func(mockService *mocks.MockService) {
+				mockService.EXPECT().
+					UpdateBatch(gomock.Any()).MaxTimes(0)
+			},
+			wantCode:        http.StatusBadRequest,
+			containsStrings: []string{"Bad Request", "value is not valid"},
+		},
+		{
+			name:     "updatesJSON invalid json",
+			method:   http.MethodPost,
+			url:      "/updates/",
+			postBody: `invalid`,
+			mockServiceSetup: func(mockService *mocks.MockService) {
+				mockService.EXPECT().
+					UpdateBatch(gomock.Any()).MaxTimes(0)
+			},
+			wantCode: http.StatusBadRequest,
+		},
+		{
+			name:     "updatesJSON service error not found",
+			method:   http.MethodPost,
+			url:      "/updates/",
+			postBody: `[{"type":"gauge","id":"test","value":1.23}]`,
+			mockServiceSetup: func(mockService *mocks.MockService) {
+				mockService.EXPECT().
+					UpdateBatch(gomock.Any()).Return(nil, model.ErrMetricNotFound)
+			},
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "updatesJSON service error",
+			method:   http.MethodPost,
+			url:      "/updates/",
+			postBody: `[{"type":"gauge","id":"test","value":1.23}]`,
+			mockServiceSetup: func(mockService *mocks.MockService) {
+				mockService.EXPECT().
+					UpdateBatch(gomock.Any()).Return(nil, errors.New("service error"))
+			},
+			wantCode: http.StatusInternalServerError,
+		},
 		// valueURI group
 		{
 			name:   "valueURI gauge valid",
