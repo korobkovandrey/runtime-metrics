@@ -125,7 +125,6 @@ func (c *Controller) responseMarshaled(data any, w http.ResponseWriter, r *http.
 	}
 }
 
-//nolint:godot // ignore
 /* A func (c *Controller) requestCtxWithContextFields(r *http.Request, fields ...zap.Field) {
 	*r = *r.WithContext(c.l.WithContextFields(r.Context(), fields...))
 }*/

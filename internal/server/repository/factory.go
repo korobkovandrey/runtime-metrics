@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage"
@@ -30,6 +31,7 @@ func Factory(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) (Rep
 		ps, err := pgxstorage.NewPGXStorage(ctx, &pgxstorage.Config{
 			DSN:         cfg.DatabaseDSN,
 			PingTimeout: cfg.DatabasePingTimeout,
+			RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
 		})
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("repository.Factory: %w", err)

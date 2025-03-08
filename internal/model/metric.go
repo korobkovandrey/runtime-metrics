@@ -51,7 +51,6 @@ func (m *Metric) AnyValue() any {
 	return *m.Value
 }
 
-//nolint:wrapcheck // ignore
 func (m *Metric) ScanRow(row pgx.Row) error {
 	return row.Scan(
 		&m.MType,
