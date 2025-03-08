@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
@@ -49,8 +50,10 @@ func GetConfig() (*Config, error) {
 
 	baseURL := "http://" + cfg.Addr
 	cfg.Sender = &sender.Config{
-		UpdateURL:  baseURL + "/update/",
-		UpdatesURL: baseURL + "/updates/",
+		UpdateURL:   baseURL + "/update/",
+		UpdatesURL:  baseURL + "/updates/",
+		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+		Timeout:     reportIntervalSeconds * time.Second,
 	}
 	return cfg, nil
 }
