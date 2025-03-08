@@ -16,6 +16,7 @@ type Config struct {
 	StoreInterval       int64  `env:"STORE_INTERVAL"`
 	ShutdownTimeout     time.Duration
 	DatabasePingTimeout time.Duration
+	RetryDelays         []time.Duration
 }
 
 func GetConfig() (*Config, error) {
@@ -40,6 +41,7 @@ func GetConfig() (*Config, error) {
 
 	cfg.ShutdownTimeout = shutdownTimeout * time.Second
 	cfg.DatabasePingTimeout = databasePingTimeout * time.Second
+	cfg.RetryDelays = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 
 	return cfg, nil
 }

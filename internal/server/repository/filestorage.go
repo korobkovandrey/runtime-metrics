@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"time"
 
@@ -29,16 +30,16 @@ func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage {
 	}
 }
 
-func (fs *FileStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
-	fs.mux.Lock()
-	defer fs.mux.Unlock()
-	fs.isChanged = true
-	m, err := fs.unsafeCreate(mr)
+func (f *FileStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
+	f.mux.Lock()
+	defer f.mux.Unlock()
+	f.isChanged = true
+	m, err := f.unsafeCreate(mr)
 	if err != nil {
 		return m, fmt.Errorf("filestorage.Create: %w", err)
 	}
-	if fs.isSync {
-		err = fs.sync(false)
+	if f.isSync {
+		err = f.sync(false, true)
 		if err != nil {
 			return m, fmt.Errorf("filestorage.Create: %w", err)
 		}
@@ -46,16 +47,16 @@ func (fs *FileStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (fs *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
-	fs.mux.Lock()
-	defer fs.mux.Unlock()
-	fs.isChanged = true
-	m, err := fs.unsafeUpdate(mr)
+func (f *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
+	f.mux.Lock()
+	defer f.mux.Unlock()
+	f.isChanged = true
+	m, err := f.unsafeUpdate(mr)
 	if err != nil {
 		return m, fmt.Errorf("filestorage.Update: %w", err)
 	}
-	if fs.isSync {
-		err = fs.sync(false)
+	if f.isSync {
+		err = f.sync(false, true)
 		if err != nil {
 			return m, fmt.Errorf("filestorage.Update: %w", err)
 		}
@@ -63,16 +64,16 @@ func (fs *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (fs *FileStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
-	fs.mux.Lock()
-	defer fs.mux.Unlock()
-	fs.isChanged = true
-	res, err := fs.unsafeCreateOrUpdateBatch(mrs)
+func (f *FileStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+	f.mux.Lock()
+	defer f.mux.Unlock()
+	f.isChanged = true
+	res, err := f.unsafeCreateOrUpdateBatch(mrs)
 	if err != nil {
 		return res, fmt.Errorf("filestorage.UpdateBatch: %w", err)
 	}
-	if fs.isSync {
-		err = fs.sync(false)
+	if f.isSync {
+		err = f.sync(false, true)
 		if err != nil {
 			return res, fmt.Errorf("filestorage.UpdateBatch: %w", err)
 		}
@@ -80,15 +81,15 @@ func (fs *FileStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model
 	return res, nil
 }
 
-func (fs *FileStorage) Close() error {
-	return fs.sync(true)
+func (f *FileStorage) Close() error {
+	return f.sync(true, false)
 }
 
-func (fs *FileStorage) restore() error {
-	if fs.cfg.FileStoragePath == "" {
+func (f *FileStorage) restore() error {
+	if f.cfg.FileStoragePath == "" {
 		return nil
 	}
-	stat, err := os.Stat(fs.cfg.FileStoragePath)
+	stat, err := os.Stat(f.cfg.FileStoragePath)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("filestorage.restore: %w", err)
@@ -96,7 +97,14 @@ func (fs *FileStorage) restore() error {
 		return nil
 	}
 	if stat.Size() > 0 {
-		data, err := os.ReadFile(fs.cfg.FileStoragePath)
+		var data []byte
+		for i := 0; ; i++ {
+			data, err = os.ReadFile(f.cfg.FileStoragePath)
+			if i == len(f.cfg.RetryDelays) || err == nil || !errors.Is(err, fs.ErrPermission) {
+				break
+			}
+			time.Sleep(f.cfg.RetryDelays[i])
+		}
 		if err != nil {
 			return fmt.Errorf("filestorage.restore: %w", err)
 		}
@@ -106,51 +114,63 @@ func (fs *FileStorage) restore() error {
 			if err != nil {
 				return fmt.Errorf("filestorage.restore: %w", err)
 			}
-			fs.fill(mrs)
+			f.fill(mrs)
 		}
 	}
 	return nil
 }
 
-func (fs *FileStorage) sync(safe bool) error {
+func (f *FileStorage) sync(safe, tryRetry bool) error {
 	if safe {
-		fs.mux.Lock()
-		defer fs.mux.Unlock()
+		f.mux.Lock()
+		defer f.mux.Unlock()
 	}
-	if fs.cfg.FileStoragePath == "" {
+	if f.cfg.FileStoragePath == "" {
 		return nil
 	}
-	if !fs.isChanged {
+	if !f.isChanged {
 		return nil
 	}
-	data, err := json.MarshalIndent(fs.unsafeFindAll(), "", "   ")
+	data, err := json.MarshalIndent(f.unsafeFindAll(), "", "   ")
 	if err != nil {
 		return fmt.Errorf("filestorage.sync: %w", err)
 	}
 	const (
 		permFlag = 0o600
 	)
-	err = os.WriteFile(fs.cfg.FileStoragePath, data, permFlag)
+
+	if tryRetry {
+		for i := 0; ; i++ {
+			err = os.WriteFile(f.cfg.FileStoragePath, data, permFlag)
+			if i == len(f.cfg.RetryDelays) || err == nil || !errors.Is(err, fs.ErrPermission) {
+				break
+			}
+			time.Sleep(f.cfg.RetryDelays[i])
+		}
+	} else {
+		err = os.WriteFile(f.cfg.FileStoragePath, data, permFlag)
+	}
+
 	if err != nil {
 		return fmt.Errorf("filestorage.sync: %w", err)
 	}
-	fs.isChanged = false
+	f.isChanged = false
 	return nil
 }
 
-func (fs *FileStorage) run(ctx context.Context, l *logging.ZapLogger) {
-	if fs.cfg.StoreInterval <= 0 {
+func (f *FileStorage) run(ctx context.Context, l *logging.ZapLogger) {
+	if f.cfg.StoreInterval <= 0 {
 		return
 	}
 	var err error
-	t := time.NewTicker(time.Duration(fs.cfg.StoreInterval) * time.Second)
+	t := time.NewTicker(time.Duration(f.cfg.StoreInterval) * time.Second)
 	for {
 		select {
 		case <-ctx.Done():
 			t.Stop()
 			return
 		case <-t.C:
-			if err = fs.sync(true); err != nil {
+			if err = f.sync(true, false); err != nil {
 				l.ErrorCtx(ctx, "filestorage.run", zap.Error(err))
 			}
 		}
