@@ -1,6 +1,7 @@
 package pgxstorage
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -12,8 +13,8 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
-func (ps *PGXStorage) find(mr *model.MetricRequest) (*model.Metric, error) {
-	row := ps.db.QueryRow(`
+func (ps *PGXStorage) find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
+	row := ps.db.QueryRowContext(ctx, `
 		SELECT type, id, value, delta FROM metrics
 		WHERE type = $1 AND id = $2 LIMIT 1;`,
 		mr.MType, mr.ID,
@@ -29,8 +30,8 @@ func (ps *PGXStorage) find(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (ps *PGXStorage) findAll() ([]*model.Metric, error) {
-	rows, err := ps.db.Query("SELECT type, id, value, delta FROM metrics ORDER BY type, id;")
+func (ps *PGXStorage) findAll(ctx context.Context) ([]*model.Metric, error) {
+	rows, err := ps.db.QueryContext(ctx, "SELECT type, id, value, delta FROM metrics ORDER BY type, id;")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}
@@ -40,7 +41,7 @@ func (ps *PGXStorage) findAll() ([]*model.Metric, error) {
 	return scanMetricsFromRows(rows)
 }
 
-func (ps *PGXStorage) findBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (ps *PGXStorage) findBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	const numColumns = 2
 	params := make([]any, 0, len(mrs)*numColumns)
 	args := make([]string, 0, len(mrs))
@@ -49,7 +50,7 @@ func (ps *PGXStorage) findBatch(mrs []*model.MetricRequest) ([]*model.Metric, er
 		args = append(args, "(type=$"+strconv.Itoa(k)+" AND id=$"+strconv.Itoa(k+1)+")")
 		params = append(params, mr.MType, mr.ID)
 	}
-	rows, err := ps.db.Query(fmt.Sprintf(
+	rows, err := ps.db.QueryContext(ctx, fmt.Sprintf(
 		`SELECT type, id, value, delta FROM metrics WHERE %s ORDER BY type, id;`,
 		strings.Join(args, " OR ")), params...)
 	if err != nil {
@@ -61,8 +62,8 @@ func (ps *PGXStorage) findBatch(mrs []*model.MetricRequest) ([]*model.Metric, er
 	return scanMetricsFromRows(rows)
 }
 
-func (ps *PGXStorage) create(mr *model.MetricRequest) (*model.Metric, error) {
-	row := ps.db.QueryRow(`
+func (ps *PGXStorage) create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
+	row := ps.db.QueryRowContext(ctx, `
 		INSERT INTO metrics (type, id, value, delta) VALUES ($1, $2, $3, $4)
 		RETURNING type, id, value, delta;`,
 		mr.MType, mr.ID, mr.Value, mr.Delta,
@@ -79,8 +80,8 @@ func (ps *PGXStorage) create(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (ps *PGXStorage) update(mr *model.MetricRequest) (*model.Metric, error) {
-	row := ps.db.QueryRow(`
+func (ps *PGXStorage) update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
+	row := ps.db.QueryRowContext(ctx, `
 		INSERT INTO metrics (type, id, value, delta) VALUES ($1, $2, $3, $4)
 		ON CONFLICT (type, id) DO UPDATE SET value = EXCLUDED.value, delta = EXCLUDED.delta
 		RETURNING type, id, value, delta;`,
@@ -94,7 +95,7 @@ func (ps *PGXStorage) update(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (ps *PGXStorage) createOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (ps *PGXStorage) createOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	const numColumns = 4
 	params := make([]any, 0, len(mrs)*numColumns)
 	args := make([]string, 0, len(mrs))
@@ -105,7 +106,7 @@ func (ps *PGXStorage) createOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.
 				", $"+strconv.Itoa(k+2)+", $"+strconv.Itoa(k+3)+")")
 		params = append(params, mr.MType, mr.ID, mr.Value, mr.Delta)
 	}
-	rows, err := ps.db.Query(fmt.Sprintf(
+	rows, err := ps.db.QueryContext(ctx, fmt.Sprintf(
 		`INSERT INTO metrics (type, id, value, delta) VALUES %s 
             ON CONFLICT (type, id) DO UPDATE SET value = EXCLUDED.value, delta = EXCLUDED.delta
             RETURNING type, id, value, delta;`, strings.Join(args, ", ")), params...)

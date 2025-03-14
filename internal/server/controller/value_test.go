@@ -40,7 +40,7 @@ func TestController_valueURI(t *testing.T) {
 			},
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("test", 0)})).
+					Find(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("test", 0)})).
 					Return(model.NewMetricGauge("test", 1), nil)
 			},
 			wantBody: "1",
@@ -53,7 +53,7 @@ func TestController_valueURI(t *testing.T) {
 				"name": "test",
 			},
 			mockServiceSetup: func(mockService *mocks.MockService) {
-				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
+				mockService.EXPECT().Find(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"type is not valid"},
@@ -66,7 +66,7 @@ func TestController_valueURI(t *testing.T) {
 			},
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("not_found", 0)})).
+					Find(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("not_found", 0)})).
 					Return(nil, model.ErrMetricNotFound)
 			},
 			wantCode: http.StatusNotFound,
@@ -79,7 +79,7 @@ func TestController_valueURI(t *testing.T) {
 			},
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					Find(gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("error", 0)})).
+					Find(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("error", 0)})).
 					Return(nil, errors.New("unexpected error"))
 			},
 			wantCode: http.StatusInternalServerError,
@@ -136,7 +136,7 @@ func TestController_valueJSON(t *testing.T) {
 			json: `{"type":"gauge","id":"test"}`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					Find(gomock.Eq(&model.MetricRequest{Metric: &model.Metric{MType: model.TypeGauge, ID: "test"}})).
+					Find(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: &model.Metric{MType: model.TypeGauge, ID: "test"}})).
 					Return(model.NewMetricGauge("test", 12.34), nil)
 			},
 			wantCode: http.StatusOK,
@@ -146,7 +146,7 @@ func TestController_valueJSON(t *testing.T) {
 			name: "invalid json",
 			json: `invalid`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
-				mockService.EXPECT().Find(gomock.Any()).MaxTimes(0)
+				mockService.EXPECT().Find(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode: http.StatusBadRequest,
 			wantJSON: "",
@@ -159,7 +159,7 @@ func TestController_valueJSON(t *testing.T) {
 			json: `{"type":"gauge","id":"error"}`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					Find(gomock.Eq(&model.MetricRequest{Metric: &model.Metric{MType: model.TypeGauge, ID: "error"}})).
+					Find(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: &model.Metric{MType: model.TypeGauge, ID: "error"}})).
 					Return(nil, errors.New("unexpected error"))
 			},
 			wantCode: http.StatusInternalServerError,

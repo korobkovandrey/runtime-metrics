@@ -20,10 +20,10 @@ import (
 //go:generate mockgen -source=controller.go -destination=../mocks/controller.go -package=mocks
 
 type Service interface {
-	Update(mr *model.MetricRequest) (*model.Metric, error)
-	Find(mr *model.MetricRequest) (*model.Metric, error)
-	FindAll() ([]*model.Metric, error)
-	UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error)
+	Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	FindAll(ctx context.Context) ([]*model.Metric, error)
+	UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
 type Pinger interface {

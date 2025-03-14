@@ -30,7 +30,7 @@ func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage {
 	}
 }
 
-func (f *FileStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
+func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
 	f.isChanged = true
@@ -47,7 +47,7 @@ func (f *FileStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (f *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
+func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
 	f.isChanged = true
@@ -64,7 +64,7 @@ func (f *FileStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (f *FileStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
 	f.isChanged = true

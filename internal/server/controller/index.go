@@ -14,7 +14,7 @@ func (c *Controller) indexFunc() (func(w http.ResponseWriter, r *http.Request), 
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		data, err := c.s.FindAll()
+		data, err := c.s.FindAll(r.Context())
 		if err != nil {
 			c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.indexFunc: %w", err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

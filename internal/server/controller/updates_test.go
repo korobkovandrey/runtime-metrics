@@ -39,7 +39,7 @@ func TestController_updatesJSON(t *testing.T) {
 					{"type":"counter","id":"test","delta":10}]`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					UpdateBatch([]*model.MetricRequest{
+					UpdateBatch(gomock.Any(), []*model.MetricRequest{
 						{Metric: model.NewMetricGauge("test", 66.34)},
 						{Metric: model.NewMetricCounter("test", 10)},
 					}).
@@ -58,7 +58,7 @@ func TestController_updatesJSON(t *testing.T) {
 					{"type":"counter","id":"test","delta":10}]`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					UpdateBatch(gomock.Any()).MaxTimes(0)
+					UpdateBatch(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"Bad Request", "type is not valid"},
@@ -69,7 +69,7 @@ func TestController_updatesJSON(t *testing.T) {
 					{"type":"counter","id":"test"}]`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					UpdateBatch(gomock.Any()).MaxTimes(0)
+					UpdateBatch(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"Bad Request", "value is not valid"},
@@ -79,7 +79,7 @@ func TestController_updatesJSON(t *testing.T) {
 			json: `invalid`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					UpdateBatch(gomock.Any()).MaxTimes(0)
+					UpdateBatch(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode: http.StatusBadRequest,
 		},
@@ -88,7 +88,7 @@ func TestController_updatesJSON(t *testing.T) {
 			json: `[{"type":"gauge","id":"test","value":1.23}]`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					UpdateBatch(gomock.Any()).Return(nil, model.ErrMetricNotFound)
+					UpdateBatch(gomock.Any(), gomock.Any()).Return(nil, model.ErrMetricNotFound)
 			},
 			wantCode: http.StatusNotFound,
 		},
@@ -97,7 +97,7 @@ func TestController_updatesJSON(t *testing.T) {
 			json: `[{"type":"gauge","id":"test","value":1.23}]`,
 			mockServiceSetup: func(mockService *mocks.MockService) {
 				mockService.EXPECT().
-					UpdateBatch(gomock.Any()).Return(nil, errors.New("service error"))
+					UpdateBatch(gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
 			},
 			wantCode: http.StatusInternalServerError,
 		},

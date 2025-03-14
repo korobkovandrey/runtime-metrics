@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"slices"
@@ -11,12 +12,12 @@ import (
 //go:generate mockgen -source=service.go -destination=../mocks/service.go -package=mocks
 
 type Repository interface {
-	Find(mr *model.MetricRequest) (*model.Metric, error)
-	FindAll() ([]*model.Metric, error)
-	FindBatch(mrs []*model.MetricRequest) ([]*model.Metric, error)
-	Create(mr *model.MetricRequest) (*model.Metric, error)
-	Update(mr *model.MetricRequest) (*model.Metric, error)
-	CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error)
+	Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	FindAll(ctx context.Context) ([]*model.Metric, error)
+	FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
+	Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
 type Service struct {
@@ -29,21 +30,21 @@ func NewService(r Repository) *Service {
 	}
 }
 
-func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
+func (s *Service) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	const errorMsg = "service.Update: %w"
-	m, err := s.r.Find(mr)
+	m, err := s.r.Find(ctx, mr)
 	if err != nil {
 		if !errors.Is(err, model.ErrMetricNotFound) {
 			return m, fmt.Errorf(errorMsg, err)
 		}
-		m, err = s.r.Create(mr)
+		m, err = s.r.Create(ctx, mr)
 		if err == nil {
 			return m, nil
 		}
 		if !errors.Is(err, model.ErrMetricAlreadyExist) {
 			return m, fmt.Errorf(errorMsg, err)
 		}
-		m, err = s.r.Find(mr)
+		m, err = s.r.Find(ctx, mr)
 		if err != nil {
 			return m, fmt.Errorf(errorMsg, err)
 		}
@@ -64,7 +65,7 @@ func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
 		}
 	}
 	if needUpdate {
-		m, err = s.r.Update(mr)
+		m, err = s.r.Update(ctx, mr)
 		if err != nil {
 			return m, fmt.Errorf(errorMsg, err)
 		}
@@ -73,7 +74,7 @@ func (s *Service) Update(mr *model.MetricRequest) (*model.Metric, error) {
 	return m, nil
 }
 
-func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (s *Service) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	var mrsReq []*model.MetricRequest
 	mrsGaugeIndexMap := map[string]int{}
 	mrsCounterMap := map[string]*model.MetricRequest{}
@@ -90,7 +91,7 @@ func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, erro
 		}
 	}
 	if len(mrsReq) > 0 {
-		mCounterExist, err := s.r.FindBatch(mrsReq)
+		mCounterExist, err := s.r.FindBatch(ctx, mrsReq)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find batch: %w", err)
 		}
@@ -104,23 +105,23 @@ func (s *Service) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, erro
 	if len(mrsReq) == 0 {
 		return []*model.Metric{}, nil
 	}
-	res, err := s.r.CreateOrUpdateBatch(mrsReq)
+	res, err := s.r.CreateOrUpdateBatch(ctx, mrsReq)
 	if err != nil {
 		return res, fmt.Errorf("failed to update batch: %w", err)
 	}
 	return res, nil
 }
 
-func (s *Service) Find(mr *model.MetricRequest) (*model.Metric, error) {
-	m, err := s.r.Find(mr)
+func (s *Service) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
+	m, err := s.r.Find(ctx, mr)
 	if err != nil {
 		return m, fmt.Errorf("service.Find: %w", err)
 	}
 	return m, nil
 }
 
-func (s *Service) FindAll() ([]*model.Metric, error) {
-	metrics, err := s.r.FindAll()
+func (s *Service) FindAll(ctx context.Context) ([]*model.Metric, error) {
+	metrics, err := s.r.FindAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("service.FindAll: %w", err)
 	}

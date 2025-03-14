@@ -42,63 +42,63 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Find mocks base method.
-func (m *MockService) Find(mr *model.MetricRequest) (*model.Metric, error) {
+func (m *MockService) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Find", mr)
+	ret := m.ctrl.Call(m, "Find", ctx, mr)
 	ret0, _ := ret[0].(*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Find indicates an expected call of Find.
-func (mr_2 *MockServiceMockRecorder) Find(mr any) *gomock.Call {
+func (mr_2 *MockServiceMockRecorder) Find(ctx, mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Find", reflect.TypeOf((*MockService)(nil).Find), mr)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Find", reflect.TypeOf((*MockService)(nil).Find), ctx, mr)
 }
 
 // FindAll mocks base method.
-func (m *MockService) FindAll() ([]*model.Metric, error) {
+func (m *MockService) FindAll(ctx context.Context) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAll")
+	ret := m.ctrl.Call(m, "FindAll", ctx)
 	ret0, _ := ret[0].([]*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAll indicates an expected call of FindAll.
-func (mr *MockServiceMockRecorder) FindAll() *gomock.Call {
+func (mr *MockServiceMockRecorder) FindAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockService)(nil).FindAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockService)(nil).FindAll), ctx)
 }
 
 // Update mocks base method.
-func (m *MockService) Update(mr *model.MetricRequest) (*model.Metric, error) {
+func (m *MockService) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", mr)
+	ret := m.ctrl.Call(m, "Update", ctx, mr)
 	ret0, _ := ret[0].(*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr_2 *MockServiceMockRecorder) Update(mr any) *gomock.Call {
+func (mr_2 *MockServiceMockRecorder) Update(ctx, mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Update", reflect.TypeOf((*MockService)(nil).Update), mr)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Update", reflect.TypeOf((*MockService)(nil).Update), ctx, mr)
 }
 
 // UpdateBatch mocks base method.
-func (m *MockService) UpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (m *MockService) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateBatch", mrs)
+	ret := m.ctrl.Call(m, "UpdateBatch", ctx, mrs)
 	ret0, _ := ret[0].([]*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateBatch indicates an expected call of UpdateBatch.
-func (mr *MockServiceMockRecorder) UpdateBatch(mrs any) *gomock.Call {
+func (mr *MockServiceMockRecorder) UpdateBatch(ctx, mrs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBatch", reflect.TypeOf((*MockService)(nil).UpdateBatch), mrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBatch", reflect.TypeOf((*MockService)(nil).UpdateBatch), ctx, mrs)
 }
 
 // MockPinger is a mock of Pinger interface.

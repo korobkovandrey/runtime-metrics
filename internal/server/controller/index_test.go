@@ -55,7 +55,7 @@ func TestController_indexFunc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockService := mocks.NewMockService(ctrl)
-			mockService.EXPECT().FindAll().Return(tt.serviceResponse, tt.serviceError)
+			mockService.EXPECT().FindAll(gomock.Any()).Return(tt.serviceResponse, tt.serviceError)
 			c := NewController(cfg, mockService, l)
 
 			currentDir, err := os.Getwd()

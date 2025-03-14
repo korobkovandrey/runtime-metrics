@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -26,7 +27,7 @@ func (ms *MemStorage) unsafeIndex(mr *model.MetricRequest) (int, bool) {
 	return i, ok && i < len(ms.data)
 }
 
-func (ms *MemStorage) Find(mr *model.MetricRequest) (*model.Metric, error) {
+func (ms *MemStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	if i, ok := ms.unsafeIndex(mr); ok {
@@ -43,13 +44,13 @@ func (ms *MemStorage) unsafeFindAll() []*model.Metric {
 	return data
 }
 
-func (ms *MemStorage) FindAll() ([]*model.Metric, error) {
+func (ms *MemStorage) FindAll(ctx context.Context) ([]*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	return ms.unsafeFindAll(), nil
 }
 
-func (ms *MemStorage) FindBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (ms *MemStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	var res []*model.Metric
@@ -73,7 +74,7 @@ func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, erro
 	return ms.data[ms.index[mr.MType][mr.ID]].Clone(), nil
 }
 
-func (ms *MemStorage) Create(mr *model.MetricRequest) (*model.Metric, error) {
+func (ms *MemStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	return ms.unsafeCreate(mr)
@@ -99,7 +100,7 @@ func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, erro
 	return ms.data[i].Clone(), nil
 }
 
-func (ms *MemStorage) Update(mr *model.MetricRequest) (*model.Metric, error) {
+func (ms *MemStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	return ms.unsafeUpdate(mr)
@@ -126,7 +127,7 @@ func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*
 	return res, nil
 }
 
-func (ms *MemStorage) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (ms *MemStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	ms.mux.Lock()
 	defer ms.mux.Unlock()
 	return ms.unsafeCreateOrUpdateBatch(mrs)

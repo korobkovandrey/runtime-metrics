@@ -40,7 +40,6 @@ func (a *Agent) Run(ctx context.Context) {
 	}(ctx)
 
 	var pollCount, pollCountDelta, sentPollCount int64
-
 	tick := time.NewTicker(time.Duration(a.config.ReportInterval) * time.Second)
 	for {
 		select {

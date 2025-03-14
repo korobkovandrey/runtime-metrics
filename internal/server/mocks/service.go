@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/korobkovandrey/runtime-metrics/internal/model"
@@ -41,91 +42,91 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepository) Create(mr *model.MetricRequest) (*model.Metric, error) {
+func (m *MockRepository) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", mr)
+	ret := m.ctrl.Call(m, "Create", ctx, mr)
 	ret0, _ := ret[0].(*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr_2 *MockRepositoryMockRecorder) Create(mr any) *gomock.Call {
+func (mr_2 *MockRepositoryMockRecorder) Create(ctx, mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), mr)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), ctx, mr)
 }
 
 // CreateOrUpdateBatch mocks base method.
-func (m *MockRepository) CreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (m *MockRepository) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOrUpdateBatch", mrs)
+	ret := m.ctrl.Call(m, "CreateOrUpdateBatch", ctx, mrs)
 	ret0, _ := ret[0].([]*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateOrUpdateBatch indicates an expected call of CreateOrUpdateBatch.
-func (mr *MockRepositoryMockRecorder) CreateOrUpdateBatch(mrs any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateOrUpdateBatch(ctx, mrs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateBatch", reflect.TypeOf((*MockRepository)(nil).CreateOrUpdateBatch), mrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateBatch", reflect.TypeOf((*MockRepository)(nil).CreateOrUpdateBatch), ctx, mrs)
 }
 
 // Find mocks base method.
-func (m *MockRepository) Find(mr *model.MetricRequest) (*model.Metric, error) {
+func (m *MockRepository) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Find", mr)
+	ret := m.ctrl.Call(m, "Find", ctx, mr)
 	ret0, _ := ret[0].(*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Find indicates an expected call of Find.
-func (mr_2 *MockRepositoryMockRecorder) Find(mr any) *gomock.Call {
+func (mr_2 *MockRepositoryMockRecorder) Find(ctx, mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Find", reflect.TypeOf((*MockRepository)(nil).Find), mr)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Find", reflect.TypeOf((*MockRepository)(nil).Find), ctx, mr)
 }
 
 // FindAll mocks base method.
-func (m *MockRepository) FindAll() ([]*model.Metric, error) {
+func (m *MockRepository) FindAll(ctx context.Context) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAll")
+	ret := m.ctrl.Call(m, "FindAll", ctx)
 	ret0, _ := ret[0].([]*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAll indicates an expected call of FindAll.
-func (mr *MockRepositoryMockRecorder) FindAll() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) FindAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockRepository)(nil).FindAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockRepository)(nil).FindAll), ctx)
 }
 
 // FindBatch mocks base method.
-func (m *MockRepository) FindBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (m *MockRepository) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindBatch", mrs)
+	ret := m.ctrl.Call(m, "FindBatch", ctx, mrs)
 	ret0, _ := ret[0].([]*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindBatch indicates an expected call of FindBatch.
-func (mr *MockRepositoryMockRecorder) FindBatch(mrs any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) FindBatch(ctx, mrs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindBatch", reflect.TypeOf((*MockRepository)(nil).FindBatch), mrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindBatch", reflect.TypeOf((*MockRepository)(nil).FindBatch), ctx, mrs)
 }
 
 // Update mocks base method.
-func (m *MockRepository) Update(mr *model.MetricRequest) (*model.Metric, error) {
+func (m *MockRepository) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", mr)
+	ret := m.ctrl.Call(m, "Update", ctx, mr)
 	ret0, _ := ret[0].(*model.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr_2 *MockRepositoryMockRecorder) Update(mr any) *gomock.Call {
+func (mr_2 *MockRepositoryMockRecorder) Update(ctx, mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Update", reflect.TypeOf((*MockRepository)(nil).Update), mr)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Update", reflect.TypeOf((*MockRepository)(nil).Update), ctx, mr)
 }

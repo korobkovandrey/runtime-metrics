@@ -30,7 +30,7 @@ func (c *Controller) updatesJSON(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	ms, err := c.s.UpdateBatch(mrs)
+	ms, err := c.s.UpdateBatch(r.Context(), mrs)
 	if err != nil {
 		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed update: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {

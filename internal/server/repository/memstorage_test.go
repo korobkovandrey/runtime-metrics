@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -62,7 +63,7 @@ func TestMemStorage_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.Create(tt.args.mr)
+			got, err := ms.Create(context.TODO(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -142,7 +143,7 @@ func TestMemStorage_Find(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.Find(tt.args.mr)
+			got, err := ms.Find(context.TODO(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -195,7 +196,7 @@ func TestMemStorage_FindAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.FindAll()
+			got, err := ms.FindAll(context.TODO())
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 			for i := range tt.want {
@@ -282,7 +283,7 @@ func TestMemStorage_Update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.Update(tt.args.mr)
+			got, err := ms.Update(context.TODO(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
