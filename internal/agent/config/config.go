@@ -16,7 +16,7 @@ type Config struct {
 	Sender         *sender.Config
 }
 
-func GetConfig() (*Config, error) {
+func NewConfig() (*Config, error) {
 	const (
 		pollIntervalSeconds   = 2
 		reportIntervalSeconds = 10
@@ -30,7 +30,7 @@ func GetConfig() (*Config, error) {
 
 	err := env.Parse(cfg)
 	if err != nil {
-		return cfg, fmt.Errorf("GetConfig: %w", err)
+		return cfg, fmt.Errorf("NewConfig: %w", err)
 	}
 
 	if cfg.ReportInterval < 1 {

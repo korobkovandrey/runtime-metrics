@@ -19,7 +19,7 @@ type Config struct {
 	RetryDelays         []time.Duration
 }
 
-func GetConfig() (*Config, error) {
+func NewConfig() (*Config, error) {
 	const (
 		storeInterval   = 0
 		shutdownTimeout = 5
@@ -36,7 +36,7 @@ func GetConfig() (*Config, error) {
 
 	err := env.Parse(cfg)
 	if err != nil {
-		return cfg, fmt.Errorf("GetConfig: %w", err)
+		return cfg, fmt.Errorf("NewConfig: %w", err)
 	}
 
 	cfg.ShutdownTimeout = shutdownTimeout * time.Second

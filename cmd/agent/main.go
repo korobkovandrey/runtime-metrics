@@ -24,7 +24,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	cfg, err := config.GetConfig()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		l.FatalCtx(ctx, "failed to get config", zap.Error(err))
 	}
