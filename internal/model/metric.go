@@ -161,3 +161,12 @@ func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) {
 	}
 	return metrics, nil
 }
+
+func ValidateMetricsRequest(metrics []*MetricRequest) error {
+	for _, m := range metrics {
+		if err := m.RequiredValue(); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -15,20 +15,17 @@ func (c *Controller) updatesJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	for _, mr := range mrs {
-		err := mr.RequiredValue()
-		if err != nil {
-			c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed validate: %w", err))
-			errMsg := http.StatusText(http.StatusBadRequest)
-			switch {
-			case errors.Is(err, model.ErrTypeIsNotValid):
-				errMsg += ": " + model.ErrTypeIsNotValid.Error()
-			case errors.Is(err, model.ErrValueIsNotValid):
-				errMsg += ": " + model.ErrValueIsNotValid.Error()
-			}
-			http.Error(w, errMsg, http.StatusBadRequest)
-			return
+	if err = model.ValidateMetricsRequest(mrs); err != nil {
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed validate: %w", err))
+		errMsg := http.StatusText(http.StatusBadRequest)
+		switch {
+		case errors.Is(err, model.ErrTypeIsNotValid):
+			errMsg += ": " + model.ErrTypeIsNotValid.Error()
+		case errors.Is(err, model.ErrValueIsNotValid):
+			errMsg += ": " + model.ErrValueIsNotValid.Error()
 		}
+		http.Error(w, errMsg, http.StatusBadRequest)
+		return
 	}
 	ms, err := c.s.UpdateBatch(r.Context(), mrs)
 	if err != nil {

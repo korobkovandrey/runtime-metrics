@@ -79,15 +79,15 @@ func (s *Service) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) (
 	mrsGaugeIndexMap := map[string]int{}
 	mrsCounterMap := map[string]*model.MetricRequest{}
 	for i, mr := range mrs {
-		if mr.MType == model.TypeCounter {
-			if _, ok := mrsCounterMap[mr.ID]; ok {
-				*mrsCounterMap[mr.ID].Delta += *mr.Delta
-			} else {
-				mrsCounterMap[mr.ID] = mr
-				mrsReq = append(mrsReq, mr)
-			}
-		} else {
+		if mr.MType != model.TypeCounter {
 			mrsGaugeIndexMap[mr.ID] = i
+			continue
+		}
+		if _, ok := mrsCounterMap[mr.ID]; ok {
+			*mrsCounterMap[mr.ID].Delta += *mr.Delta
+		} else {
+			mrsCounterMap[mr.ID] = mr
+			mrsReq = append(mrsReq, mr)
 		}
 	}
 	if len(mrsReq) > 0 {
