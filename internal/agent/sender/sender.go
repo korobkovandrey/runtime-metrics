@@ -14,6 +14,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
+	"github.com/korobkovandrey/runtime-metrics/pkg/sign"
 	"go.uber.org/zap"
 )
 
@@ -22,6 +23,7 @@ type Config struct {
 	UpdatesURL  string
 	Timeout     time.Duration
 	RetryDelays []time.Duration
+	Key         []byte
 }
 
 type Sender struct {
@@ -58,23 +60,30 @@ func (s *Sender) SendMetrics(ctx context.Context, ms []*model.Metric) ([]*model.
 	return resMs, nil
 }
 
-func makeGzipBuffer(data any) (*bytes.Buffer, error) {
+func makeGzipBuffer(data []byte) (io.Reader, error) {
 	if data == nil {
-		return nil, nil
-	}
-	m, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal data: %w", err)
+		return http.NoBody, nil
 	}
 	buf := bytes.NewBuffer(nil)
 	gz := gzip.NewWriter(buf)
-	if _, err := gz.Write(m); err != nil {
+	if _, err := gz.Write(data); err != nil {
 		return nil, fmt.Errorf("failed to gzip data: %w", err)
 	}
 	if err := gz.Close(); err != nil {
 		return nil, fmt.Errorf("failed to close gzip writer: %w", err)
 	}
 	return buf, nil
+}
+
+func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) {
+	if data == nil {
+		return nil, "", nil
+	}
+	dataBytes, err = json.Marshal(data)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to marshal data: %w", err)
+	}
+	return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil
 }
 
 func (s *Sender) getBodyFromResponse(ctx context.Context, response *http.Response) ([]byte, error) {
@@ -101,7 +110,11 @@ func (s *Sender) getBodyFromResponse(ctx context.Context, response *http.Respons
 }
 
 func (s *Sender) postData(ctx context.Context, url string, data any) ([]byte, error) {
-	postBody, err := makeGzipBuffer(data)
+	b, hash, err := s.makeBodyWithHash(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make body with hash: %w", err)
+	}
+	postBody, err := makeGzipBuffer(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make gzip buffer: %w", err)
 	}
@@ -112,7 +125,9 @@ func (s *Sender) postData(ctx context.Context, url string, data any) ([]byte, er
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept-Encoding", "gzip")
 	req.Header.Set("Content-Encoding", "gzip")
-
+	if hash != "" {
+		req.Header.Set("HashSHA256", hash)
+	}
 	var response *http.Response
 	for i := 0; ; i++ {
 		response, err = s.client.Do(req)
@@ -123,7 +138,7 @@ func (s *Sender) postData(ctx context.Context, url string, data any) ([]byte, er
 			if response.StatusCode >= http.StatusOK || response.StatusCode < http.StatusInternalServerError {
 				break
 			}
-			if err := response.Body.Close(); err != nil {
+			if err = response.Body.Close(); err != nil {
 				s.l.WarnCtx(ctx, "failed to close the response body", zap.Error(err))
 			}
 		} else if !errors.Is(err, syscall.ECONNREFUSED) {
@@ -135,11 +150,7 @@ func (s *Sender) postData(ctx context.Context, url string, data any) ([]byte, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			s.l.WarnCtx(ctx, "failed to close the response body", zap.Error(err))
-		}
-	}()
+	defer response.Body.Close()
 
 	body, err := s.getBodyFromResponse(ctx, response)
 	if err != nil {

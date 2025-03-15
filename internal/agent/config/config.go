@@ -13,6 +13,7 @@ type Config struct {
 	Addr           string `env:"ADDRESS"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
+	Key            string `env:"KEY"`
 	Sender         *sender.Config
 }
 
@@ -25,6 +26,7 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&cfg.Addr, "a", "localhost:8080", "server host")
 	flag.IntVar(&cfg.PollInterval, "p", pollIntervalSeconds, "pollInterval in seconds")
 	flag.IntVar(&cfg.ReportInterval, "r", reportIntervalSeconds, "reportInterval in seconds")
+	flag.StringVar(&cfg.Key, "k", "", "key")
 
 	flag.Parse()
 
@@ -54,6 +56,7 @@ func NewConfig() (*Config, error) {
 		UpdatesURL:  baseURL + "/updates/",
 		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
 		Timeout:     reportIntervalSeconds * time.Second,
+		Key:         []byte(cfg.Key),
 	}
 	return cfg, nil
 }

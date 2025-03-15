@@ -12,6 +12,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
@@ -53,7 +54,7 @@ func (c *Controller) WithPinger(pinger Pinger) *Controller {
 }
 
 func (c *Controller) routes() error {
-	c.r.Use(mcompress.GzipCompressed(c.l), mlogger.RequestLogger(c.l))
+	c.r.Use(mcompress.GzipCompressed(c.l), msign.Signer([]byte(c.cfg.Key)), mlogger.RequestLogger(c.l))
 	c.r.Route("/update", func(r chi.Router) {
 		r.Post("/", c.updateJSON)
 		r.Route("/{type}", func(r chi.Router) {

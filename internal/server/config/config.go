@@ -14,6 +14,7 @@ type Config struct {
 	DatabaseDSN         string `env:"DATABASE_DSN"`
 	Restore             bool   `env:"RESTORE"`
 	StoreInterval       int64  `env:"STORE_INTERVAL"`
+	Key                 string `env:"KEY"`
 	ShutdownTimeout     time.Duration
 	DatabasePingTimeout time.Duration
 	RetryDelays         []time.Duration
@@ -31,6 +32,7 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database dsn")
 	flag.BoolVar(&cfg.Restore, "r", true, "file storage path")
 	flag.Int64Var(&cfg.StoreInterval, "i", storeInterval, "store interval")
+	flag.StringVar(&cfg.Key, "k", "", "key")
 
 	flag.Parse()
 
