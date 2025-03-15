@@ -12,22 +12,31 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -source=controller.go -destination=../mocks/service.go -package=mocks
+//go:generate mockgen -source=controller.go -destination=../mocks/controller.go -package=mocks
+
 type Service interface {
-	Update(mr *model.MetricRequest) (*model.Metric, error)
-	Find(mr *model.MetricRequest) (*model.Metric, error)
-	FindAll() ([]*model.Metric, error)
+	Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+	FindAll(ctx context.Context) ([]*model.Metric, error)
+	UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
+}
+
+type Pinger interface {
+	repository.Pinger
 }
 
 type Controller struct {
-	cfg *config.Config
-	s   Service
-	l   *logging.ZapLogger
-	r   chi.Router
+	cfg    *config.Config
+	s      Service
+	pinger Pinger
+	l      *logging.ZapLogger
+	r      chi.Router
 }
 
 func NewController(cfg *config.Config, service Service, logger *logging.ZapLogger) *Controller {
@@ -39,8 +48,13 @@ func NewController(cfg *config.Config, service Service, logger *logging.ZapLogge
 	}
 }
 
+func (c *Controller) WithPinger(pinger Pinger) *Controller {
+	c.pinger = pinger
+	return c
+}
+
 func (c *Controller) routes() error {
-	c.r.Use(mcompress.GzipCompressed(c.l), mlogger.RequestLogger(c.l))
+	c.r.Use(mcompress.GzipCompressed(c.l), msign.Signer([]byte(c.cfg.Key)), mlogger.RequestLogger(c.l))
 	c.r.Route("/update", func(r chi.Router) {
 		r.Post("/", c.updateJSON)
 		r.Route("/{type}", func(r chi.Router) {
@@ -54,10 +68,12 @@ func (c *Controller) routes() error {
 			})
 		})
 	})
+	c.r.Post("/updates/", c.updatesJSON)
 	c.r.Route("/value", func(r chi.Router) {
 		r.Post("/", c.valueJSON)
 		r.Get("/{type}/{name}", c.valueURI)
 	})
+	c.r.Get("/ping", c.ping)
 	indexFunc, err := c.indexFunc()
 	if err != nil {
 		return fmt.Errorf("controller.routes: %w", err)
@@ -71,16 +87,17 @@ func (c *Controller) ListenAndServe(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("controller.ListenAndServe: %w", err)
 	}
-	c.l.InfoCtx(ctx, "Server started on http://"+c.cfg.Addr+"/")
+	c.l.InfoCtx(ctx, "Server started on http://"+c.cfg.Addr+"/", zap.Any("config", c.cfg))
 	server := http.Server{
-		Addr:     c.cfg.Addr,
-		ErrorLog: c.l.Std(),
-		Handler:  c.r,
+		Addr:              c.cfg.Addr,
+		ErrorLog:          c.l.Std(),
+		Handler:           c.r,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 	go func(ctx context.Context) {
 		ctxWithoutCancel := context.WithoutCancel(ctx)
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(ctxWithoutCancel, time.Duration(c.cfg.ShutdownTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(ctxWithoutCancel, c.cfg.ShutdownTimeout)
 		defer cancel()
 		c.l.InfoCtx(ctx, "Shutting down the HTTP server...")
 		if err := server.Shutdown(ctx); err != nil {
@@ -103,13 +120,12 @@ func (c *Controller) responseMarshaled(data any, w http.ResponseWriter, r *http.
 		_, err = w.Write(response)
 	}
 	if err != nil {
-		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.responseMarshaled: %w", err))
+		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("failed response: %w", err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 }
 
-//nolint:godot // ignore
 /* A func (c *Controller) requestCtxWithContextFields(r *http.Request, fields ...zap.Field) {
 	*r = *r.WithContext(c.l.WithContextFields(r.Context(), fields...))
 }*/

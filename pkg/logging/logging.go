@@ -68,7 +68,6 @@ func (z *ZapLogger) maskField(f zap.Field) zap.Field {
 	if f.Key == "email" {
 		email := f.String
 		parts := strings.Split(email, "@")
-		//nolint:mnd // ignore
 		if len(parts) == 2 {
 			return zap.String(f.Key, "***@"+parts[1])
 		}

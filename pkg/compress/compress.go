@@ -83,7 +83,7 @@ func NewCompressReader(r io.ReadCloser) (*Reader, error) {
 
 func (r *Reader) Read(p []byte) (int, error) {
 	n, err := r.zr.Read(p)
-	if !errors.Is(err, io.EOF) {
+	if err != nil && !errors.Is(err, io.EOF) {
 		err = fmt.Errorf("compress[Reader].Read: %w", err)
 	}
 	return n, err

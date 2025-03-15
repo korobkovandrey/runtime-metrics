@@ -3,18 +3,21 @@ package config
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 )
 
 type Config struct {
 	Addr           string `env:"ADDRESS"`
-	UpdateURL      string
-	PollInterval   int `env:"POLL_INTERVAL"`
-	ReportInterval int `env:"REPORT_INTERVAL"`
+	PollInterval   int    `env:"POLL_INTERVAL"`
+	ReportInterval int    `env:"REPORT_INTERVAL"`
+	Key            string `env:"KEY"`
+	Sender         *sender.Config
 }
 
-func GetConfig() (*Config, error) {
+func NewConfig() (*Config, error) {
 	const (
 		pollIntervalSeconds   = 2
 		reportIntervalSeconds = 10
@@ -23,12 +26,13 @@ func GetConfig() (*Config, error) {
 	flag.StringVar(&cfg.Addr, "a", "localhost:8080", "server host")
 	flag.IntVar(&cfg.PollInterval, "p", pollIntervalSeconds, "pollInterval in seconds")
 	flag.IntVar(&cfg.ReportInterval, "r", reportIntervalSeconds, "reportInterval in seconds")
+	flag.StringVar(&cfg.Key, "k", "", "key")
 
 	flag.Parse()
 
 	err := env.Parse(cfg)
 	if err != nil {
-		return cfg, fmt.Errorf("GetConfig: %w", err)
+		return cfg, fmt.Errorf("NewConfig: %w", err)
 	}
 
 	if cfg.ReportInterval < 1 {
@@ -46,7 +50,13 @@ func GetConfig() (*Config, error) {
 			cfg.ReportInterval, cfg.PollInterval)
 	}
 
-	cfg.UpdateURL = "http://" + cfg.Addr + "/update/"
-
+	baseURL := "http://" + cfg.Addr
+	cfg.Sender = &sender.Config{
+		UpdateURL:   baseURL + "/update/",
+		UpdatesURL:  baseURL + "/updates/",
+		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+		Timeout:     reportIntervalSeconds * time.Second,
+		Key:         []byte(cfg.Key),
+	}
 	return cfg, nil
 }

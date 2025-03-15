@@ -22,7 +22,7 @@ func (c *Controller) valueURI(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	m, err := c.s.Find(mr)
+	m, err := c.s.Find(r.Context(), mr)
 	if err != nil {
 		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueURI: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {
@@ -56,7 +56,7 @@ func (c *Controller) valueJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	m, err := c.s.Find(mr)
+	m, err := c.s.Find(r.Context(), mr)
 	if err != nil {
 		c.requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.valueJSON: %w", err))
 		if errors.Is(err, model.ErrMetricNotFound) {

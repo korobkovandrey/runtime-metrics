@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -59,11 +60,10 @@ func TestMemStorage_Create(t *testing.T) {
 			wantErr: model.ErrMetricAlreadyExist,
 		},
 	}
-	//nolint:dupl // ignore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.Create(tt.args.mr)
+			got, err := ms.Create(context.TODO(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -140,11 +140,10 @@ func TestMemStorage_Find(t *testing.T) {
 			wantErr: model.ErrMetricNotFound,
 		},
 	}
-	//nolint:dupl // ignore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.Find(tt.args.mr)
+			got, err := ms.Find(context.TODO(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -197,7 +196,7 @@ func TestMemStorage_FindAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.FindAll()
+			got, err := ms.FindAll(context.TODO())
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 			for i := range tt.want {
@@ -281,11 +280,10 @@ func TestMemStorage_Update(t *testing.T) {
 			wantErr: model.ErrMetricNotFound,
 		},
 	}
-	//nolint:dupl // ignore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			got, err := ms.Update(tt.args.mr)
+			got, err := ms.Update(context.TODO(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -379,51 +377,6 @@ func TestMemStorage_fill(t *testing.T) {
 			for i := range ms.data {
 				checkMetricNotSame(t, ms.data[i], tt.args.data[i])
 			}
-		})
-	}
-}
-
-func TestMemStorage_Close(t *testing.T) {
-	type fields struct {
-		index map[string]map[string]int
-		data  []*model.Metric
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "ok",
-			fields: fields{
-				index: map[string]map[string]int{
-					model.TypeGauge: {
-						"test":  0,
-						"test1": 1,
-					},
-				},
-				data: []*model.Metric{
-					model.NewMetricCounter("test", 10),
-					model.NewMetricGauge("test1", 1.1),
-				},
-			},
-			wantErr: assert.NoError,
-		},
-		{
-			name: "empty",
-			fields: fields{
-				index: map[string]map[string]int{},
-				data:  []*model.Metric{},
-			},
-			wantErr: assert.NoError,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ms := newMemStorageWithDataAndIndex(tt.fields.data, tt.fields.index)
-			tt.wantErr(t, ms.Close())
-			assert.Equal(t, map[string]map[string]int{}, ms.index)
-			assert.Equal(t, []*model.Metric{}, ms.data)
 		})
 	}
 }

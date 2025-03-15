@@ -1,7 +1,7 @@
 package service
 
 import (
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/utils"
 
@@ -25,6 +25,7 @@ func (s *Source) Collect() {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	s.data = utils.GetRuntimeMetricsFloat64()
+	//nolint:gosec // ignore
 	s.data["RandomValue"] = rand.Float64()
 	s.pollCount++
 }

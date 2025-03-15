@@ -23,32 +23,29 @@ func main() {
 	}
 	defer l.Sync()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func(cancel context.CancelFunc) {
-		defer cancel()
-		stop := make(chan os.Signal, 1)
-		defer close(stop)
-		signal.Notify(stop, os.Interrupt)
-		<-stop
-	}(cancel)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
-	cfg, err := config.GetConfig()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		l.FatalCtx(ctx, "failed to get config", zap.Error(err))
 	}
 
-	r, err := repository.Factory(ctx, cfg, l)
+	repo, closer, pinger, err := repository.Factory(ctx, cfg, l)
 	if err != nil {
-		l.FatalCtx(ctx, "failed to start store", zap.Error(err))
+		l.FatalCtx(ctx, "failed to start repository", zap.Error(err))
 	}
-	defer func(r service.Repository) {
-		l.InfoCtx(ctx, "Closing repository...")
-		if err := r.Close(); err != nil {
-			l.ErrorCtx(ctx, "failed to close repository", zap.Error(err))
-		}
-	}(r)
+	if closer != nil {
+		defer func(closer repository.Closer) {
+			l.InfoCtx(ctx, "Closing repository...")
+			if err := closer.Close(); err != nil {
+				l.ErrorCtx(ctx, "failed to close repository", zap.Error(err))
+			}
+		}(closer)
+	}
 
-	c := controller.NewController(cfg, service.NewService(r), l)
+	c := controller.NewController(cfg, service.NewService(repo), l).
+		WithPinger(pinger)
 	if err = c.ListenAndServe(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		l.FatalCtx(ctx, "failed to start server", zap.Error(err))
 	}
