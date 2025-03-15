@@ -20,8 +20,9 @@ type Config struct {
 }
 
 type PGXStorage struct {
-	cfg *Config
-	db  *sql.DB
+	cfg   *Config
+	db    *sql.DB
+	stmts *statements
 }
 
 func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) {
@@ -37,6 +38,10 @@ func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) {
 	err = ps.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+	ps.stmts, err = ps.prepareStatements(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare statements: %w", err)
 	}
 	return ps, nil
 }
@@ -68,8 +73,17 @@ func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err err
 	return res, err
 }
 
-func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
-	return ps.retryForOneMany(ctx, mrs, ps.findBatch)
+func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) (res []*model.Metric, err error) {
+	var e *pgconn.PgError
+	for i := 0; ; i++ {
+		res, err = ps.findBatch(ctx, mrs)
+		if i == len(ps.cfg.RetryDelays) ||
+			err == nil || !errors.As(err, &e) || !pgerrcode.IsConnectionException(e.Code) {
+			break
+		}
+		time.Sleep(ps.cfg.RetryDelays[i])
+	}
+	return res, err
 }
 
 func (ps *PGXStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
@@ -81,7 +95,20 @@ func (ps *PGXStorage) Update(ctx context.Context, mr *model.MetricRequest) (*mod
 }
 
 func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
-	return ps.retryForOneMany(ctx, mrs, ps.createOrUpdateBatch)
+	var e *pgconn.PgError
+	var err error
+	for i := 0; ; i++ {
+		err = ps.createOrUpdateBatch(ctx, mrs)
+		if i == len(ps.cfg.RetryDelays) ||
+			err == nil || !errors.As(err, &e) || !pgerrcode.IsConnectionException(e.Code) {
+			break
+		}
+		time.Sleep(ps.cfg.RetryDelays[i])
+	}
+	if err != nil {
+		return nil, err
+	}
+	return ps.FindBatch(ctx, mrs)
 }
 
 func (ps *PGXStorage) retryForOne(ctx context.Context, mr *model.MetricRequest,
@@ -96,18 +123,4 @@ func (ps *PGXStorage) retryForOne(ctx context.Context, mr *model.MetricRequest,
 		time.Sleep(ps.cfg.RetryDelays[i])
 	}
 	return m, err
-}
-
-func (ps *PGXStorage) retryForOneMany(ctx context.Context, mrs []*model.MetricRequest,
-	f func(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)) (res []*model.Metric, err error) {
-	var e *pgconn.PgError
-	for i := 0; ; i++ {
-		res, err = f(ctx, mrs)
-		if i == len(ps.cfg.RetryDelays) ||
-			err == nil || !errors.As(err, &e) || !pgerrcode.IsConnectionException(e.Code) {
-			break
-		}
-		time.Sleep(ps.cfg.RetryDelays[i])
-	}
-	return res, err
 }
