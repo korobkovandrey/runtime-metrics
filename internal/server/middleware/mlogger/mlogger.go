@@ -57,12 +57,15 @@ func RequestLogger(logger *logging.ZapLogger) func(h http.Handler) http.Handler 
 			if m := ctx.Value(LogMessageKey); m != nil {
 				msg, _ = m.(string)
 			}
-			logger.InfoCtx(
-				ctx, msg, zap.Int("status", rd.status),
+			fields := []zap.Field{
+				zap.Int("status", rd.status),
 				zap.String("method", r.Method), zap.String("uri", r.RequestURI),
 				zap.Duration("duration", time.Since(start)), zap.Int("size", rd.size),
-				zap.String("h", r.Header.Get("HashSHA256")),
-			)
+			}
+			if rs := r.Header.Get("HashSHA256"); rs != "" {
+				fields = append(fields, zap.String("sign", rs))
+			}
+			logger.InfoCtx(ctx, msg, fields...)
 		})
 	}
 }

@@ -29,6 +29,7 @@ func New(cfg *config.Config, l *logging.ZapLogger, s *sender.Sender) *Agent {
 }
 
 func (a *Agent) Run(ctx context.Context) {
+	a.l.InfoCtx(ctx, "Agent run with config", zap.Any("config", a.config))
 	tickPoll := time.NewTicker(time.Duration(a.config.PollInterval) * time.Second)
 	go func() {
 		for ; ; <-tickPoll.C {
