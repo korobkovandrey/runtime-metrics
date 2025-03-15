@@ -35,6 +35,10 @@ func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
+	ps.db.SetMaxOpenConns(5) //nolint:mnd // ignore
+	ps.db.SetMaxIdleConns(5) //nolint:mnd // ignore
+	ps.db.SetConnMaxIdleTime(time.Minute)
+	ps.db.SetConnMaxLifetime(time.Minute)
 	err = ps.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
