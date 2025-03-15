@@ -61,6 +61,7 @@ func RequestLogger(logger *logging.ZapLogger) func(h http.Handler) http.Handler 
 				ctx, msg, zap.Int("status", rd.status),
 				zap.String("method", r.Method), zap.String("uri", r.RequestURI),
 				zap.Duration("duration", time.Since(start)), zap.Int("size", rd.size),
+				zap.String("h", r.Header.Get("HashSHA256")),
 			)
 		})
 	}

@@ -87,7 +87,7 @@ func (c *Controller) ListenAndServe(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("controller.ListenAndServe: %w", err)
 	}
-	c.l.InfoCtx(ctx, "Server started on http://"+c.cfg.Addr+"/")
+	c.l.InfoCtx(ctx, "Server started on http://"+c.cfg.Addr+"/", zap.Any("config", c.cfg))
 	server := http.Server{
 		Addr:              c.cfg.Addr,
 		ErrorLog:          c.l.Std(),
