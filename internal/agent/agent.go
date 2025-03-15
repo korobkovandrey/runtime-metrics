@@ -29,23 +29,17 @@ func New(cfg *config.Config, l *logging.ZapLogger, s *sender.Sender) *Agent {
 }
 
 func (a *Agent) Run(ctx context.Context) {
-	go func(ctx context.Context) {
-		tick := time.NewTicker(time.Duration(a.config.PollInterval) * time.Second)
-		for ; ; <-tick.C {
-			if ctx.Err() != nil {
-				return
-			}
+	tickPoll := time.NewTicker(time.Duration(a.config.PollInterval) * time.Second)
+	go func() {
+		for ; ; <-tickPoll.C {
 			a.gaugeSource.Collect()
 		}
-	}(ctx)
+	}()
 
-	var pollCount, pollCountDelta, sentPollCount int64
-	tick := time.NewTicker(time.Duration(a.config.ReportInterval) * time.Second)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-tick.C:
+	tickReport := time.NewTicker(time.Duration(a.config.ReportInterval) * time.Second)
+	go func() {
+		var pollCount, pollCountDelta, sentPollCount int64
+		for range tickReport.C {
 			dataForSend := a.gaugeSource.GetDataForSend()
 			pollCount = a.gaugeSource.GetPollCount()
 			pollCountDelta = pollCount - sentPollCount
@@ -62,5 +56,8 @@ func (a *Agent) Run(ctx context.Context) {
 				sentPollCount = pollCount
 			}
 		}
-	}
+	}()
+	<-ctx.Done()
+	tickPoll.Stop()
+	tickReport.Stop()
 }
