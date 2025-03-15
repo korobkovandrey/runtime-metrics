@@ -28,11 +28,8 @@ func MakeToString(data, key []byte) string {
 }
 
 func Validate(data, key, hash []byte) bool {
-	if len(key) == 0 {
+	if len(key) == 0 || len(hash) == 0 {
 		return true
-	}
-	if len(hash) == 0 {
-		return len(data) == 0
 	}
 	h := hmac.New(sha256.New, key)
 	h.Write(data)
