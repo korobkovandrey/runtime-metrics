@@ -1,21 +1,14 @@
 package sender
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"syscall"
+	"sync"
 	"time"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
-	"github.com/korobkovandrey/runtime-metrics/pkg/sign"
-	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -24,6 +17,7 @@ type Config struct {
 	Timeout     time.Duration
 	RetryDelays []time.Duration
 	Key         []byte
+	RateLimit   int
 }
 
 type Sender struct {
@@ -38,126 +32,52 @@ func New(cfg *Config, l *logging.ZapLogger) *Sender {
 	}}
 }
 
-func (s *Sender) SendMetric(ctx context.Context, m model.Metric) error {
-	_, err := s.postData(ctx, s.cfg.UpdateURL, m)
-	if err != nil {
+func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error {
+	if err := s.postData(ctx, s.cfg.UpdateURL, m); err != nil {
 		return fmt.Errorf("failed to send metric: %w", err)
 	}
 	return nil
 }
 
-func (s *Sender) SendMetrics(ctx context.Context, ms []*model.Metric) ([]*model.Metric, error) {
-	res, err := s.postData(ctx, s.cfg.UpdatesURL, ms)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send metric: %w", err)
+func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error {
+	if err := s.postData(ctx, s.cfg.UpdatesURL, ms); err != nil {
+		return fmt.Errorf("failed to send metric: %w", err)
 	}
-
-	var resMs []*model.Metric
-	if err := json.Unmarshal(res, &resMs); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return resMs, nil
+	return nil
 }
 
-func makeGzipBuffer(data []byte) (io.Reader, error) {
-	if data == nil {
-		return http.NoBody, nil
-	}
-	buf := bytes.NewBuffer(nil)
-	gz := gzip.NewWriter(buf)
-	if _, err := gz.Write(data); err != nil {
-		return nil, fmt.Errorf("failed to gzip data: %w", err)
-	}
-	if err := gz.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close gzip writer: %w", err)
-	}
-	return buf, nil
+type JobResult struct {
+	*model.Metric
+	Err error
 }
 
-func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) {
-	if data == nil {
-		return nil, "", nil
-	}
-	dataBytes, err = json.Marshal(data)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to marshal data: %w", err)
-	}
-	return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil
-}
+func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) <-chan *JobResult {
+	jobs := make(chan *model.Metric, len(ms))
+	results := make(chan *JobResult, len(ms))
 
-func (s *Sender) getBodyFromResponse(ctx context.Context, response *http.Response) ([]byte, error) {
-	var bodyReader io.ReadCloser
-	if response.Header.Get("Content-Encoding") == "gzip" {
-		var err error
-		bodyReader, err = gzip.NewReader(response.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
-		}
-		defer func() {
-			if err := bodyReader.Close(); err != nil {
-				s.l.WarnCtx(ctx, "failed to close the gzip reader", zap.Error(err))
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
+	for i := 0; i < numWorkers; i++ {
+		go func() {
+			defer wg.Done()
+			for j := range jobs {
+				if ctx.Err() != nil {
+					break
+				}
+				results <- &JobResult{
+					Metric: j,
+					Err:    s.SendMetric(ctx, j),
+				}
 			}
 		}()
-	} else {
-		bodyReader = response.Body
 	}
-	body, err := io.ReadAll(bodyReader)
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+	for _, m := range ms {
+		jobs <- m
 	}
-	return body, nil
-}
-
-func (s *Sender) postData(ctx context.Context, url string, data any) ([]byte, error) {
-	b, hash, err := s.makeBodyWithHash(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make body with hash: %w", err)
-	}
-	postBody, err := makeGzipBuffer(b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make gzip buffer: %w", err)
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, postBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept-Encoding", "gzip")
-	req.Header.Set("Content-Encoding", "gzip")
-	if hash != "" {
-		req.Header.Set("HashSHA256", hash)
-	}
-	var response *http.Response
-	for i := 0; ; i++ {
-		response, err = s.client.Do(req)
-		if i == len(s.cfg.RetryDelays) {
-			break
-		}
-		if err == nil {
-			if response.StatusCode >= http.StatusOK || response.StatusCode < http.StatusInternalServerError {
-				break
-			}
-			if err = response.Body.Close(); err != nil {
-				s.l.WarnCtx(ctx, "failed to close the response body", zap.Error(err))
-			}
-		} else if !errors.Is(err, syscall.ECONNREFUSED) {
-			break
-		}
-		s.l.WarnCtx(ctx, "failed to send request, will retry", zap.Int("attempt", i+1), zap.Error(err))
-		time.Sleep(s.cfg.RetryDelays[i])
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	defer response.Body.Close()
-
-	body, err := s.getBodyFromResponse(ctx, response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read the response body: %w (status code %d)", err, response.StatusCode)
-	}
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code received: %d (body: %s)", response.StatusCode, string(body))
-	}
-	return body, nil
+	close(jobs)
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+	return results
 }

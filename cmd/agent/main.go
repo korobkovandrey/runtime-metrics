@@ -7,7 +7,6 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
-	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
 
@@ -29,5 +28,6 @@ func main() {
 		l.FatalCtx(ctx, "failed to get config", zap.Error(err))
 	}
 
-	agent.New(cfg, l, sender.New(cfg.Sender, l)).Run(ctx)
+	l.InfoCtx(ctx, "Agent run with cfg", zap.Any("cfg", cfg))
+	agent.Run(ctx, cfg, l)
 }

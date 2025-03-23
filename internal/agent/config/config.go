@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/caarlos0/env/v6"
@@ -14,6 +15,8 @@ type Config struct {
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
 	Key            string `env:"KEY"`
+	RateLimit      int    `env:"RATE_LIMIT"`
+	Batching       bool   `env:"BATCHING"`
 	Sender         *sender.Config
 }
 
@@ -27,6 +30,8 @@ func NewConfig() (*Config, error) {
 	flag.IntVar(&cfg.PollInterval, "p", pollIntervalSeconds, "pollInterval in seconds")
 	flag.IntVar(&cfg.ReportInterval, "r", reportIntervalSeconds, "reportInterval in seconds")
 	flag.StringVar(&cfg.Key, "k", "", "key")
+	flag.IntVar(&cfg.RateLimit, "l", runtime.NumCPU(), "rate limit")
+	flag.BoolVar(&cfg.Batching, "b", true, "batching")
 
 	flag.Parse()
 
@@ -50,6 +55,11 @@ func NewConfig() (*Config, error) {
 			cfg.ReportInterval, cfg.PollInterval)
 	}
 
+	if cfg.RateLimit < 1 {
+		return cfg, fmt.Errorf("RateLimit (%d) must be greater 0",
+			cfg.RateLimit)
+	}
+
 	baseURL := "http://" + cfg.Addr
 	cfg.Sender = &sender.Config{
 		UpdateURL:   baseURL + "/update/",
@@ -57,6 +67,7 @@ func NewConfig() (*Config, error) {
 		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
 		Timeout:     reportIntervalSeconds * time.Second,
 		Key:         []byte(cfg.Key),
+		RateLimit:   cfg.RateLimit,
 	}
 	return cfg, nil
 }
