@@ -54,8 +54,8 @@ func TestSource_NewGaugeSource_Collect_GetDataForSend(t *testing.T) {
 	}
 	require.Contains(t, gaugesMap, "RandomValue")
 	assert.NotEmpty(t, gaugesMap["RandomValue"])
-	require.Contains(t, counterMap, "PoolCount")
-	assert.Equal(t, int64(1), *counterMap["PoolCount"].Delta)
+	require.Contains(t, counterMap, "PollCount")
+	assert.Equal(t, int64(1), *counterMap["PollCount"].Delta)
 	for _, m := range testMetricNames {
 		assert.Contains(t, gaugesMap, m)
 	}

@@ -11,12 +11,12 @@ import (
 type Source struct {
 	mu        sync.RWMutex
 	data      []*model.Metric
-	poolCount *model.Metric
+	pollCount *model.Metric
 }
 
 func NewSource() *Source {
 	return &Source{
-		poolCount: model.NewMetricCounter("PoolCount", 0),
+		pollCount: model.NewMetricCounter("PollCount", 0),
 	}
 }
 
@@ -50,7 +50,7 @@ func (s *Source) Collect(ctx context.Context) error {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.data = data
-		*s.poolCount.Delta++
+		*s.pollCount.Delta++
 	}()
 	err := g.Wait()
 	close(finalCh)
@@ -65,13 +65,13 @@ func (s *Source) Get() (data []*model.Metric, delta int64) {
 	for i, m := range s.data {
 		data[i] = m.Clone()
 	}
-	data[len(data)-1] = s.poolCount.Clone()
-	delta = *s.poolCount.Delta
+	data[len(data)-1] = s.pollCount.Clone()
+	delta = *s.pollCount.Delta
 	return data, delta
 }
 
 func (s *Source) Commit(delta int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	*s.poolCount.Delta -= delta
+	*s.pollCount.Delta -= delta
 }
