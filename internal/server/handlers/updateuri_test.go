@@ -7,20 +7,21 @@ import (
 	"testing"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-func TestNewUpdateURI(t *testing.T) {
+func TestNewUpdateURIHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	tests := []struct {
-		name             string
-		pathValues       map[string]string
-		mockUpdaterSetup func(mockUpdater *MockUpdater)
-		wantCode         int
-		containsStrings  []string
+		name            string
+		pathValues      map[string]string
+		mockSetup       func(*mocks.MockUpdater)
+		wantCode        int
+		containsStrings []string
 	}{
 		{
 			name: "valid update",
@@ -29,8 +30,8 @@ func TestNewUpdateURI(t *testing.T) {
 				"name":  "test",
 				"value": "1",
 			},
-			mockUpdaterSetup: func(mockUpdater *MockUpdater) {
-				mockUpdater.EXPECT().
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().
 					Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("test", 1)})).
 					Return(model.NewMetricGauge("test", 1), nil)
 			},
@@ -43,8 +44,8 @@ func TestNewUpdateURI(t *testing.T) {
 				"name":  "test",
 				"value": "1",
 			},
-			mockUpdaterSetup: func(mockUpdater *MockUpdater) {
-				mockUpdater.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"type is not valid"},
@@ -56,8 +57,8 @@ func TestNewUpdateURI(t *testing.T) {
 				"name":  "test",
 				"value": "invalid",
 			},
-			mockUpdaterSetup: func(mockUpdater *MockUpdater) {
-				mockUpdater.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
 			},
 			wantCode:        http.StatusBadRequest,
 			containsStrings: []string{"value is not valid"},
@@ -69,8 +70,8 @@ func TestNewUpdateURI(t *testing.T) {
 				"name":  "not_found",
 				"value": "1",
 			},
-			mockUpdaterSetup: func(mockUpdater *MockUpdater) {
-				mockUpdater.EXPECT().
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().
 					Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("not_found", 1)})).
 					Return(nil, model.ErrMetricNotFound)
 			},
@@ -83,8 +84,8 @@ func TestNewUpdateURI(t *testing.T) {
 				"name":  "error",
 				"value": "1",
 			},
-			mockUpdaterSetup: func(mockUpdater *MockUpdater) {
-				mockUpdater.EXPECT().
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().
 					Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("error", 1)})).
 					Return(nil, errors.New("unexpected error"))
 			},
@@ -94,10 +95,8 @@ func TestNewUpdateURI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUpdater := NewMockUpdater(ctrl)
-			tt.mockUpdaterSetup(mockUpdater)
-			f := NewUpdateURI(mockUpdater)
-
+			s := mocks.NewMockUpdater(ctrl)
+			tt.mockSetup(s)
 			target := "/update"
 			for _, v := range tt.pathValues {
 				target += "/" + v
@@ -107,8 +106,7 @@ func TestNewUpdateURI(t *testing.T) {
 				r.SetPathValue(i, v)
 			}
 			w := httptest.NewRecorder()
-			f(w, r)
-
+			NewUpdateURIHandler(s)(w, r)
 			require.Equal(t, tt.wantCode, w.Code)
 			body := w.Body.String()
 			for _, str := range tt.containsStrings {

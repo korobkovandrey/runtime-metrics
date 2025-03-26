@@ -9,23 +9,23 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
-//go:generate mockgen -source=updatejson.go -destination=mocks/mock_updater.go -package=mocks
-type Updater interface {
-	Update(context.Context, *model.MetricRequest) (*model.Metric, error)
+//go:generate mockgen -source=updates.go -destination=mocks/mock_batchupdater.go -package=mocks
+type BatchUpdater interface {
+	UpdateBatch(context.Context, []*model.MetricRequest) ([]*model.Metric, error)
 }
 
-func NewUpdateJSONHandler(s Updater) http.HandlerFunc {
+func NewUpdatesHandler(s BatchUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
-		if err == nil {
-			err = mr.RequiredValue()
-		}
+		mrs, err := model.UnmarshalMetricsRequestFromReader(r.Body)
 		if err != nil {
 			requestCtxWithLogMessageFromError(r, fmt.Errorf("failed unmarshal: %w", err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		if err = model.ValidateMetricsRequest(mrs); err != nil {
+			requestCtxWithLogMessageFromError(r, fmt.Errorf("failed validate: %w", err))
 			errMsg := http.StatusText(http.StatusBadRequest)
 			switch {
-			case errors.Is(err, model.ErrMetricNotFound):
-				errMsg += ": " + model.ErrMetricNotFound.Error()
 			case errors.Is(err, model.ErrTypeIsNotValid):
 				errMsg += ": " + model.ErrTypeIsNotValid.Error()
 			case errors.Is(err, model.ErrValueIsNotValid):
@@ -34,7 +34,7 @@ func NewUpdateJSONHandler(s Updater) http.HandlerFunc {
 			http.Error(w, errMsg, http.StatusBadRequest)
 			return
 		}
-		m, err := s.Update(r.Context(), mr)
+		ms, err := s.UpdateBatch(r.Context(), mrs)
 		if err != nil {
 			requestCtxWithLogMessageFromError(r, fmt.Errorf("failed update: %w", err))
 			if errors.Is(err, model.ErrMetricNotFound) {
@@ -44,6 +44,6 @@ func NewUpdateJSONHandler(s Updater) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		responseMarshaled(m, w, r)
+		responseMarshaled(ms, w, r)
 	}
 }

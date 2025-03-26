@@ -6,23 +6,24 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-func TestNewPing(t *testing.T) {
+func TestNewPingHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	tests := []struct {
-		name            string
-		mockPingerSetup func(mockPinger *MockPinger)
-		wantCode        int
+		name      string
+		mockSetup func(*mocks.MockPinger)
+		wantCode  int
 	}{
 		{
 			name: "ping ok",
-			mockPingerSetup: func(mockPinger *MockPinger) {
-				mockPinger.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
+			mockSetup: func(s *mocks.MockPinger) {
+				s.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
 			},
 			wantCode: http.StatusOK,
 		},
@@ -32,8 +33,8 @@ func TestNewPing(t *testing.T) {
 		},
 		{
 			name: "ping error",
-			mockPingerSetup: func(mockPinger *MockPinger) {
-				mockPinger.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
+			mockSetup: func(s *mocks.MockPinger) {
+				s.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
 			},
 			wantCode: http.StatusInternalServerError,
 		},
@@ -43,15 +44,13 @@ func TestNewPing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/ping", http.NoBody)
 			w := httptest.NewRecorder()
-			var f func(w http.ResponseWriter, r *http.Request)
-			if tt.mockPingerSetup != nil {
-				mockPinger := NewMockPinger(ctrl)
-				tt.mockPingerSetup(mockPinger)
-				f = NewPing(mockPinger)
+			if tt.mockSetup != nil {
+				s := mocks.NewMockPinger(ctrl)
+				tt.mockSetup(s)
+				NewPingHandler(s)(w, r)
 			} else {
-				f = NewPing(nil)
+				NewPingHandler(nil)(w, r)
 			}
-			f(w, r)
 			require.Equal(t, tt.wantCode, w.Code)
 		})
 	}

@@ -54,7 +54,6 @@ type JobResult struct {
 func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) <-chan *JobResult {
 	jobs := make(chan *model.Metric, len(ms))
 	results := make(chan *JobResult, len(ms))
-
 	var wg sync.WaitGroup
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {

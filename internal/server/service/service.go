@@ -74,6 +74,7 @@ func (s *Service) Update(ctx context.Context, mr *model.MetricRequest) (*model.M
 	return m, nil
 }
 
+//nolint:dupl // ignore
 func (s *Service) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	var mrsReq []*model.MetricRequest
 	mrsGaugeIndexMap := map[string]int{}
@@ -120,6 +121,7 @@ func (s *Service) Find(ctx context.Context, mr *model.MetricRequest) (*model.Met
 	return m, nil
 }
 
+//nolint:dupl // ignore
 func (s *Service) FindAll(ctx context.Context) ([]*model.Metric, error) {
 	metrics, err := s.r.FindAll(ctx)
 	if err != nil {

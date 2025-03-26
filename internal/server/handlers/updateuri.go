@@ -8,7 +8,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
-func NewUpdateURI(s Updater) func(w http.ResponseWriter, r *http.Request) {
+func NewUpdateURIHandler(s Updater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")
 		name := r.PathValue("name")
