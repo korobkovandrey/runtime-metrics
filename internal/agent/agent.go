@@ -42,7 +42,7 @@ func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) {
 				for result := range sendClient.SendPoolMetrics(ctx, cfg.RateLimit, data) {
 					if result.Err != nil {
 						l.ErrorCtx(ctx, fmt.Errorf("failed to send metric: %w", result.Err).Error())
-					} else if result.Metric != nil && result.Metric.MType == model.TypeCounter && result.Metric.ID == "PoolCount" {
+					} else if result.Metric != nil && result.Metric.MType == model.TypeCounter && result.Metric.ID == "PollCount" {
 						source.Commit(delta)
 					}
 				}
