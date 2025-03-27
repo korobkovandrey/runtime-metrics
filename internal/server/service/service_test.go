@@ -22,9 +22,8 @@ func TestNewService(t *testing.T) {
 func TestService_Find(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockRepository := mocks.NewMockRepository(ctrl)
-
 	t.Run("valid", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mr, err := model.NewMetricRequest(model.TypeGauge, "test", "1")
 		require.NoError(t, err)
 		want := mr.Clone()
@@ -34,8 +33,8 @@ func TestService_Find(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
-
 	t.Run("error", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mr, err := model.NewMetricRequest(model.TypeGauge, "test", "1")
 		require.NoError(t, err)
 		mockRepository.EXPECT().Find(gomock.Any(), gomock.Eq(mr)).Return(nil, model.ErrMetricNotFound)
@@ -49,8 +48,8 @@ func TestService_Find(t *testing.T) {
 func TestService_FindAll(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockRepository := mocks.NewMockRepository(ctrl)
 	t.Run("valid", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		want := []*model.Metric{
 			model.NewMetricGauge("test1", 1),
 			model.NewMetricCounter("test2", 1),
@@ -61,8 +60,8 @@ func TestService_FindAll(t *testing.T) {
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, want, got)
 	})
-
 	t.Run("error", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mockRepository.EXPECT().FindAll(gomock.Any()).
 			Return([]*model.Metric{}, errors.New("error"))
 		service := NewService(mockRepository)
@@ -75,9 +74,8 @@ func TestService_FindAll(t *testing.T) {
 func TestService_Update(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockRepository := mocks.NewMockRepository(ctrl)
-
 	t.Run("creating", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mr, err := model.NewMetricRequest(model.TypeGauge, "test", "1")
 		require.NoError(t, err)
 		want := mr.Clone()
@@ -89,8 +87,8 @@ func TestService_Update(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
-
 	t.Run("updating counter", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mr, err := model.NewMetricRequest(model.TypeCounter, "test", "10")
 		require.NoError(t, err)
 		memMetric := model.NewMetricCounter("test", 1)
@@ -109,9 +107,8 @@ func TestService_Update(t *testing.T) {
 func TestService_UpdateBatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockRepository := mocks.NewMockRepository(ctrl)
-
 	t.Run("update batch", func(t *testing.T) {
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mrs := []*model.MetricRequest{
 			{Metric: model.NewMetricGauge("testNotExist", 12.34)},
 			{Metric: model.NewMetricCounter("testNotExist", 1)},
