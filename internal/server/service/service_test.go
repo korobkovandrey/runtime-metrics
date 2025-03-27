@@ -108,7 +108,6 @@ func TestService_UpdateBatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	t.Run("update batch", func(t *testing.T) {
-		mockRepository := mocks.NewMockRepository(ctrl)
 		mrs := []*model.MetricRequest{
 			{Metric: model.NewMetricGauge("testNotExist", 12.34)},
 			{Metric: model.NewMetricCounter("testNotExist", 1)},
@@ -129,6 +128,7 @@ func TestService_UpdateBatch(t *testing.T) {
 		for _, mr := range mrsReq {
 			want = append(want, mr.Clone())
 		}
+		mockRepository := mocks.NewMockRepository(ctrl)
 		mockRepository.EXPECT().FindBatch(gomock.Any(), gomock.Eq([]*model.MetricRequest{
 			{Metric: model.NewMetricCounter("testNotExist", 3)},
 			{Metric: model.NewMetricCounter("testExist", 13)},
