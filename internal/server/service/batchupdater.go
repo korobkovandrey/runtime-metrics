@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
@@ -25,16 +26,16 @@ func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricReque
 	var mrsReq []*model.MetricRequest
 	mrsGaugeIndexMap := map[string]int{}
 	mrsCounterMap := map[string]*model.MetricRequest{}
-	for i, mr := range mrs {
-		if mr.MType != model.TypeCounter {
-			mrsGaugeIndexMap[mr.ID] = i
+	for i := range mrs {
+		if mrs[i].MType != model.TypeCounter {
+			mrsGaugeIndexMap[mrs[i].ID] = i
 			continue
 		}
-		if _, ok := mrsCounterMap[mr.ID]; ok {
-			*mrsCounterMap[mr.ID].Delta += *mr.Delta
+		if _, ok := mrsCounterMap[mrs[i].ID]; ok {
+			*mrsCounterMap[mrs[i].ID].Delta += *mrs[i].Delta
 		} else {
-			mrsCounterMap[mr.ID] = mr
-			mrsReq = append(mrsReq, mr)
+			mrsCounterMap[mrs[i].ID] = mrs[i]
+			mrsReq = append(mrsReq, mrsCounterMap[mrs[i].ID])
 		}
 	}
 	if len(mrsReq) > 0 {
@@ -42,12 +43,22 @@ func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricReque
 		if err != nil {
 			return nil, fmt.Errorf("failed to find batch: %w", err)
 		}
-		for _, mr := range mCounterExist {
-			*mrsCounterMap[mr.ID].Delta += *mr.Delta
+		for i := range mCounterExist {
+			*mrsCounterMap[mCounterExist[i].ID].Delta += *mCounterExist[i].Delta
 		}
 	}
-	for _, i := range mrsGaugeIndexMap {
-		mrsReq = append(mrsReq, mrs[i])
+
+	if len(mrsGaugeIndexMap) > 0 {
+		indexes := make([]int, len(mrsGaugeIndexMap))
+		k := 0
+		for _, i := range mrsGaugeIndexMap {
+			indexes[k] = i
+			k++
+		}
+		sort.Ints(indexes)
+		for _, i := range indexes {
+			mrsReq = append(mrsReq, mrs[i])
+		}
 	}
 	if len(mrsReq) == 0 {
 		return []*model.Metric{}, nil

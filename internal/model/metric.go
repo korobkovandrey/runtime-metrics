@@ -80,10 +80,6 @@ type MetricRequest struct {
 	*Metric
 }
 
-func (mr *MetricRequest) CloneM() *MetricRequest {
-	return &MetricRequest{mr.Metric.Clone()}
-}
-
 func (mr *MetricRequest) RequiredValue() error {
 	switch mr.MType {
 	case TypeGauge:
