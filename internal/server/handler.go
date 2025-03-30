@@ -125,10 +125,9 @@ func (h *Handler) setUpdatesRoute(s handlers.BatchUpdater) {
 	h.Post("/updates/", handlers.NewUpdatesHandler(s))
 }
 
-func (h *Handler) setValueRoutes(s handlers.Finder) *Handler {
+func (h *Handler) setValueRoutes(s handlers.Finder) {
 	h.Route("/value", func(r chi.Router) {
 		r.Post("/", handlers.NewValueJSONHandler(s))
 		r.Get("/{type}/{name}", handlers.NewValueURIHandler(s))
 	})
-	return h
 }
