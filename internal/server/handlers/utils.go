@@ -9,12 +9,12 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 )
 
-func requestCtxWithLogMessage(r *http.Request, msg string) {
+func RequestCtxWithLogMessage(r *http.Request, msg string) {
 	*r = *r.WithContext(context.WithValue(r.Context(), mlogger.LogMessageKey, msg))
 }
 
-func requestCtxWithLogMessageFromError(r *http.Request, err error) {
-	requestCtxWithLogMessage(r, err.Error())
+func RequestCtxWithLogMessageFromError(r *http.Request, err error) {
+	RequestCtxWithLogMessage(r, err.Error())
 }
 
 func responseMarshaled(data any, w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func responseMarshaled(data any, w http.ResponseWriter, r *http.Request) {
 		_, err = w.Write(response)
 	}
 	if err != nil {
-		requestCtxWithLogMessageFromError(r, fmt.Errorf("failed response: %w", err))
+		RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed response: %w", err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

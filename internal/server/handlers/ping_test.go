@@ -28,10 +28,6 @@ func TestNewPingHandler(t *testing.T) {
 			wantCode: http.StatusOK,
 		},
 		{
-			name:     "ping without db",
-			wantCode: http.StatusOK,
-		},
-		{
 			name: "ping error",
 			mockSetup: func(s *mocks.MockPinger) {
 				s.EXPECT().Ping(gomock.Any()).Return(errors.New("ping error")).Times(1)
@@ -44,13 +40,9 @@ func TestNewPingHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/ping", http.NoBody)
 			w := httptest.NewRecorder()
-			if tt.mockSetup != nil {
-				s := mocks.NewMockPinger(ctrl)
-				tt.mockSetup(s)
-				NewPingHandler(s)(w, r)
-			} else {
-				NewPingHandler(nil)(w, r)
-			}
+			s := mocks.NewMockPinger(ctrl)
+			tt.mockSetup(s)
+			NewPingHandler(s)(w, r)
 			require.Equal(t, tt.wantCode, w.Code)
 		})
 	}

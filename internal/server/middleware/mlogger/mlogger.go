@@ -24,7 +24,7 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
 	if err != nil {
-		return size, fmt.Errorf("mlogger[loggingResponseWriter].Write: %w", err)
+		return size, fmt.Errorf("failed to write response: %w", err)
 	}
 	return size, nil
 }
@@ -38,7 +38,7 @@ type key string
 
 const LogMessageKey key = "logMessage"
 
-func RequestLogger(logger *logging.ZapLogger) func(h http.Handler) http.Handler {
+func RequestLogger(l *logging.ZapLogger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -65,7 +65,7 @@ func RequestLogger(logger *logging.ZapLogger) func(h http.Handler) http.Handler 
 			if rs := r.Header.Get("HashSHA256"); rs != "" {
 				fields = append(fields, zap.String("sign", rs))
 			}
-			logger.InfoCtx(ctx, msg, fields...)
+			l.InfoCtx(ctx, msg, fields...)
 		})
 	}
 }

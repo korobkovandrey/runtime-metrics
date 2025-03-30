@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockbatchUpdaterRepository is a mock of batchUpdaterRepository interface.
-type MockbatchUpdaterRepository struct {
+// MockBatchUpdaterRepository is a mock of BatchUpdaterRepository interface.
+type MockBatchUpdaterRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockbatchUpdaterRepositoryMockRecorder
+	recorder *MockBatchUpdaterRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockbatchUpdaterRepositoryMockRecorder is the mock recorder for MockbatchUpdaterRepository.
-type MockbatchUpdaterRepositoryMockRecorder struct {
-	mock *MockbatchUpdaterRepository
+// MockBatchUpdaterRepositoryMockRecorder is the mock recorder for MockBatchUpdaterRepository.
+type MockBatchUpdaterRepositoryMockRecorder struct {
+	mock *MockBatchUpdaterRepository
 }
 
-// NewMockbatchUpdaterRepository creates a new mock instance.
-func NewMockbatchUpdaterRepository(ctrl *gomock.Controller) *MockbatchUpdaterRepository {
-	mock := &MockbatchUpdaterRepository{ctrl: ctrl}
-	mock.recorder = &MockbatchUpdaterRepositoryMockRecorder{mock}
+// NewMockBatchUpdaterRepository creates a new mock instance.
+func NewMockBatchUpdaterRepository(ctrl *gomock.Controller) *MockBatchUpdaterRepository {
+	mock := &MockBatchUpdaterRepository{ctrl: ctrl}
+	mock.recorder = &MockBatchUpdaterRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockbatchUpdaterRepository) EXPECT() *MockbatchUpdaterRepositoryMockRecorder {
+func (m *MockBatchUpdaterRepository) EXPECT() *MockBatchUpdaterRepositoryMockRecorder {
 	return m.recorder
 }
 
 // CreateOrUpdateBatch mocks base method.
-func (m *MockbatchUpdaterRepository) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (m *MockBatchUpdaterRepository) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateOrUpdateBatch", ctx, mrs)
 	ret0, _ := ret[0].([]*model.Metric)
@@ -51,13 +51,13 @@ func (m *MockbatchUpdaterRepository) CreateOrUpdateBatch(ctx context.Context, mr
 }
 
 // CreateOrUpdateBatch indicates an expected call of CreateOrUpdateBatch.
-func (mr *MockbatchUpdaterRepositoryMockRecorder) CreateOrUpdateBatch(ctx, mrs any) *gomock.Call {
+func (mr *MockBatchUpdaterRepositoryMockRecorder) CreateOrUpdateBatch(ctx, mrs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateBatch", reflect.TypeOf((*MockbatchUpdaterRepository)(nil).CreateOrUpdateBatch), ctx, mrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateBatch", reflect.TypeOf((*MockBatchUpdaterRepository)(nil).CreateOrUpdateBatch), ctx, mrs)
 }
 
 // FindBatch mocks base method.
-func (m *MockbatchUpdaterRepository) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
+func (m *MockBatchUpdaterRepository) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindBatch", ctx, mrs)
 	ret0, _ := ret[0].([]*model.Metric)
@@ -66,7 +66,7 @@ func (m *MockbatchUpdaterRepository) FindBatch(ctx context.Context, mrs []*model
 }
 
 // FindBatch indicates an expected call of FindBatch.
-func (mr *MockbatchUpdaterRepositoryMockRecorder) FindBatch(ctx, mrs any) *gomock.Call {
+func (mr *MockBatchUpdaterRepositoryMockRecorder) FindBatch(ctx, mrs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindBatch", reflect.TypeOf((*MockbatchUpdaterRepository)(nil).FindBatch), ctx, mrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindBatch", reflect.TypeOf((*MockBatchUpdaterRepository)(nil).FindBatch), ctx, mrs)
 }

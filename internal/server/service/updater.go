@@ -9,22 +9,21 @@ import (
 )
 
 //go:generate mockgen -source=updater.go -destination=mocks/mock_updater.go -package=mocks
-type updaterRepository interface {
+type UpdaterRepository interface {
 	Find(context.Context, *model.MetricRequest) (*model.Metric, error)
 	Create(context.Context, *model.MetricRequest) (*model.Metric, error)
 	Update(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
 type Updater struct {
-	r updaterRepository
+	r UpdaterRepository
 }
 
-func NewUpdater(r updaterRepository) *Updater {
+func NewUpdater(r UpdaterRepository) *Updater {
 	return &Updater{r: r}
 }
 
 func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
-	fmt.Println(mr)
 	m, err := s.r.Find(ctx, mr)
 	if err != nil {
 		if !errors.Is(err, model.ErrMetricNotFound) {

@@ -47,7 +47,7 @@ func TestNewIndexHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := mocks.NewMockFinder(ctrl)
+			s := mocks.NewMockAllFinder(ctrl)
 			s.EXPECT().FindAll(gomock.Any()).Return(tt.serviceResponse, tt.serviceError)
 
 			currentDir, err := os.Getwd()

@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockupdaterRepository is a mock of updaterRepository interface.
-type MockupdaterRepository struct {
+// MockUpdaterRepository is a mock of UpdaterRepository interface.
+type MockUpdaterRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockupdaterRepositoryMockRecorder
+	recorder *MockUpdaterRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockupdaterRepositoryMockRecorder is the mock recorder for MockupdaterRepository.
-type MockupdaterRepositoryMockRecorder struct {
-	mock *MockupdaterRepository
+// MockUpdaterRepositoryMockRecorder is the mock recorder for MockUpdaterRepository.
+type MockUpdaterRepositoryMockRecorder struct {
+	mock *MockUpdaterRepository
 }
 
-// NewMockupdaterRepository creates a new mock instance.
-func NewMockupdaterRepository(ctrl *gomock.Controller) *MockupdaterRepository {
-	mock := &MockupdaterRepository{ctrl: ctrl}
-	mock.recorder = &MockupdaterRepositoryMockRecorder{mock}
+// NewMockUpdaterRepository creates a new mock instance.
+func NewMockUpdaterRepository(ctrl *gomock.Controller) *MockUpdaterRepository {
+	mock := &MockUpdaterRepository{ctrl: ctrl}
+	mock.recorder = &MockUpdaterRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockupdaterRepository) EXPECT() *MockupdaterRepositoryMockRecorder {
+func (m *MockUpdaterRepository) EXPECT() *MockUpdaterRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m *MockupdaterRepository) Create(arg0 context.Context, arg1 *model.MetricRequest) (*model.Metric, error) {
+func (m *MockUpdaterRepository) Create(arg0 context.Context, arg1 *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(*model.Metric)
@@ -51,13 +51,13 @@ func (m *MockupdaterRepository) Create(arg0 context.Context, arg1 *model.MetricR
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockupdaterRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockUpdaterRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockupdaterRepository)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUpdaterRepository)(nil).Create), arg0, arg1)
 }
 
 // Find mocks base method.
-func (m *MockupdaterRepository) Find(arg0 context.Context, arg1 *model.MetricRequest) (*model.Metric, error) {
+func (m *MockUpdaterRepository) Find(arg0 context.Context, arg1 *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", arg0, arg1)
 	ret0, _ := ret[0].(*model.Metric)
@@ -66,13 +66,13 @@ func (m *MockupdaterRepository) Find(arg0 context.Context, arg1 *model.MetricReq
 }
 
 // Find indicates an expected call of Find.
-func (mr *MockupdaterRepositoryMockRecorder) Find(arg0, arg1 any) *gomock.Call {
+func (mr *MockUpdaterRepositoryMockRecorder) Find(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockupdaterRepository)(nil).Find), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockUpdaterRepository)(nil).Find), arg0, arg1)
 }
 
 // Update mocks base method.
-func (m *MockupdaterRepository) Update(arg0 context.Context, arg1 *model.MetricRequest) (*model.Metric, error) {
+func (m *MockUpdaterRepository) Update(arg0 context.Context, arg1 *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
 	ret0, _ := ret[0].(*model.Metric)
@@ -81,7 +81,7 @@ func (m *MockupdaterRepository) Update(arg0 context.Context, arg1 *model.MetricR
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockupdaterRepositoryMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+func (mr *MockUpdaterRepositoryMockRecorder) Update(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockupdaterRepository)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUpdaterRepository)(nil).Update), arg0, arg1)
 }

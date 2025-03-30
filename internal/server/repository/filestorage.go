@@ -12,7 +12,6 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
-	"go.uber.org/zap"
 )
 
 type FileStorage struct {
@@ -36,12 +35,12 @@ func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*mod
 	f.isChanged = true
 	m, err := f.unsafeCreate(mr)
 	if err != nil {
-		return m, fmt.Errorf("filestorage.Create: %w", err)
+		return m, fmt.Errorf("failed to create metric: %w", err)
 	}
 	if f.isSync {
 		err = f.sync(false, true)
 		if err != nil {
-			return m, fmt.Errorf("filestorage.Create: %w", err)
+			return m, fmt.Errorf("failed to sync: %w", err)
 		}
 	}
 	return m, nil
@@ -53,12 +52,12 @@ func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*mod
 	f.isChanged = true
 	m, err := f.unsafeUpdate(mr)
 	if err != nil {
-		return m, fmt.Errorf("filestorage.Update: %w", err)
+		return m, fmt.Errorf("failed to update metric: %w", err)
 	}
 	if f.isSync {
 		err = f.sync(false, true)
 		if err != nil {
-			return m, fmt.Errorf("filestorage.Update: %w", err)
+			return m, fmt.Errorf("failed to sync: %w", err)
 		}
 	}
 	return m, nil
@@ -70,12 +69,12 @@ func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.Metr
 	f.isChanged = true
 	res, err := f.unsafeCreateOrUpdateBatch(mrs)
 	if err != nil {
-		return res, fmt.Errorf("filestorage.UpdateBatch: %w", err)
+		return res, fmt.Errorf("failed to create or update metrics: %w", err)
 	}
 	if f.isSync {
 		err = f.sync(false, true)
 		if err != nil {
-			return res, fmt.Errorf("filestorage.UpdateBatch: %w", err)
+			return res, fmt.Errorf("failed to sync: %w", err)
 		}
 	}
 	return res, nil
@@ -85,14 +84,14 @@ func (f *FileStorage) Close() error {
 	return f.sync(true, false)
 }
 
-func (f *FileStorage) restore() error {
+func (f *FileStorage) Restore() error {
 	if f.cfg.FileStoragePath == "" {
 		return nil
 	}
 	stat, err := os.Stat(f.cfg.FileStoragePath)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("filestorage.restore: %w", err)
+			return fmt.Errorf("failed to stat file: %w", err)
 		}
 		return nil
 	}
@@ -106,13 +105,13 @@ func (f *FileStorage) restore() error {
 			time.Sleep(f.cfg.RetryDelays[i])
 		}
 		if err != nil {
-			return fmt.Errorf("filestorage.restore: %w", err)
+			return fmt.Errorf("failed to read file: %w", err)
 		}
 		if len(data) > 0 {
 			var mrs []*model.Metric
 			err = json.Unmarshal(data, &mrs)
 			if err != nil {
-				return fmt.Errorf("filestorage.restore: %w", err)
+				return fmt.Errorf("failed to unmarshal file: %w", err)
 			}
 			f.fill(mrs)
 		}
@@ -133,7 +132,7 @@ func (f *FileStorage) sync(safe, tryRetry bool) error {
 	}
 	data, err := json.MarshalIndent(f.unsafeFindAll(), "", "   ")
 	if err != nil {
-		return fmt.Errorf("filestorage.sync: %w", err)
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 	const (
 		permFlag = 0o600
@@ -152,13 +151,13 @@ func (f *FileStorage) sync(safe, tryRetry bool) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("filestorage.sync: %w", err)
+		return fmt.Errorf("failed to write file: %w", err)
 	}
 	f.isChanged = false
 	return nil
 }
 
-func (f *FileStorage) run(ctx context.Context, l *logging.ZapLogger) {
+func (f *FileStorage) Run(ctx context.Context, l *logging.ZapLogger) {
 	if f.cfg.StoreInterval <= 0 {
 		return
 	}
@@ -171,7 +170,7 @@ func (f *FileStorage) run(ctx context.Context, l *logging.ZapLogger) {
 			return
 		case <-t.C:
 			if err = f.sync(true, false); err != nil {
-				l.ErrorCtx(ctx, "filestorage.run", zap.Error(err))
+				l.ErrorCtx(ctx, fmt.Errorf("failed to sync: %w", err).Error())
 			}
 		}
 	}

@@ -9,16 +9,16 @@ import (
 )
 
 //go:generate mockgen -source=finder.go -destination=mocks/mock_finder.go -package=mocks
-type finderRepository interface {
+type FinderRepository interface {
 	Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
 	FindAll(ctx context.Context) ([]*model.Metric, error)
 }
 
 type Finder struct {
-	r finderRepository
+	r FinderRepository
 }
 
-func NewFinder(r finderRepository) *Finder {
+func NewFinder(r FinderRepository) *Finder {
 	return &Finder{r: r}
 }
 
@@ -30,7 +30,6 @@ func (s *Finder) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metr
 	return m, nil
 }
 
-//nolint:dupl // ignore
 func (s *Finder) FindAll(ctx context.Context) ([]*model.Metric, error) {
 	metrics, err := s.r.FindAll(ctx)
 	if err != nil {

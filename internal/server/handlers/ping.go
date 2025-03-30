@@ -13,12 +13,10 @@ type Pinger interface {
 
 func NewPingHandler(s Pinger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if s != nil {
-			if err := s.Ping(r.Context()); err != nil {
-				requestCtxWithLogMessageFromError(r, fmt.Errorf("controller.ping: %w", err))
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
+		if err := s.Ping(r.Context()); err != nil {
+			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed ping: %w", err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 		w.WriteHeader(http.StatusOK)
 	}

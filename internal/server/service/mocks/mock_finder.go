@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockfinderRepository is a mock of finderRepository interface.
-type MockfinderRepository struct {
+// MockFinderRepository is a mock of FinderRepository interface.
+type MockFinderRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockfinderRepositoryMockRecorder
+	recorder *MockFinderRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockfinderRepositoryMockRecorder is the mock recorder for MockfinderRepository.
-type MockfinderRepositoryMockRecorder struct {
-	mock *MockfinderRepository
+// MockFinderRepositoryMockRecorder is the mock recorder for MockFinderRepository.
+type MockFinderRepositoryMockRecorder struct {
+	mock *MockFinderRepository
 }
 
-// NewMockfinderRepository creates a new mock instance.
-func NewMockfinderRepository(ctrl *gomock.Controller) *MockfinderRepository {
-	mock := &MockfinderRepository{ctrl: ctrl}
-	mock.recorder = &MockfinderRepositoryMockRecorder{mock}
+// NewMockFinderRepository creates a new mock instance.
+func NewMockFinderRepository(ctrl *gomock.Controller) *MockFinderRepository {
+	mock := &MockFinderRepository{ctrl: ctrl}
+	mock.recorder = &MockFinderRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockfinderRepository) EXPECT() *MockfinderRepositoryMockRecorder {
+func (m *MockFinderRepository) EXPECT() *MockFinderRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Find mocks base method.
-func (m *MockfinderRepository) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
+func (m *MockFinderRepository) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", ctx, mr)
 	ret0, _ := ret[0].(*model.Metric)
@@ -51,13 +51,13 @@ func (m *MockfinderRepository) Find(ctx context.Context, mr *model.MetricRequest
 }
 
 // Find indicates an expected call of Find.
-func (mr_2 *MockfinderRepositoryMockRecorder) Find(ctx, mr any) *gomock.Call {
+func (mr_2 *MockFinderRepositoryMockRecorder) Find(ctx, mr any) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Find", reflect.TypeOf((*MockfinderRepository)(nil).Find), ctx, mr)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "Find", reflect.TypeOf((*MockFinderRepository)(nil).Find), ctx, mr)
 }
 
 // FindAll mocks base method.
-func (m *MockfinderRepository) FindAll(ctx context.Context) ([]*model.Metric, error) {
+func (m *MockFinderRepository) FindAll(ctx context.Context) ([]*model.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAll", ctx)
 	ret0, _ := ret[0].([]*model.Metric)
@@ -66,7 +66,7 @@ func (m *MockfinderRepository) FindAll(ctx context.Context) ([]*model.Metric, er
 }
 
 // FindAll indicates an expected call of FindAll.
-func (mr *MockfinderRepositoryMockRecorder) FindAll(ctx any) *gomock.Call {
+func (mr *MockFinderRepositoryMockRecorder) FindAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockfinderRepository)(nil).FindAll), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockFinderRepository)(nil).FindAll), ctx)
 }

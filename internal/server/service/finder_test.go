@@ -20,11 +20,10 @@ func TestFinder_Find(t *testing.T) {
 		mr, err := model.NewMetricRequest(model.TypeGauge, "test", "1")
 		require.NoError(t, err)
 		want := mr.Clone()
-		ctx := context.TODO()
-		r := mocks.NewMockfinderRepository(ctrl)
-		r.EXPECT().Find(gomock.Eq(ctx), gomock.Eq(mr)).Return(want, nil)
+		r := mocks.NewMockFinderRepository(ctrl)
+		r.EXPECT().Find(gomock.Any(), gomock.Eq(mr)).Return(want, nil)
 		s := NewFinder(r)
-		got, err := s.Find(ctx, mr)
+		got, err := s.Find(context.TODO(), mr)
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
@@ -32,11 +31,10 @@ func TestFinder_Find(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		mr, err := model.NewMetricRequest(model.TypeGauge, "test", "1")
 		require.NoError(t, err)
-		ctx := context.TODO()
-		r := mocks.NewMockfinderRepository(ctrl)
-		r.EXPECT().Find(gomock.Eq(ctx), gomock.Eq(mr)).Return(nil, model.ErrMetricNotFound)
+		r := mocks.NewMockFinderRepository(ctrl)
+		r.EXPECT().Find(gomock.Any(), gomock.Eq(mr)).Return(nil, model.ErrMetricNotFound)
 		s := NewFinder(r)
-		got, err := s.Find(ctx, mr)
+		got, err := s.Find(context.TODO(), mr)
 		assert.Nil(t, got)
 		assert.ErrorIs(t, err, model.ErrMetricNotFound)
 	})
@@ -50,22 +48,20 @@ func TestFinder_FindAll(t *testing.T) {
 			model.NewMetricGauge("test1", 1),
 			model.NewMetricCounter("test2", 1),
 		}
-		ctx := context.TODO()
-		r := mocks.NewMockfinderRepository(ctrl)
-		r.EXPECT().FindAll(gomock.Eq(ctx)).Return(want, nil)
+		r := mocks.NewMockFinderRepository(ctrl)
+		r.EXPECT().FindAll(gomock.Any()).Return(want, nil)
 		s := NewFinder(r)
-		got, err := s.FindAll(ctx)
+		got, err := s.FindAll(context.TODO())
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, want, got)
 	})
 
 	t.Run("error", func(t *testing.T) {
-		ctx := context.TODO()
-		r := mocks.NewMockfinderRepository(ctrl)
-		r.EXPECT().FindAll(gomock.Eq(ctx)).
+		r := mocks.NewMockFinderRepository(ctrl)
+		r.EXPECT().FindAll(gomock.Any()).
 			Return([]*model.Metric{}, errors.New("error"))
 		s := NewFinder(r)
-		got, err := s.FindAll(ctx)
+		got, err := s.FindAll(context.TODO())
 		assert.Nil(t, got)
 		assert.Error(t, err)
 	})

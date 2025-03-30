@@ -37,7 +37,7 @@ func NewConfig() (*Config, error) {
 
 	err := env.Parse(cfg)
 	if err != nil {
-		return cfg, fmt.Errorf("NewConfig: %w", err)
+		return cfg, fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	if cfg.ReportInterval < 1 {

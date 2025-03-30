@@ -18,12 +18,12 @@ func NewUpdatesHandler(s BatchUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mrs, err := model.UnmarshalMetricsRequestFromReader(r.Body)
 		if err != nil {
-			requestCtxWithLogMessageFromError(r, fmt.Errorf("failed unmarshal: %w", err))
+			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to unmarshal metrics request: %w", err))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 		if err = model.ValidateMetricsRequest(mrs); err != nil {
-			requestCtxWithLogMessageFromError(r, fmt.Errorf("failed validate: %w", err))
+			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to validate metrics request: %w", err))
 			errMsg := http.StatusText(http.StatusBadRequest)
 			switch {
 			case errors.Is(err, model.ErrTypeIsNotValid):
@@ -36,7 +36,7 @@ func NewUpdatesHandler(s BatchUpdater) http.HandlerFunc {
 		}
 		ms, err := s.UpdateBatch(r.Context(), mrs)
 		if err != nil {
-			requestCtxWithLogMessageFromError(r, fmt.Errorf("failed update: %w", err))
+			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to update metric batch: %w", err))
 			if errors.Is(err, model.ErrMetricNotFound) {
 				http.NotFound(w, r)
 				return

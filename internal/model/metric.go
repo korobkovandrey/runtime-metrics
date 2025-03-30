@@ -80,6 +80,10 @@ type MetricRequest struct {
 	*Metric
 }
 
+func (mr *MetricRequest) CloneM() *MetricRequest {
+	return &MetricRequest{mr.Metric.Clone()}
+}
+
 func (mr *MetricRequest) RequiredValue() error {
 	switch mr.MType {
 	case TypeGauge:
@@ -109,13 +113,13 @@ func NewMetricRequest(t, id, value string) (*MetricRequest, error) {
 	case TypeGauge:
 		number, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return nil, fmt.Errorf("NewMetricRequest %w: %w", ErrValueIsNotValid, err)
+			return nil, fmt.Errorf("%w: %w", ErrValueIsNotValid, err)
 		}
 		m = NewMetricGauge(id, number)
 	case TypeCounter:
 		number, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("NewMetricRequest %w: %w", ErrValueIsNotValid, err)
+			return nil, fmt.Errorf("%w: %w", ErrValueIsNotValid, err)
 		}
 		m = NewMetricCounter(id, number)
 	default:

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,26 +9,29 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
-func NewUpdateURIHandler(s Updater) http.HandlerFunc {
+//go:generate mockgen -source=valueuri.go -destination=mocks/mock_finder.go -package=mocks
+type Finder interface {
+	Find(context.Context, *model.MetricRequest) (*model.Metric, error)
+}
+
+func NewValueURIHandler(s Finder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")
 		name := r.PathValue("name")
-		value := r.PathValue("value")
+		value := "0"
 		mr, err := model.NewMetricRequest(t, name, value)
 		if err != nil {
 			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to create metric request: %w", err))
 			errMsg := http.StatusText(http.StatusBadRequest)
 			if errors.Is(err, model.ErrTypeIsNotValid) {
 				errMsg += ": " + model.ErrTypeIsNotValid.Error()
-			} else if errors.Is(err, model.ErrValueIsNotValid) {
-				errMsg += ": " + model.ErrValueIsNotValid.Error()
 			}
 			http.Error(w, errMsg, http.StatusBadRequest)
 			return
 		}
-		_, err = s.Update(r.Context(), mr)
+		m, err := s.Find(r.Context(), mr)
 		if err != nil {
-			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to update metric: %w", err))
+			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to find metric: %w", err))
 			if errors.Is(err, model.ErrMetricNotFound) {
 				http.NotFound(w, r)
 				return
@@ -35,6 +39,11 @@ func NewUpdateURIHandler(s Updater) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
+		_, err = fmt.Fprint(w, m.AnyValue())
+		if err != nil {
+			RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to write value: %w", err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 }

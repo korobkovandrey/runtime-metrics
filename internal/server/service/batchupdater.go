@@ -8,20 +8,19 @@ import (
 )
 
 //go:generate mockgen -source=batchupdater.go -destination=mocks/mock_batchupdater.go -package=mocks
-type batchUpdaterRepository interface {
+type BatchUpdaterRepository interface {
 	FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
 	CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
 type BatchUpdater struct {
-	r batchUpdaterRepository
+	r BatchUpdaterRepository
 }
 
-func NewBatchUpdater(r batchUpdaterRepository) *BatchUpdater {
+func NewBatchUpdater(r BatchUpdaterRepository) *BatchUpdater {
 	return &BatchUpdater{r: r}
 }
 
-//nolint:dupl // ignore
 func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	var mrsReq []*model.MetricRequest
 	mrsGaugeIndexMap := map[string]int{}
