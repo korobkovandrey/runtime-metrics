@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
@@ -11,6 +14,8 @@ import (
 	"go.uber.org/zap"
 
 	"log"
+	//nolint:gosec // G108
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -29,5 +34,17 @@ func main() {
 	}
 
 	l.InfoCtx(ctx, "Agent run with cfg", zap.Any("cfg", cfg))
-	agent.Run(ctx, cfg, l)
+
+	if cfg.PprofAddr == "" {
+		agent.Run(ctx, cfg, l)
+	} else {
+		go agent.Run(ctx, cfg, l)
+		server := &http.Server{
+			Addr:              cfg.PprofAddr,
+			ReadHeaderTimeout: 3 * time.Second,
+		}
+		if err = server.ListenAndServe(); err != nil {
+			l.FatalCtx(ctx, fmt.Errorf("pprof server error: %w", err).Error())
+		}
+	}
 }

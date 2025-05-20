@@ -18,6 +18,7 @@ type Config struct {
 	ShutdownTimeout     time.Duration
 	DatabasePingTimeout time.Duration
 	RetryDelays         []time.Duration
+	Pprof               bool
 }
 
 func NewConfig() (*Config, error) {
@@ -33,6 +34,7 @@ func NewConfig() (*Config, error) {
 	flag.BoolVar(&cfg.Restore, "r", true, "file storage path")
 	flag.Int64Var(&cfg.StoreInterval, "i", storeInterval, "store interval")
 	flag.StringVar(&cfg.Key, "k", "", "key")
+	flag.BoolVar(&cfg.Pprof, "pprof", false, "use pprof")
 
 	flag.Parse()
 

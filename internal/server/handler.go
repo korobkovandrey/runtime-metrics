@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
@@ -29,6 +30,9 @@ func NewHandler() *Handler {
 
 func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) error {
 	h.Use(mcompress.GzipCompressed(l), msign.Signer([]byte(cfg.Key)), mlogger.RequestLogger(l))
+	if cfg.Pprof {
+		h.Mount("/debug", middleware.Profiler())
+	}
 	var r interface {
 		service.FinderRepository
 		service.UpdaterRepository

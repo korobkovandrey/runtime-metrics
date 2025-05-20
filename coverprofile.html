@@ -1,0 +1,2718 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>agent: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/korobkovandrey/runtime-metrics/cmd/agent/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/korobkovandrey/runtime-metrics/cmd/server/main.go (0.0%)</option>
+				
+				<option value="file2">github.com/korobkovandrey/runtime-metrics/internal/agent/agent.go (0.0%)</option>
+				
+				<option value="file3">github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go (0.0%)</option>
+				
+				<option value="file4">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go (0.0%)</option>
+				
+				<option value="file5">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go (0.0%)</option>
+				
+				<option value="file6">github.com/korobkovandrey/runtime-metrics/internal/agent/service/gen.go (84.6%)</option>
+				
+				<option value="file7">github.com/korobkovandrey/runtime-metrics/internal/agent/service/source.go (90.0%)</option>
+				
+				<option value="file8">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (52.9%)</option>
+				
+				<option value="file9">github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go (0.0%)</option>
+				
+				<option value="file10">github.com/korobkovandrey/runtime-metrics/internal/server/handler.go (40.7%)</option>
+				
+				<option value="file11">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/index.go (73.3%)</option>
+				
+				<option value="file12">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/ping.go (100.0%)</option>
+				
+				<option value="file13">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/updatejson.go (77.3%)</option>
+				
+				<option value="file14">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/updates.go (100.0%)</option>
+				
+				<option value="file15">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/updateuri.go (100.0%)</option>
+				
+				<option value="file16">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/utils.go (72.7%)</option>
+				
+				<option value="file17">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/valuejson.go (81.8%)</option>
+				
+				<option value="file18">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/valueuri.go (88.0%)</option>
+				
+				<option value="file19">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress/mcompress.go (79.2%)</option>
+				
+				<option value="file20">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger/mlogger.go (0.0%)</option>
+				
+				<option value="file21">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go (89.7%)</option>
+				
+				<option value="file22">github.com/korobkovandrey/runtime-metrics/internal/server/repository/filestorage.go (0.0%)</option>
+				
+				<option value="file23">github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go (65.3%)</option>
+				
+				<option value="file24">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/methods.go (0.0%)</option>
+				
+				<option value="file25">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/migrations.go (0.0%)</option>
+				
+				<option value="file26">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/pgxstorage.go (0.0%)</option>
+				
+				<option value="file27">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/queries.go (0.0%)</option>
+				
+				<option value="file28">github.com/korobkovandrey/runtime-metrics/internal/server/server.go (0.0%)</option>
+				
+				<option value="file29">github.com/korobkovandrey/runtime-metrics/internal/server/service/batchupdater.go (90.9%)</option>
+				
+				<option value="file30">github.com/korobkovandrey/runtime-metrics/internal/server/service/finder.go (68.4%)</option>
+				
+				<option value="file31">github.com/korobkovandrey/runtime-metrics/internal/server/service/updater.go (63.0%)</option>
+				
+				<option value="file32">github.com/korobkovandrey/runtime-metrics/pkg/compress/compress.go (0.0%)</option>
+				
+				<option value="file33">github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "fmt"
+        "net/http"
+        "os"
+        "os/signal"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/agent"
+        "github.com/korobkovandrey/runtime-metrics/internal/agent/config"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+        "go.uber.org/zap"
+
+        "log"
+        //nolint:gosec // G108
+        _ "net/http/pprof"
+)
+
+func main() <span class="cov0" title="0">{
+        l, err := logging.NewZapLogger(zap.InfoLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+        <span class="cov0" title="0">defer l.Sync()
+
+        ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+        defer cancel()
+
+        cfg, err := config.NewConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                l.FatalCtx(ctx, "failed to get config", zap.Error(err))
+        }</span>
+
+        <span class="cov0" title="0">l.InfoCtx(ctx, "Agent run with cfg", zap.Any("cfg", cfg))
+
+        if cfg.PprofAddr == "" </span><span class="cov0" title="0">{
+                agent.Run(ctx, cfg, l)
+        }</span> else<span class="cov0" title="0"> {
+                go agent.Run(ctx, cfg, l)
+                server := &amp;http.Server{
+                        Addr:              cfg.PprofAddr,
+                        ReadHeaderTimeout: 3 * time.Second,
+                }
+                if err = server.ListenAndServe(); err != nil </span><span class="cov0" title="0">{
+                        l.FatalCtx(ctx, fmt.Errorf("pprof server error: %w", err).Error())
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "log"
+        "net/http"
+        "os"
+        "os/signal"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/server"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/config"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+        "go.uber.org/zap"
+)
+
+func main() <span class="cov0" title="0">{
+        l, err := logging.NewZapLogger(zap.InfoLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+        <span class="cov0" title="0">defer l.Sync()
+
+        ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+        defer cancel()
+
+        cfg, err := config.NewConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                l.FatalCtx(ctx, fmt.Errorf("failed to get config: %w", err).Error())
+        }</span>
+        <span class="cov0" title="0">h := server.NewHandler()
+        defer func() </span><span class="cov0" title="0">{
+                l.InfoCtx(ctx, "Closing handler...")
+                if err := h.Close(); err != nil </span><span class="cov0" title="0">{
+                        l.ErrorCtx(ctx, fmt.Errorf("failed to close handler: %w", err).Error())
+                }</span>
+        }()
+        <span class="cov0" title="0">if err = h.Configure(ctx, cfg, l); err != nil </span><span class="cov0" title="0">{
+                l.FatalCtx(ctx, fmt.Errorf("failed to configure handler: %w", err).Error())
+        }</span>
+        <span class="cov0" title="0">l.InfoCtx(ctx, "Server started on http://"+cfg.Addr+"/", zap.Any("config", cfg))
+        if err = server.ListenAndServe(ctx, l, cfg.Addr, cfg.ShutdownTimeout, h); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                l.FatalCtx(ctx, "failed to start server", zap.Error(err))
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package agent
+
+import (
+        "context"
+        "fmt"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/agent/config"
+        "github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
+        "github.com/korobkovandrey/runtime-metrics/internal/agent/service"
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+)
+
+func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) <span class="cov0" title="0">{
+        source := service.NewSource()
+        tickPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+        defer tickPoll.Stop()
+        go func() </span><span class="cov0" title="0">{
+                for ; ; &lt;-tickPoll.C </span><span class="cov0" title="0">{
+                        if err := source.Collect(ctx); err != nil </span><span class="cov0" title="0">{
+                                l.ErrorCtx(ctx, fmt.Errorf("failed to collect metrics: %w", err).Error())
+                        }</span>
+                }
+        }()
+        <span class="cov0" title="0">sendClient := sender.New(cfg.Sender, l)
+        tickReport := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
+        defer tickReport.Stop()
+        go func() </span><span class="cov0" title="0">{
+                for range tickReport.C </span><span class="cov0" title="0">{
+                        data, delta := source.Get()
+                        if len(data) == 0 </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">if cfg.Batching </span><span class="cov0" title="0">{
+                                if err := sendClient.SendBatchMetrics(ctx, data); err == nil </span><span class="cov0" title="0">{
+                                        source.Commit(delta)
+                                }</span> else<span class="cov0" title="0"> {
+                                        l.ErrorCtx(ctx, fmt.Errorf("failed to send metrics: %w", err).Error())
+                                }</span>
+                        } else<span class="cov0" title="0"> {
+                                for result := range sendClient.SendPoolMetrics(ctx, cfg.RateLimit, data) </span><span class="cov0" title="0">{
+                                        if result.Err != nil </span><span class="cov0" title="0">{
+                                                l.ErrorCtx(ctx, fmt.Errorf("failed to send metric: %w", result.Err).Error())
+                                        }</span> else<span class="cov0" title="0"> if result.Metric != nil &amp;&amp; result.Metric.MType == model.TypeCounter &amp;&amp; result.Metric.ID == "PollCount" </span><span class="cov0" title="0">{
+                                                source.Commit(delta)
+                                        }</span>
+                                }
+                        }
+                }
+        }()
+        <span class="cov0" title="0">&lt;-ctx.Done()</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package config
+
+import (
+        "flag"
+        "fmt"
+        "runtime"
+        "time"
+
+        "github.com/caarlos0/env/v6"
+        "github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
+)
+
+type Config struct {
+        Addr           string `env:"ADDRESS"`
+        PollInterval   int    `env:"POLL_INTERVAL"`
+        ReportInterval int    `env:"REPORT_INTERVAL"`
+        Key            string `env:"KEY"`
+        RateLimit      int    `env:"RATE_LIMIT"`
+        Batching       bool   `env:"BATCHING"`
+        Sender         *sender.Config
+        PprofAddr      string `env:"PPROF_ADDRESS"`
+}
+
+func NewConfig() (*Config, error) <span class="cov0" title="0">{
+        const (
+                pollIntervalSeconds   = 2
+                reportIntervalSeconds = 10
+        )
+        cfg := &amp;Config{}
+        flag.StringVar(&amp;cfg.Addr, "a", "localhost:8080", "server host")
+        flag.IntVar(&amp;cfg.PollInterval, "p", pollIntervalSeconds, "pollInterval in seconds")
+        flag.IntVar(&amp;cfg.ReportInterval, "r", reportIntervalSeconds, "reportInterval in seconds")
+        flag.StringVar(&amp;cfg.Key, "k", "", "key")
+        flag.IntVar(&amp;cfg.RateLimit, "l", runtime.NumCPU(), "rate limit")
+        flag.BoolVar(&amp;cfg.Batching, "b", true, "batching")
+        flag.StringVar(&amp;cfg.PprofAddr, "pprof", "", "pprof address")
+
+        flag.Parse()
+
+        err := env.Parse(cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("failed to parse config: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if cfg.ReportInterval &lt; 1 </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
+                        cfg.ReportInterval)
+        }</span>
+
+        <span class="cov0" title="0">if cfg.PollInterval &lt; 1 </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
+                        cfg.ReportInterval)
+        }</span>
+
+        <span class="cov0" title="0">if cfg.ReportInterval &lt;= cfg.PollInterval </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater than PollInterval (%ds)",
+                        cfg.ReportInterval, cfg.PollInterval)
+        }</span>
+
+        <span class="cov0" title="0">if cfg.RateLimit &lt; 1 </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("RateLimit (%d) must be greater 0",
+                        cfg.RateLimit)
+        }</span>
+
+        <span class="cov0" title="0">baseURL := "http://" + cfg.Addr
+        cfg.Sender = &amp;sender.Config{
+                UpdateURL:   baseURL + "/update/",
+                UpdatesURL:  baseURL + "/updates/",
+                RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+                Timeout:     reportIntervalSeconds * time.Second,
+                Key:         []byte(cfg.Key),
+                RateLimit:   cfg.RateLimit,
+        }
+        return cfg, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package sender
+
+import (
+        "bytes"
+        "compress/gzip"
+        "context"
+        "encoding/json"
+        "errors"
+        "fmt"
+        "io"
+        "net/http"
+        "syscall"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/pkg/sign"
+        "go.uber.org/zap"
+)
+
+func (s *Sender) postData(ctx context.Context, url string, data any) error <span class="cov0" title="0">{
+        b, hash, err := s.makeBodyWithHash(data)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to make body with hash: %w", err)
+        }</span>
+        <span class="cov0" title="0">postBody, err := makeGzipBuffer(b)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to make gzip buffer: %w", err)
+        }</span>
+        <span class="cov0" title="0">req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, postBody)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create request: %w", err)
+        }</span>
+        <span class="cov0" title="0">req.Header.Set("Content-Type", "application/json")
+        req.Header.Set("Accept-Encoding", "gzip")
+        req.Header.Set("Content-Encoding", "gzip")
+        if hash != "" </span><span class="cov0" title="0">{
+                req.Header.Set("HashSHA256", hash)
+        }</span>
+        <span class="cov0" title="0">resp, err := s.doRetry(ctx, req)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to send request: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err := resp.Body.Close(); err != nil </span><span class="cov0" title="0">{
+                        s.l.WarnCtx(ctx, "failed to close the resp body", zap.Error(err))
+                }</span>
+        }()
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Response, err error) <span class="cov0" title="0">{
+        for i := 0; ; i++ </span><span class="cov0" title="0">{
+                if err = ctx.Err(); err != nil </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">resp, err = s.client.Do(req)
+                if err == nil </span><span class="cov0" title="0">{
+                        if resp.StatusCode &gt;= http.StatusOK || resp.StatusCode &lt; http.StatusInternalServerError </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">if err = resp.Body.Close(); err != nil </span><span class="cov0" title="0">{
+                                s.l.WarnCtx(ctx, "failed to close body", zap.Error(err))
+                        }</span>
+                        <span class="cov0" title="0">err = fmt.Errorf("unexpected status code received: %d", resp.StatusCode)</span>
+                } else<span class="cov0" title="0"> if !errors.Is(err, syscall.ECONNREFUSED) </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">if i == len(s.cfg.RetryDelays) || ctx.Err() != nil </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">s.l.WarnCtx(ctx, "failed to send request, will retry", zap.Int("attempt", i+1), zap.Error(err))
+                time.Sleep(s.cfg.RetryDelays[i])</span>
+        }
+        <span class="cov0" title="0">return resp, err</span>
+}
+
+func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) <span class="cov0" title="0">{
+        if data == nil </span><span class="cov0" title="0">{
+                return nil, "", nil
+        }</span>
+        <span class="cov0" title="0">dataBytes, err = json.Marshal(data)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, "", fmt.Errorf("failed to marshal data: %w", err)
+        }</span>
+        <span class="cov0" title="0">return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil</span>
+}
+
+func makeGzipBuffer(data []byte) (io.Reader, error) <span class="cov0" title="0">{
+        if data == nil </span><span class="cov0" title="0">{
+                return http.NoBody, nil
+        }</span>
+        <span class="cov0" title="0">buf := bytes.NewBuffer(nil)
+        gz := gzip.NewWriter(buf)
+        if _, err := gz.Write(data); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to gzip data: %w", err)
+        }</span>
+        <span class="cov0" title="0">if err := gz.Close(); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to close gzip writer: %w", err)
+        }</span>
+        <span class="cov0" title="0">return buf, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package sender
+
+import (
+        "context"
+        "fmt"
+        "net/http"
+        "sync"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+)
+
+type Config struct {
+        UpdateURL   string
+        UpdatesURL  string
+        Timeout     time.Duration
+        RetryDelays []time.Duration
+        Key         []byte
+        RateLimit   int
+}
+
+type Sender struct {
+        cfg    *Config
+        l      *logging.ZapLogger
+        client *http.Client
+}
+
+func New(cfg *Config, l *logging.ZapLogger) *Sender <span class="cov0" title="0">{
+        return &amp;Sender{cfg: cfg, l: l, client: &amp;http.Client{
+                Timeout: cfg.Timeout,
+        }}
+}</span>
+
+func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error <span class="cov0" title="0">{
+        if err := s.postData(ctx, s.cfg.UpdateURL, m); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to send metric: %w", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error <span class="cov0" title="0">{
+        if err := s.postData(ctx, s.cfg.UpdatesURL, ms); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to send metric: %w", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+type JobResult struct {
+        *model.Metric
+        Err error
+}
+
+func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) &lt;-chan *JobResult <span class="cov0" title="0">{
+        jobs := make(chan *model.Metric, len(ms))
+        results := make(chan *JobResult, len(ms))
+        var wg sync.WaitGroup
+        wg.Add(numWorkers)
+        for i := 0; i &lt; numWorkers; i++ </span><span class="cov0" title="0">{
+                go func() </span><span class="cov0" title="0">{
+                        defer wg.Done()
+                        for j := range jobs </span><span class="cov0" title="0">{
+                                if ctx.Err() != nil </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+                                <span class="cov0" title="0">results &lt;- &amp;JobResult{
+                                        Metric: j,
+                                        Err:    s.SendMetric(ctx, j),
+                                }</span>
+                        }
+                }()
+        }
+        <span class="cov0" title="0">for _, m := range ms </span><span class="cov0" title="0">{
+                jobs &lt;- m
+        }</span>
+        <span class="cov0" title="0">close(jobs)
+        go func() </span><span class="cov0" title="0">{
+                wg.Wait()
+                close(results)
+        }</span>()
+        <span class="cov0" title="0">return results</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package service
+
+import (
+        "context"
+        "math/rand/v2"
+        "runtime"
+        "strconv"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+        "github.com/shirou/gopsutil/v4/cpu"
+        "github.com/shirou/gopsutil/v4/mem"
+)
+
+type genResult struct {
+        m   *model.Metric
+        err error
+}
+
+func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="cov1" title="1">{
+        out := make(chan genResult)
+        go func() </span><span class="cov1" title="1">{
+                defer close(out)
+                v, err := mem.VirtualMemoryWithContext(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        out &lt;- genResult{err: err}
+                        return
+                }</span>
+                <span class="cov1" title="1">out &lt;- genResult{m: model.NewMetricGauge("TotalMemory", float64(v.Total))}
+                out &lt;- genResult{m: model.NewMetricGauge("FreeMemory", float64(v.Free))}
+                pcts, err := cpu.PercentWithContext(ctx, 0, false)
+                if err != nil </span><span class="cov0" title="0">{
+                        out &lt;- genResult{err: err}
+                        return
+                }</span>
+                <span class="cov1" title="1">for i, pct := range pcts </span><span class="cov1" title="1">{
+                        out &lt;- genResult{
+                                m: model.NewMetricGauge("CPUutilization"+strconv.Itoa(i+1), pct),
+                        }
+                }</span>
+        }()
+        <span class="cov1" title="1">return out</span>
+}
+
+func genPullMetrics() &lt;-chan *model.Metric <span class="cov1" title="1">{
+        out := make(chan *model.Metric)
+        go func() </span><span class="cov1" title="1">{
+                defer close(out)
+                for k, v := range getRuntimeMetrics() </span><span class="cov10" title="27">{
+                        out &lt;- model.NewMetricGauge(k, v)
+                }</span>
+                <span class="cov1" title="1">out &lt;- model.NewMetricGauge("RandomValue", rand.Float64())</span> //nolint:gosec // ignore
+        }()
+        <span class="cov1" title="1">return out</span>
+}
+
+func getRuntimeMetrics() (result map[string]float64) <span class="cov1" title="1">{
+        memStats := &amp;runtime.MemStats{}
+        runtime.ReadMemStats(memStats)
+        return map[string]float64{
+                "Alloc":         float64(memStats.Alloc),
+                "BuckHashSys":   float64(memStats.BuckHashSys),
+                "Frees":         float64(memStats.Frees),
+                "GCCPUFraction": memStats.GCCPUFraction,
+                "GCSys":         float64(memStats.GCSys),
+                "HeapAlloc":     float64(memStats.HeapAlloc),
+                "HeapIdle":      float64(memStats.HeapIdle),
+                "HeapInuse":     float64(memStats.HeapInuse),
+                "HeapObjects":   float64(memStats.HeapObjects),
+                "HeapReleased":  float64(memStats.HeapReleased),
+                "HeapSys":       float64(memStats.HeapSys),
+                "LastGC":        float64(memStats.LastGC),
+                "Lookups":       float64(memStats.Lookups),
+                "MCacheInuse":   float64(memStats.MCacheInuse),
+                "MCacheSys":     float64(memStats.MCacheSys),
+                "MSpanInuse":    float64(memStats.MSpanInuse),
+                "MSpanSys":      float64(memStats.MSpanSys),
+                "Mallocs":       float64(memStats.Mallocs),
+                "NextGC":        float64(memStats.NextGC),
+                "NumForcedGC":   float64(memStats.NumForcedGC),
+                "NumGC":         float64(memStats.NumGC),
+                "OtherSys":      float64(memStats.OtherSys),
+                "PauseTotalNs":  float64(memStats.PauseTotalNs),
+                "StackInuse":    float64(memStats.StackInuse),
+                "StackSys":      float64(memStats.StackSys),
+                "Sys":           float64(memStats.Sys),
+                "TotalAlloc":    float64(memStats.TotalAlloc),
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package service
+
+import (
+        "context"
+        "sync"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+        "golang.org/x/sync/errgroup"
+)
+
+type Source struct {
+        mu        sync.RWMutex
+        data      []*model.Metric
+        pollCount *model.Metric
+}
+
+func NewSource() *Source <span class="cov1" title="1">{
+        return &amp;Source{
+                pollCount: model.NewMetricCounter("PollCount", 0),
+        }
+}</span>
+
+func (s *Source) Collect(ctx context.Context) error <span class="cov1" title="1">{
+        finalCh := make(chan *model.Metric)
+        g := new(errgroup.Group)
+        g.Go(func() error </span><span class="cov1" title="1">{
+                for m := range genPullMetrics() </span><span class="cov9" title="28">{
+                        finalCh &lt;- m
+                }</span>
+                <span class="cov1" title="1">return nil</span>
+        })
+        <span class="cov1" title="1">g.Go(func() error </span><span class="cov1" title="1">{
+                for m := range genGopsutilMetrics(ctx) </span><span class="cov3" title="3">{
+                        if m.err != nil </span><span class="cov0" title="0">{
+                                return m.err
+                        }</span>
+                        <span class="cov3" title="3">finalCh &lt;- m.m</span>
+                }
+                <span class="cov1" title="1">return nil</span>
+        })
+        <span class="cov1" title="1">doneCh := make(chan struct{})
+        go func() </span><span class="cov1" title="1">{
+                defer close(doneCh)
+                s.mu.RLock()
+                data := make([]*model.Metric, 0, len(s.data))
+                s.mu.RUnlock()
+                for m := range finalCh </span><span class="cov10" title="31">{
+                        data = append(data, m)
+                }</span>
+                <span class="cov1" title="1">s.mu.Lock()
+                defer s.mu.Unlock()
+                s.data = data
+                *s.pollCount.Delta++</span>
+        }()
+        <span class="cov1" title="1">err := g.Wait()
+        close(finalCh)
+        &lt;-doneCh
+        return err</span>
+}
+
+func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov1" title="1">{
+        s.mu.RLock()
+        defer s.mu.RUnlock()
+        data = make([]*model.Metric, len(s.data)+1)
+        for i, m := range s.data </span><span class="cov10" title="31">{
+                data[i] = m.Clone()
+        }</span>
+        <span class="cov1" title="1">data[len(data)-1] = s.pollCount.Clone()
+        delta = *s.pollCount.Delta
+        return data, delta</span>
+}
+
+func (s *Source) Commit(delta int64) <span class="cov0" title="0">{
+        s.mu.Lock()
+        defer s.mu.Unlock()
+        *s.pollCount.Delta -= delta
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package model
+
+import (
+        "encoding/json"
+        "errors"
+        "fmt"
+        "io"
+        "strconv"
+
+        "github.com/jackc/pgx/v5"
+)
+
+const (
+        TypeGauge   = "gauge"
+        TypeCounter = "counter"
+)
+
+type Metric struct {
+        Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+        Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+        MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+        ID    string   `json:"id"`              // имя метрики
+}
+
+func (m *Metric) Clone() *Metric <span class="cov5" title="3">{
+        metric := &amp;Metric{
+                MType: m.MType,
+                ID:    m.ID,
+        }
+        if m.Value != nil </span><span class="cov1" title="1">{
+                metric.Value = new(float64)
+                *metric.Value = *m.Value
+        }</span>
+        <span class="cov5" title="3">if m.Delta != nil </span><span class="cov1" title="1">{
+                metric.Delta = new(int64)
+                *metric.Delta = *m.Delta
+        }</span>
+        <span class="cov5" title="3">return metric</span>
+}
+
+func (m *Metric) AnyValue() any <span class="cov6" title="4">{
+        if m.MType == TypeCounter </span><span class="cov3" title="2">{
+                if m.Delta == nil </span><span class="cov1" title="1">{
+                        return nil
+                }</span>
+                <span class="cov1" title="1">return *m.Delta</span>
+        }
+        <span class="cov3" title="2">if m.Value == nil </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+        <span class="cov1" title="1">return *m.Value</span>
+}
+
+func (m *Metric) ScanRow(row pgx.Row) error <span class="cov0" title="0">{
+        return row.Scan(
+                &amp;m.MType,
+                &amp;m.ID,
+                &amp;m.Value,
+                &amp;m.Delta,
+        )
+}</span>
+
+func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="8">{
+        return &amp;Metric{
+                Value: &amp;value,
+                MType: TypeGauge,
+                ID:    id,
+        }
+}</span>
+
+func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title="10">{
+        return &amp;Metric{
+                Delta: &amp;delta,
+                MType: TypeCounter,
+                ID:    id,
+        }
+}</span>
+
+type MetricRequest struct {
+        *Metric
+}
+
+func (mr *MetricRequest) RequiredValue() error <span class="cov0" title="0">{
+        switch mr.MType </span>{
+        case TypeGauge:<span class="cov0" title="0">
+                if mr.Value == nil </span><span class="cov0" title="0">{
+                        return ErrValueIsNotValid
+                }</span>
+        case TypeCounter:<span class="cov0" title="0">
+                if mr.Delta == nil </span><span class="cov0" title="0">{
+                        return ErrValueIsNotValid
+                }</span>
+        default:<span class="cov0" title="0">
+                return ErrTypeIsNotValid</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (mr *MetricRequest) ValidateType() error <span class="cov0" title="0">{
+        if mr.MType != TypeGauge &amp;&amp; mr.MType != TypeCounter </span><span class="cov0" title="0">{
+                return ErrTypeIsNotValid
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="cov6" title="4">{
+        var m *Metric
+        switch t </span>{
+        case TypeGauge:<span class="cov1" title="1">
+                number, err := strconv.ParseFloat(value, 64)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("%w: %w", ErrValueIsNotValid, err)
+                }</span>
+                <span class="cov1" title="1">m = NewMetricGauge(id, number)</span>
+        case TypeCounter:<span class="cov3" title="2">
+                number, err := strconv.ParseInt(value, 10, 64)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("%w: %w", ErrValueIsNotValid, err)
+                }</span>
+                <span class="cov3" title="2">m = NewMetricCounter(id, number)</span>
+        default:<span class="cov1" title="1">
+                return nil, ErrTypeIsNotValid</span>
+        }
+        <span class="cov5" title="3">return &amp;MetricRequest{m}, nil</span>
+}
+
+func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span class="cov5" title="3">{
+        body, err := io.ReadAll(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read body: %w", err)
+        }</span>
+        <span class="cov5" title="3">if len(body) == 0 </span><span class="cov0" title="0">{
+                return nil, errors.New("empty body")
+        }</span>
+        <span class="cov5" title="3">var metric *MetricRequest
+        err = json.Unmarshal(body, &amp;metric)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to unmarshal body: %w", err)
+        }</span>
+        <span class="cov5" title="3">if metric == nil || metric.Metric == nil </span><span class="cov1" title="1">{
+                return nil, ErrMetricNotFound
+        }</span>
+        <span class="cov3" title="2">return metric, nil</span>
+}
+
+func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) <span class="cov0" title="0">{
+        body, err := io.ReadAll(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read body: %w", err)
+        }</span>
+        <span class="cov0" title="0">if len(body) == 0 </span><span class="cov0" title="0">{
+                return nil, errors.New("empty body")
+        }</span>
+        <span class="cov0" title="0">var metrics []*MetricRequest
+        err = json.Unmarshal(body, &amp;metrics)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to unmarshal body: %w", err)
+        }</span>
+        <span class="cov0" title="0">if len(metrics) == 0 </span><span class="cov0" title="0">{
+                return nil, errors.New("empty body")
+        }</span>
+        <span class="cov0" title="0">return metrics, nil</span>
+}
+
+func ValidateMetricsRequest(metrics []*MetricRequest) error <span class="cov0" title="0">{
+        for _, m := range metrics </span><span class="cov0" title="0">{
+                if err := m.RequiredValue(); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package config
+
+import (
+        "flag"
+        "fmt"
+        "time"
+
+        "github.com/caarlos0/env/v6"
+)
+
+type Config struct {
+        Addr                string `env:"ADDRESS"`
+        FileStoragePath     string `env:"FILE_STORAGE_PATH"`
+        DatabaseDSN         string `env:"DATABASE_DSN"`
+        Restore             bool   `env:"RESTORE"`
+        StoreInterval       int64  `env:"STORE_INTERVAL"`
+        Key                 string `env:"KEY"`
+        ShutdownTimeout     time.Duration
+        DatabasePingTimeout time.Duration
+        RetryDelays         []time.Duration
+        Pprof               bool
+}
+
+func NewConfig() (*Config, error) <span class="cov0" title="0">{
+        const (
+                storeInterval   = 0
+                shutdownTimeout = 5
+                databasePingTimeout
+        )
+        cfg := &amp;Config{}
+        flag.StringVar(&amp;cfg.Addr, "a", "localhost:8080", "server host")
+        flag.StringVar(&amp;cfg.FileStoragePath, "f", "storage.json", "file storage path")
+        flag.StringVar(&amp;cfg.DatabaseDSN, "d", "", "database dsn")
+        flag.BoolVar(&amp;cfg.Restore, "r", true, "file storage path")
+        flag.Int64Var(&amp;cfg.StoreInterval, "i", storeInterval, "store interval")
+        flag.StringVar(&amp;cfg.Key, "k", "", "key")
+        flag.BoolVar(&amp;cfg.Pprof, "pprof", false, "use pprof")
+
+        flag.Parse()
+
+        err := env.Parse(cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("failed to parse config: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">cfg.ShutdownTimeout = shutdownTimeout * time.Second
+        cfg.DatabasePingTimeout = databasePingTimeout * time.Second
+        cfg.RetryDelays = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
+
+        return cfg, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package server
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "net/http"
+
+        "github.com/go-chi/chi/v5"
+        "github.com/go-chi/chi/v5/middleware"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/config"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/handlers"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/service"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+)
+
+type Handler struct {
+        chi.Router
+        closers []func() error
+}
+
+func NewHandler() *Handler <span class="cov10" title="35">{
+        return &amp;Handler{Router: chi.NewRouter()}
+}</span>
+
+func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) error <span class="cov0" title="0">{
+        h.Use(mcompress.GzipCompressed(l), msign.Signer([]byte(cfg.Key)), mlogger.RequestLogger(l))
+        if cfg.Pprof </span><span class="cov0" title="0">{
+                h.Mount("/debug", middleware.Profiler())
+        }</span>
+        <span class="cov0" title="0">var r interface {
+                service.FinderRepository
+                service.UpdaterRepository
+                service.BatchUpdaterRepository
+        }
+        if cfg.DatabaseDSN != "" </span><span class="cov0" title="0">{
+                ps, err := pgxstorage.NewPGXStorage(ctx, &amp;pgxstorage.Config{
+                        DSN:         cfg.DatabaseDSN,
+                        PingTimeout: cfg.DatabasePingTimeout,
+                        RetryDelays: cfg.RetryDelays,
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create pgxstorage: %w", err)
+                }</span>
+                <span class="cov0" title="0">h.closers = append(h.closers, ps.Close)
+                h.setPingRoute(ps)
+                r = ps</span>
+        } else<span class="cov0" title="0"> {
+                ms := repository.NewMemStorage()
+                if cfg.FileStoragePath != "" </span><span class="cov0" title="0">{
+                        fs := repository.NewFileStorage(ms, cfg)
+                        if cfg.Restore </span><span class="cov0" title="0">{
+                                if err := fs.Restore(); err != nil </span><span class="cov0" title="0">{
+                                        return fmt.Errorf("failed to restore: %w", err)
+                                }</span>
+                        }
+                        <span class="cov0" title="0">h.closers = append(h.closers, fs.Close)
+                        go fs.Run(ctx, l)
+                        r = fs</span>
+                } else<span class="cov0" title="0"> {
+                        r = ms
+                }</span>
+                <span class="cov0" title="0">h.setPingRoute(nil)</span>
+        }
+
+        <span class="cov0" title="0">finder := service.NewFinder(r)
+        if err := h.setIndexRoute(finder); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to set index route: %w", err)
+        }</span>
+        <span class="cov0" title="0">h.setUpdateRoutes(service.NewUpdater(r))
+        h.setUpdatesRoute(service.NewBatchUpdater(r))
+        h.setValueRoutes(finder)
+        return nil</span>
+}
+
+func (h *Handler) Close() error <span class="cov0" title="0">{
+        var errs []error
+        for i := range h.closers </span><span class="cov0" title="0">{
+                if err := h.closers[i](); err != nil </span><span class="cov0" title="0">{
+                        errs = append(errs, err)
+                }</span>
+        }
+        <span class="cov0" title="0">return errors.Join(errs...)</span>
+}
+
+func (h *Handler) setIndexRoute(s handlers.AllFinder) error <span class="cov2" title="2">{
+        indexHandler, err := handlers.NewIndexHandler(s)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create index handler: %w", err)
+        }</span>
+        <span class="cov2" title="2">h.Get("/", indexHandler)
+        return nil</span>
+}
+
+func (h *Handler) setPingRoute(s handlers.Pinger) <span class="cov3" title="3">{
+        var pingHandler http.HandlerFunc
+        if s == nil </span><span class="cov1" title="1">{
+                pingHandler = func(w http.ResponseWriter, r *http.Request) </span><span class="cov1" title="1">{
+                        w.WriteHeader(http.StatusOK)
+                }</span>
+        } else<span class="cov2" title="2"> {
+                pingHandler = handlers.NewPingHandler(s)
+        }</span>
+        <span class="cov3" title="3">h.Get("/ping", pingHandler)</span>
+}
+
+func (h *Handler) setUpdateRoutes(s handlers.Updater) <span class="cov7" title="13">{
+        h.Route("/update", func(r chi.Router) </span><span class="cov7" title="13">{
+                r.Post("/", handlers.NewUpdateJSONHandler(s))
+                r.Route("/{type}", func(r chi.Router) </span><span class="cov7" title="13">{
+                        r.Post("/", http.NotFound)
+                        r.Route("/{name}", func(r chi.Router) </span><span class="cov7" title="13">{
+                                r.Post("/", func(w http.ResponseWriter, r *http.Request) </span><span class="cov1" title="1">{
+                                        handlers.RequestCtxWithLogMessage(r, "Value is required.")
+                                        http.Error(w, "Value is required.", http.StatusBadRequest)
+                                }</span>)
+                                <span class="cov7" title="13">r.Post("/{value}", handlers.NewUpdateURIHandler(s))</span>
+                        })
+                })
+        })
+}
+
+func (h *Handler) setUpdatesRoute(s handlers.BatchUpdater) <span class="cov5" title="6">{
+        h.Post("/updates/", handlers.NewUpdatesHandler(s))
+}</span>
+
+func (h *Handler) setValueRoutes(s handlers.Finder) <span class="cov7" title="11">{
+        h.Route("/value", func(r chi.Router) </span><span class="cov7" title="11">{
+                r.Post("/", handlers.NewValueJSONHandler(s))
+                r.Get("/{type}/{name}", handlers.NewValueURIHandler(s))
+        }</span>)
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package handlers
+
+import (
+        "context"
+        "fmt"
+        "html/template"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=index.go -destination=mocks/mock_allfinder.go -package=mocks
+type AllFinder interface {
+        FindAll(context.Context) ([]*model.Metric, error)
+}
+
+func NewIndexHandler(s AllFinder) (http.HandlerFunc, error) <span class="cov10" title="2">{
+        tpl, err := template.ParseFiles("./web/template/index.html")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse template: %w", err)
+        }</span>
+        <span class="cov10" title="2">return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
+                w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                data, err := s.FindAll(r.Context())
+                if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to find all: %w", err))
+                        http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return
+                }</span>
+                <span class="cov1" title="1">w.WriteHeader(http.StatusOK)
+                if err = tpl.Execute(w, data); err != nil </span><span class="cov0" title="0">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to execute template: %w", err))
+                        http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return
+                }</span>
+        }, nil
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package handlers
+
+import (
+        "database/sql/driver"
+        "fmt"
+        "net/http"
+)
+
+//go:generate mockgen -source=ping.go -destination=mocks/mock_pinger.go -package=mocks
+type Pinger interface {
+        driver.Pinger
+}
+
+func NewPingHandler(s Pinger) http.HandlerFunc <span class="cov10" title="2">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
+                if err := s.Ping(r.Context()); err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed ping: %w", err))
+                        http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return
+                }</span>
+                <span class="cov1" title="1">w.WriteHeader(http.StatusOK)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package handlers
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=updatejson.go -destination=mocks/mock_updater.go -package=mocks
+type Updater interface {
+        Update(context.Context, *model.MetricRequest) (*model.Metric, error)
+}
+
+func NewUpdateJSONHandler(s Updater) http.HandlerFunc <span class="cov10" title="3">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="3">{
+                mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
+                if err == nil </span><span class="cov6" title="2">{
+                        err = mr.RequiredValue()
+                }</span>
+                <span class="cov10" title="3">if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to unmarshal metric request: %w", err))
+                        errMsg := http.StatusText(http.StatusBadRequest)
+                        switch </span>{
+                        case errors.Is(err, model.ErrMetricNotFound):<span class="cov0" title="0">
+                                errMsg += ": " + model.ErrMetricNotFound.Error()</span>
+                        case errors.Is(err, model.ErrTypeIsNotValid):<span class="cov0" title="0">
+                                errMsg += ": " + model.ErrTypeIsNotValid.Error()</span>
+                        case errors.Is(err, model.ErrValueIsNotValid):<span class="cov0" title="0">
+                                errMsg += ": " + model.ErrValueIsNotValid.Error()</span>
+                        }
+                        <span class="cov1" title="1">http.Error(w, errMsg, http.StatusBadRequest)
+                        return</span>
+                }
+                <span class="cov6" title="2">m, err := s.Update(r.Context(), mr)
+                if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to update metric: %w", err))
+                        if errors.Is(err, model.ErrMetricNotFound) </span><span class="cov0" title="0">{
+                                http.NotFound(w, r)
+                                return
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return</span>
+                }
+                <span class="cov1" title="1">responseMarshaled(m, w, r)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package handlers
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=updates.go -destination=mocks/mock_batchupdater.go -package=mocks
+type BatchUpdater interface {
+        UpdateBatch(context.Context, []*model.MetricRequest) ([]*model.Metric, error)
+}
+
+func NewUpdatesHandler(s BatchUpdater) http.HandlerFunc <span class="cov10" title="6">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="6">{
+                mrs, err := model.UnmarshalMetricsRequestFromReader(r.Body)
+                if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to unmarshal metrics request: %w", err))
+                        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov9" title="5">if err = model.ValidateMetricsRequest(mrs); err != nil </span><span class="cov4" title="2">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to validate metrics request: %w", err))
+                        errMsg := http.StatusText(http.StatusBadRequest)
+                        switch </span>{
+                        case errors.Is(err, model.ErrTypeIsNotValid):<span class="cov1" title="1">
+                                errMsg += ": " + model.ErrTypeIsNotValid.Error()</span>
+                        case errors.Is(err, model.ErrValueIsNotValid):<span class="cov1" title="1">
+                                errMsg += ": " + model.ErrValueIsNotValid.Error()</span>
+                        }
+                        <span class="cov4" title="2">http.Error(w, errMsg, http.StatusBadRequest)
+                        return</span>
+                }
+                <span class="cov6" title="3">ms, err := s.UpdateBatch(r.Context(), mrs)
+                if err != nil </span><span class="cov4" title="2">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to update metric batch: %w", err))
+                        if errors.Is(err, model.ErrMetricNotFound) </span><span class="cov1" title="1">{
+                                http.NotFound(w, r)
+                                return
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return</span>
+                }
+                <span class="cov1" title="1">responseMarshaled(ms, w, r)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package handlers
+
+import (
+        "errors"
+        "fmt"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+func NewUpdateURIHandler(s Updater) http.HandlerFunc <span class="cov10" title="5">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="5">{
+                t := r.PathValue("type")
+                name := r.PathValue("name")
+                value := r.PathValue("value")
+                mr, err := model.NewMetricRequest(t, name, value)
+                if err != nil </span><span class="cov4" title="2">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to create metric request: %w", err))
+                        errMsg := http.StatusText(http.StatusBadRequest)
+                        if errors.Is(err, model.ErrTypeIsNotValid) </span><span class="cov1" title="1">{
+                                errMsg += ": " + model.ErrTypeIsNotValid.Error()
+                        }</span> else<span class="cov1" title="1"> if errors.Is(err, model.ErrValueIsNotValid) </span><span class="cov1" title="1">{
+                                errMsg += ": " + model.ErrValueIsNotValid.Error()
+                        }</span>
+                        <span class="cov4" title="2">http.Error(w, errMsg, http.StatusBadRequest)
+                        return</span>
+                }
+                <span class="cov7" title="3">_, err = s.Update(r.Context(), mr)
+                if err != nil </span><span class="cov4" title="2">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to update metric: %w", err))
+                        if errors.Is(err, model.ErrMetricNotFound) </span><span class="cov1" title="1">{
+                                http.NotFound(w, r)
+                                return
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return</span>
+                }
+                <span class="cov1" title="1">w.WriteHeader(http.StatusOK)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package handlers
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
+)
+
+func RequestCtxWithLogMessage(r *http.Request, msg string) <span class="cov10" title="18">{
+        *r = *r.WithContext(context.WithValue(r.Context(), mlogger.LogMessageKey, msg))
+}</span>
+
+func RequestCtxWithLogMessageFromError(r *http.Request, err error) <span class="cov10" title="18">{
+        RequestCtxWithLogMessage(r, err.Error())
+}</span>
+
+func responseMarshaled(data any, w http.ResponseWriter, r *http.Request) <span class="cov4" title="3">{
+        response, err := json.Marshal(data)
+        if err == nil </span><span class="cov4" title="3">{
+                w.Header().Set("Content-Type", "application/json")
+                w.WriteHeader(http.StatusOK)
+                _, err = w.Write(response)
+        }</span>
+        <span class="cov4" title="3">if err != nil </span><span class="cov0" title="0">{
+                RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed response: %w", err))
+                http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                return
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package handlers
+
+import (
+        "errors"
+        "fmt"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+func NewValueJSONHandler(s Finder) http.HandlerFunc <span class="cov10" title="3">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="3">{
+                mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
+                if err == nil </span><span class="cov6" title="2">{
+                        err = mr.ValidateType()
+                }</span>
+                <span class="cov10" title="3">if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to unmarshal metric request: %w", err))
+                        errMsg := http.StatusText(http.StatusBadRequest)
+                        if errors.Is(err, model.ErrMetricNotFound) </span><span class="cov0" title="0">{
+                                errMsg += ": " + model.ErrMetricNotFound.Error()
+                        }</span> else<span class="cov1" title="1"> if errors.Is(err, model.ErrTypeIsNotValid) </span><span class="cov0" title="0">{
+                                errMsg += ": " + model.ErrTypeIsNotValid.Error()
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, errMsg, http.StatusBadRequest)
+                        return</span>
+                }
+                <span class="cov6" title="2">m, err := s.Find(r.Context(), mr)
+                if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to find metric: %w", err))
+                        if errors.Is(err, model.ErrMetricNotFound) </span><span class="cov0" title="0">{
+                                http.NotFound(w, r)
+                                return
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return</span>
+                }
+                <span class="cov1" title="1">responseMarshaled(m, w, r)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package handlers
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=valueuri.go -destination=mocks/mock_finder.go -package=mocks
+type Finder interface {
+        Find(context.Context, *model.MetricRequest) (*model.Metric, error)
+}
+
+func NewValueURIHandler(s Finder) http.HandlerFunc <span class="cov10" title="4">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="4">{
+                t := r.PathValue("type")
+                name := r.PathValue("name")
+                value := "0"
+                mr, err := model.NewMetricRequest(t, name, value)
+                if err != nil </span><span class="cov1" title="1">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to create metric request: %w", err))
+                        errMsg := http.StatusText(http.StatusBadRequest)
+                        if errors.Is(err, model.ErrTypeIsNotValid) </span><span class="cov1" title="1">{
+                                errMsg += ": " + model.ErrTypeIsNotValid.Error()
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, errMsg, http.StatusBadRequest)
+                        return</span>
+                }
+                <span class="cov8" title="3">m, err := s.Find(r.Context(), mr)
+                if err != nil </span><span class="cov5" title="2">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to find metric: %w", err))
+                        if errors.Is(err, model.ErrMetricNotFound) </span><span class="cov1" title="1">{
+                                http.NotFound(w, r)
+                                return
+                        }</span>
+                        <span class="cov1" title="1">http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return</span>
+                }
+                <span class="cov1" title="1">_, err = fmt.Fprint(w, m.AnyValue())
+                if err != nil </span><span class="cov0" title="0">{
+                        RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed to write value: %w", err))
+                        http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+                        return
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file19" style="display: none">package mcompress
+
+import (
+        "fmt"
+        "net/http"
+        "strings"
+
+        "github.com/korobkovandrey/runtime-metrics/pkg/compress"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+)
+
+func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler <span class="cov10" title="10">{
+        return func(h http.Handler) http.Handler </span><span class="cov10" title="10">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="10">{
+                        ow := w
+                        acceptEncoding := r.Header.Get("Accept-Encoding")
+                        supportsGzip := strings.Contains(acceptEncoding, "gzip")
+                        if supportsGzip </span><span class="cov8" title="6">{
+                                cw := compress.NewCompressWriter(w)
+                                ow = cw
+                                defer func(cw *compress.Writer) </span><span class="cov8" title="6">{
+                                        if err := cw.Close(); err != nil </span><span class="cov0" title="0">{
+                                                l.ErrorCtx(r.Context(), fmt.Errorf("failed to close compress writer: %w", err).Error())
+                                        }</span>
+                                }(cw)
+                        }
+
+                        <span class="cov10" title="10">contentEncoding := r.Header.Get("Content-Encoding")
+                        sendsGzip := strings.Contains(contentEncoding, "gzip")
+                        if sendsGzip </span><span class="cov8" title="7">{
+                                cr, err := compress.NewCompressReader(r.Body)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        l.ErrorCtx(r.Context(), fmt.Errorf("failed to create compress reader: %w", err).Error())
+                                        w.WriteHeader(http.StatusInternalServerError)
+                                        return
+                                }</span>
+                                <span class="cov8" title="7">r.Body = cr
+                                defer func(cr *compress.Reader) </span><span class="cov8" title="7">{
+                                        if err := cr.Close(); err != nil </span><span class="cov0" title="0">{
+                                                l.ErrorCtx(r.Context(), fmt.Errorf("failed to close compress reader: %w", err).Error())
+                                        }</span>
+                                }(cr)
+                        }
+                        <span class="cov10" title="10">h.ServeHTTP(ow, r)</span>
+                })
+        }
+}
+</pre>
+		
+		<pre class="file" id="file20" style="display: none">package mlogger
+
+import (
+        "fmt"
+        "net/http"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+        "go.uber.org/zap"
+)
+
+type (
+        responseData struct {
+                status int
+                size   int
+        }
+        loggingResponseWriter struct {
+                http.ResponseWriter
+                responseData *responseData
+        }
+)
+
+func (r *loggingResponseWriter) Write(b []byte) (int, error) <span class="cov0" title="0">{
+        size, err := r.ResponseWriter.Write(b)
+        r.responseData.size += size
+        if err != nil </span><span class="cov0" title="0">{
+                return size, fmt.Errorf("failed to write response: %w", err)
+        }</span>
+        <span class="cov0" title="0">return size, nil</span>
+}
+
+func (r *loggingResponseWriter) WriteHeader(statusCode int) <span class="cov0" title="0">{
+        r.ResponseWriter.WriteHeader(statusCode)
+        r.responseData.status = statusCode
+}</span>
+
+type key string
+
+const LogMessageKey key = "logMessage"
+
+func RequestLogger(l *logging.ZapLogger) func(h http.Handler) http.Handler <span class="cov0" title="0">{
+        return func(h http.Handler) http.Handler </span><span class="cov0" title="0">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                        start := time.Now()
+
+                        rd := &amp;responseData{
+                                status: 0,
+                                size:   0,
+                        }
+                        h.ServeHTTP(&amp;loggingResponseWriter{
+                                ResponseWriter: w,
+                                responseData:   rd,
+                        }, r)
+
+                        ctx := r.Context()
+                        msg := ""
+                        if m := ctx.Value(LogMessageKey); m != nil </span><span class="cov0" title="0">{
+                                msg, _ = m.(string)
+                        }</span>
+                        <span class="cov0" title="0">fields := []zap.Field{
+                                zap.Int("status", rd.status),
+                                zap.String("method", r.Method), zap.String("uri", r.RequestURI),
+                                zap.Duration("duration", time.Since(start)), zap.Int("size", rd.size),
+                        }
+                        if rs := r.Header.Get("HashSHA256"); rs != "" </span><span class="cov0" title="0">{
+                                fields = append(fields, zap.String("sign", rs))
+                        }</span>
+                        <span class="cov0" title="0">l.InfoCtx(ctx, msg, fields...)</span>
+                })
+        }
+}
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">package msign
+
+import (
+        "bytes"
+        "errors"
+        "io"
+        "net/http"
+
+        "github.com/korobkovandrey/runtime-metrics/pkg/sign"
+)
+
+type errorReadCloser struct {
+        io.ReadCloser
+        err error
+}
+
+func newErrorReadCloser(r io.ReadCloser, err error) *errorReadCloser <span class="cov1" title="1">{
+        return &amp;errorReadCloser{r, err}
+}</span>
+func (r *errorReadCloser) Read(p []byte) (int, error) <span class="cov1" title="1">{
+        if r.err != nil </span><span class="cov1" title="1">{
+                return 0, r.err
+        }</span>
+        <span class="cov0" title="0">return r.ReadCloser.Read(p)</span>
+}
+
+type signWriter struct {
+        http.ResponseWriter
+        buf        *bytes.Buffer
+        statusCode int
+        key        []byte
+}
+
+func newSignWriter(w http.ResponseWriter, key []byte) *signWriter <span class="cov10" title="2">{
+        return &amp;signWriter{
+                ResponseWriter: w,
+                buf:            &amp;bytes.Buffer{},
+                key:            key,
+        }
+}</span>
+
+func (w *signWriter) Write(data []byte) (n int, err error) <span class="cov10" title="2">{
+        return w.buf.Write(data)
+}</span>
+
+func (w *signWriter) WriteHeader(statusCode int) <span class="cov10" title="2">{
+        w.statusCode = statusCode
+}</span>
+
+func (w *signWriter) close() <span class="cov10" title="2">{
+        data := w.buf.Bytes()
+        if hash := sign.MakeToString(data, w.key); hash != "" </span><span class="cov10" title="2">{
+                w.ResponseWriter.Header().Set("HashSHA256", hash)
+        }</span>
+        <span class="cov10" title="2">w.ResponseWriter.WriteHeader(w.statusCode)
+        _, _ = w.ResponseWriter.Write(data)</span>
+}
+
+func Signer(key []byte) func(h http.Handler) http.Handler <span class="cov10" title="2">{
+        return func(h http.Handler) http.Handler </span><span class="cov10" title="2">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
+                        if len(key) == 0 </span><span class="cov0" title="0">{
+                                h.ServeHTTP(w, r)
+                                return
+                        }</span>
+                        <span class="cov10" title="2">var body []byte
+                        bh, err := sign.DecodeString(r.Header.Get("HashSHA256"))
+                        if err == nil </span><span class="cov10" title="2">{
+                                body, err = io.ReadAll(r.Body)
+                                if err == nil &amp;&amp; !sign.Validate(body, key, bh) </span><span class="cov1" title="1">{
+                                        err = errors.New("invalid signature")
+                                }</span>
+                        }
+                        <span class="cov10" title="2">if err != nil </span><span class="cov1" title="1">{
+                                r.Body = newErrorReadCloser(r.Body, err)
+                        }</span> else<span class="cov1" title="1"> {
+                                r.Body = io.NopCloser(bytes.NewBuffer(body))
+                        }</span>
+                        <span class="cov10" title="2">sw := newSignWriter(w, key)
+                        defer sw.close()
+                        h.ServeHTTP(sw, r)</span>
+                })
+        }
+}
+</pre>
+		
+		<pre class="file" id="file22" style="display: none">package repository
+
+import (
+        "context"
+        "encoding/json"
+        "errors"
+        "fmt"
+        "io/fs"
+        "os"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+        "github.com/korobkovandrey/runtime-metrics/internal/server/config"
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+)
+
+type FileStorage struct {
+        *MemStorage
+        cfg       *config.Config
+        isSync    bool
+        isChanged bool
+}
+
+func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage <span class="cov0" title="0">{
+        return &amp;FileStorage{
+                MemStorage: ms,
+                cfg:        cfg,
+                isSync:     cfg.StoreInterval &lt;= 0,
+        }
+}</span>
+
+func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        f.mux.Lock()
+        defer f.mux.Unlock()
+        f.isChanged = true
+        m, err := f.unsafeCreate(mr)
+        if err != nil </span><span class="cov0" title="0">{
+                return m, fmt.Errorf("failed to create metric: %w", err)
+        }</span>
+        <span class="cov0" title="0">if f.isSync </span><span class="cov0" title="0">{
+                err = f.sync(false, true)
+                if err != nil </span><span class="cov0" title="0">{
+                        return m, fmt.Errorf("failed to sync: %w", err)
+                }</span>
+        }
+        <span class="cov0" title="0">return m, nil</span>
+}
+
+func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        f.mux.Lock()
+        defer f.mux.Unlock()
+        f.isChanged = true
+        m, err := f.unsafeUpdate(mr)
+        if err != nil </span><span class="cov0" title="0">{
+                return m, fmt.Errorf("failed to update metric: %w", err)
+        }</span>
+        <span class="cov0" title="0">if f.isSync </span><span class="cov0" title="0">{
+                err = f.sync(false, true)
+                if err != nil </span><span class="cov0" title="0">{
+                        return m, fmt.Errorf("failed to sync: %w", err)
+                }</span>
+        }
+        <span class="cov0" title="0">return m, nil</span>
+}
+
+func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+        f.mux.Lock()
+        defer f.mux.Unlock()
+        f.isChanged = true
+        res, err := f.unsafeCreateOrUpdateBatch(mrs)
+        if err != nil </span><span class="cov0" title="0">{
+                return res, fmt.Errorf("failed to create or update metrics: %w", err)
+        }</span>
+        <span class="cov0" title="0">if f.isSync </span><span class="cov0" title="0">{
+                err = f.sync(false, true)
+                if err != nil </span><span class="cov0" title="0">{
+                        return res, fmt.Errorf("failed to sync: %w", err)
+                }</span>
+        }
+        <span class="cov0" title="0">return res, nil</span>
+}
+
+func (f *FileStorage) Close() error <span class="cov0" title="0">{
+        return f.sync(true, false)
+}</span>
+
+func (f *FileStorage) Restore() error <span class="cov0" title="0">{
+        if f.cfg.FileStoragePath == "" </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">stat, err := os.Stat(f.cfg.FileStoragePath)
+        if err != nil </span><span class="cov0" title="0">{
+                if !errors.Is(err, os.ErrNotExist) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to stat file: %w", err)
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }
+        <span class="cov0" title="0">if stat.Size() &gt; 0 </span><span class="cov0" title="0">{
+                var data []byte
+                for i := 0; ; i++ </span><span class="cov0" title="0">{
+                        data, err = os.ReadFile(f.cfg.FileStoragePath)
+                        if i == len(f.cfg.RetryDelays) || err == nil || !errors.Is(err, fs.ErrPermission) </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">time.Sleep(f.cfg.RetryDelays[i])</span>
+                }
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to read file: %w", err)
+                }</span>
+                <span class="cov0" title="0">if len(data) &gt; 0 </span><span class="cov0" title="0">{
+                        var mrs []*model.Metric
+                        err = json.Unmarshal(data, &amp;mrs)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to unmarshal file: %w", err)
+                        }</span>
+                        <span class="cov0" title="0">f.fill(mrs)</span>
+                }
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (f *FileStorage) sync(safe, tryRetry bool) error <span class="cov0" title="0">{
+        if safe </span><span class="cov0" title="0">{
+                f.mux.Lock()
+                defer f.mux.Unlock()
+        }</span>
+        <span class="cov0" title="0">if f.cfg.FileStoragePath == "" </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">if !f.isChanged </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">data, err := json.MarshalIndent(f.unsafeFindAll(), "", "   ")
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal data: %w", err)
+        }</span>
+        <span class="cov0" title="0">const (
+                permFlag = 0o600
+        )
+
+        if tryRetry </span><span class="cov0" title="0">{
+                for i := 0; ; i++ </span><span class="cov0" title="0">{
+                        err = os.WriteFile(f.cfg.FileStoragePath, data, permFlag)
+                        if i == len(f.cfg.RetryDelays) || err == nil || !errors.Is(err, fs.ErrPermission) </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">time.Sleep(f.cfg.RetryDelays[i])</span>
+                }
+        } else<span class="cov0" title="0"> {
+                err = os.WriteFile(f.cfg.FileStoragePath, data, permFlag)
+        }</span>
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write file: %w", err)
+        }</span>
+        <span class="cov0" title="0">f.isChanged = false
+        return nil</span>
+}
+
+func (f *FileStorage) Run(ctx context.Context, l *logging.ZapLogger) <span class="cov0" title="0">{
+        if f.cfg.StoreInterval &lt;= 0 </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">var err error
+        t := time.NewTicker(time.Duration(f.cfg.StoreInterval) * time.Second)
+        for </span><span class="cov0" title="0">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov0" title="0">
+                        t.Stop()
+                        return</span>
+                case &lt;-t.C:<span class="cov0" title="0">
+                        if err = f.sync(true, false); err != nil </span><span class="cov0" title="0">{
+                                l.ErrorCtx(ctx, fmt.Errorf("failed to sync: %w", err).Error())
+                        }</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file23" style="display: none">package repository
+
+import (
+        "context"
+        "fmt"
+        "sync"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+type MemStorage struct {
+        mux   *sync.Mutex
+        index map[string]map[string]int
+        data  []*model.Metric
+}
+
+func NewMemStorage() *MemStorage <span class="cov1" title="1">{
+        return &amp;MemStorage{
+                mux:   &amp;sync.Mutex{},
+                index: map[string]map[string]int{},
+                data:  []*model.Metric{},
+        }
+}</span>
+
+func (ms *MemStorage) unsafeIndex(mr *model.MetricRequest) (int, bool) <span class="cov10" title="8">{
+        i, ok := ms.index[mr.MType][mr.ID]
+        return i, ok &amp;&amp; i &lt; len(ms.data)
+}</span>
+
+func (ms *MemStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        if i, ok := ms.unsafeIndex(mr); ok </span><span class="cov4" title="2">{
+                return ms.data[i].Clone(), nil
+        }</span>
+        <span class="cov1" title="1">return nil, model.ErrMetricNotFound</span>
+}
+
+func (ms *MemStorage) unsafeFindAll() []*model.Metric <span class="cov4" title="2">{
+        data := make([]*model.Metric, len(ms.data))
+        for i := range ms.data </span><span class="cov4" title="2">{
+                data[i] = ms.data[i].Clone()
+        }</span>
+        <span class="cov4" title="2">return data</span>
+}
+
+func (ms *MemStorage) FindAll(ctx context.Context) ([]*model.Metric, error) <span class="cov4" title="2">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        return ms.unsafeFindAll(), nil
+}</span>
+
+func (ms *MemStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        var res []*model.Metric
+        for _, mr := range mrs </span><span class="cov0" title="0">{
+                if i, ok := ms.unsafeIndex(mr); ok </span><span class="cov0" title="0">{
+                        res = append(res, ms.data[i].Clone())
+                }</span>
+        }
+        <span class="cov0" title="0">return res, nil</span>
+}
+
+func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
+        if _, ok := ms.unsafeIndex(mr); ok </span><span class="cov1" title="1">{
+                return nil, model.ErrMetricAlreadyExist
+        }</span>
+        <span class="cov1" title="1">if _, ok := ms.index[mr.MType]; !ok </span><span class="cov1" title="1">{
+                ms.index[mr.MType] = map[string]int{}
+        }</span>
+        <span class="cov1" title="1">ms.index[mr.MType][mr.ID] = len(ms.data)
+        ms.data = append(ms.data, mr.Clone())
+        return ms.data[ms.index[mr.MType][mr.ID]].Clone(), nil</span>
+}
+
+func (ms *MemStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        return ms.unsafeCreate(mr)
+}</span>
+
+func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
+        i, ok := ms.unsafeIndex(mr)
+        if !ok </span><span class="cov1" title="1">{
+                return nil, model.ErrMetricNotFound
+        }</span>
+        <span class="cov4" title="2">if mr.Value != nil </span><span class="cov1" title="1">{
+                if ms.data[i].Value == nil </span><span class="cov0" title="0">{
+                        ms.data[i].Value = new(float64)
+                }</span>
+                <span class="cov1" title="1">*ms.data[i].Value = *mr.Value</span>
+        }
+        <span class="cov4" title="2">if mr.Delta != nil </span><span class="cov1" title="1">{
+                if ms.data[i].Delta == nil </span><span class="cov0" title="0">{
+                        ms.data[i].Delta = new(int64)
+                }</span>
+                <span class="cov1" title="1">*ms.data[i].Delta = *mr.Delta</span>
+        }
+        <span class="cov4" title="2">return ms.data[i].Clone(), nil</span>
+}
+
+func (ms *MemStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        return ms.unsafeUpdate(mr)
+}</span>
+
+func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+        res := make([]*model.Metric, len(mrs))
+        for i, mr := range mrs </span><span class="cov0" title="0">{
+                var m *model.Metric
+                var err error
+                if _, ok := ms.unsafeIndex(mr); ok </span><span class="cov0" title="0">{
+                        m, err = ms.unsafeUpdate(mr)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, fmt.Errorf("failed to update metric: %w", err)
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        m, err = ms.unsafeCreate(mr)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, fmt.Errorf("failed to create metric: %w", err)
+                        }</span>
+                }
+                <span class="cov0" title="0">res[i] = m</span>
+        }
+        <span class="cov0" title="0">return res, nil</span>
+}
+
+func (ms *MemStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        return ms.unsafeCreateOrUpdateBatch(mrs)
+}</span>
+
+func (ms *MemStorage) fill(data []*model.Metric) <span class="cov7" title="4">{
+        ms.mux.Lock()
+        defer ms.mux.Unlock()
+        ms.index = map[string]map[string]int{}
+        ms.data = make([]*model.Metric, len(data))
+        for i := range data </span><span class="cov7" title="4">{
+                if _, ok := ms.index[data[i].MType]; !ok </span><span class="cov7" title="4">{
+                        ms.index[data[i].MType] = map[string]int{}
+                }</span>
+                <span class="cov7" title="4">ms.index[data[i].MType][data[i].ID] = i
+                ms.data[i] = data[i].Clone()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file24" style="display: none">package pgxstorage
+
+import (
+        "context"
+        "database/sql"
+        "errors"
+        "fmt"
+
+        "github.com/jackc/pgerrcode"
+        "github.com/jackc/pgx/v5/pgconn"
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+func (ps *PGXStorage) find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        row := ps.stmts.findOneStmt.QueryRowContext(ctx, mr.MType, mr.ID)
+        m := &amp;model.Metric{}
+        err := m.ScanRow(row)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("%w: %w", model.ErrMetricNotFound, err)
+                }</span>
+                <span class="cov0" title="0">return nil, fmt.Errorf("failed to find metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)</span>
+        }
+        <span class="cov0" title="0">return m, nil</span>
+}
+
+func (ps *PGXStorage) findAll(ctx context.Context) ([]*model.Metric, error) <span class="cov0" title="0">{
+        rows, err := ps.stmts.findAllStmt.QueryContext(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to query: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                _ = rows.Close()
+        }</span>()
+        <span class="cov0" title="0">return scanMetricsFromRows(rows)</span>
+}
+
+func (ps *PGXStorage) findBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+        q, params := makeFindBatchQuery(mrs)
+        rows, err := ps.db.QueryContext(ctx, q, params...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to query: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                _ = rows.Close()
+        }</span>()
+        <span class="cov0" title="0">return scanMetricsFromRows(rows)</span>
+}
+
+func (ps *PGXStorage) create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        row := ps.stmts.createReturningStmt.QueryRowContext(ctx, mr.MType, mr.ID, mr.Value, mr.Delta)
+        m := &amp;model.Metric{}
+        err := m.ScanRow(row)
+        if err != nil </span><span class="cov0" title="0">{
+                var e *pgconn.PgError
+                if errors.As(err, &amp;e) &amp;&amp; pgerrcode.IsIntegrityConstraintViolation(e.Code) </span><span class="cov0" title="0">{
+                        return nil, model.ErrMetricAlreadyExist
+                }</span>
+                <span class="cov0" title="0">return nil, fmt.Errorf("failed to scan row: %w", err)</span>
+        }
+        <span class="cov0" title="0">return m, nil</span>
+}
+
+func (ps *PGXStorage) update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        row := ps.stmts.updateReturningStmt.QueryRowContext(ctx, mr.Value, mr.Delta, mr.MType, mr.ID)
+        m := &amp;model.Metric{}
+        err := m.ScanRow(row)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("%w: %w", model.ErrMetricNotFound, err)
+                }</span>
+                <span class="cov0" title="0">return nil, fmt.Errorf("failed to update metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)</span>
+        }
+        <span class="cov0" title="0">return m, nil</span>
+}
+
+func (ps *PGXStorage) createOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) error <span class="cov0" title="0">{
+        tx, err := ps.db.BeginTx(ctx, &amp;sql.TxOptions{})
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to begin transaction: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer tx.Rollback() //nolint:errcheck // ignore
+        for _, mr := range mrs </span><span class="cov0" title="0">{
+                _, err = tx.StmtContext(ctx, ps.stmts.upsertStmt).ExecContext(ctx, mr.MType, mr.ID, mr.Value, mr.Delta)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to query: %w", err)
+                }</span>
+        }
+        <span class="cov0" title="0">if err = tx.Commit(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to commit transaction: %w", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func scanMetricsFromRows(rows *sql.Rows) ([]*model.Metric, error) <span class="cov0" title="0">{
+        var metrics []*model.Metric
+        for rows.Next() </span><span class="cov0" title="0">{
+                m := &amp;model.Metric{}
+                if err := m.ScanRow(rows); err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to scan row: %w", err)
+                }</span>
+                <span class="cov0" title="0">metrics = append(metrics, m)</span>
+        }
+        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to iterate rows: %w", err)
+        }</span>
+        <span class="cov0" title="0">return metrics, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file25" style="display: none">package pgxstorage
+
+import (
+        "embed"
+        "errors"
+        "fmt"
+
+        "github.com/golang-migrate/migrate/v4"
+        _ "github.com/golang-migrate/migrate/v4/database/postgres"
+        "github.com/golang-migrate/migrate/v4/source/iofs"
+)
+
+//go:embed migrations/*.sql
+var migrationsDir embed.FS
+
+func runMigrations(dsn string) error <span class="cov0" title="0">{
+        d, err := iofs.New(migrationsDir, "migrations")
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to return an iofs driver: %w", err)
+        }</span>
+        <span class="cov0" title="0">m, err := migrate.NewWithSourceInstance("iofs", d, dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to get a new migrate instance: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if err := m.Up(); err != nil </span><span class="cov0" title="0">{
+                if !errors.Is(err, migrate.ErrNoChange) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to apply migrations: %w", err)
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file26" style="display: none">package pgxstorage
+
+import (
+        "context"
+        "database/sql"
+        "errors"
+        "fmt"
+        "time"
+
+        "github.com/jackc/pgerrcode"
+        "github.com/jackc/pgx/v5/pgconn"
+        _ "github.com/jackc/pgx/v5/stdlib"
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+type Config struct {
+        DSN         string
+        PingTimeout time.Duration
+        RetryDelays []time.Duration
+}
+
+type PGXStorage struct {
+        cfg   *Config
+        db    *sql.DB
+        stmts *statements
+}
+
+func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) <span class="cov0" title="0">{
+        ps := &amp;PGXStorage{cfg: cfg}
+        var err error
+        if err = runMigrations(ps.cfg.DSN); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to run migrations: %w", err)
+        }</span>
+        <span class="cov0" title="0">ps.db, err = sql.Open("pgx", ps.cfg.DSN)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to open database: %w", err)
+        }</span>
+        <span class="cov0" title="0">ps.db.SetMaxOpenConns(5) //nolint:mnd // ignore
+        ps.db.SetMaxIdleConns(5) //nolint:mnd // ignore
+        ps.db.SetConnMaxIdleTime(time.Minute)
+        ps.db.SetConnMaxLifetime(time.Minute)
+        err = ps.Ping(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to ping database: %w", err)
+        }</span>
+        <span class="cov0" title="0">ps.stmts, err = ps.prepareStatements(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to prepare statements: %w", err)
+        }</span>
+        <span class="cov0" title="0">return ps, nil</span>
+}
+
+func (ps *PGXStorage) Close() error <span class="cov0" title="0">{
+        return ps.db.Close()
+}</span>
+
+func (ps *PGXStorage) Ping(ctx context.Context) error <span class="cov0" title="0">{
+        ctx, cancel := context.WithTimeout(ctx, ps.cfg.PingTimeout)
+        defer cancel()
+        return ps.db.PingContext(ctx)
+}</span>
+
+func (ps *PGXStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        return ps.retryForOne(ctx, mr, ps.find)
+}</span>
+
+func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err error) <span class="cov0" title="0">{
+        var e *pgconn.PgError
+        for i := 0; ; i++ </span><span class="cov0" title="0">{
+                res, err = ps.findAll(ctx)
+                if i == len(ps.cfg.RetryDelays) ||
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
+        }
+        <span class="cov0" title="0">return res, err</span>
+}
+
+func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) (res []*model.Metric, err error) <span class="cov0" title="0">{
+        var e *pgconn.PgError
+        for i := 0; ; i++ </span><span class="cov0" title="0">{
+                res, err = ps.findBatch(ctx, mrs)
+                if i == len(ps.cfg.RetryDelays) ||
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
+        }
+        <span class="cov0" title="0">return res, err</span>
+}
+
+func (ps *PGXStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        return ps.retryForOne(ctx, mr, ps.create)
+}</span>
+
+func (ps *PGXStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+        return ps.retryForOne(ctx, mr, ps.update)
+}</span>
+
+func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+        var e *pgconn.PgError
+        var err error
+        for i := 0; ; i++ </span><span class="cov0" title="0">{
+                err = ps.createOrUpdateBatch(ctx, mrs)
+                if i == len(ps.cfg.RetryDelays) ||
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
+        }
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return ps.FindBatch(ctx, mrs)</span>
+}
+
+func (ps *PGXStorage) retryForOne(ctx context.Context, mr *model.MetricRequest,
+        f func(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)) (m *model.Metric, err error) <span class="cov0" title="0">{
+        var e *pgconn.PgError
+        for i := 0; ; i++ </span><span class="cov0" title="0">{
+                m, err = f(ctx, mr)
+                if i == len(ps.cfg.RetryDelays) ||
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
+        }
+        <span class="cov0" title="0">return m, err</span>
+}
+</pre>
+		
+		<pre class="file" id="file27" style="display: none">package pgxstorage
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "strconv"
+        "strings"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+const (
+        findOneQuery         = "SELECT type, id, value, delta FROM metrics WHERE type = $1 AND id = $2 LIMIT 1;"
+        findAllQuery         = "SELECT type, id, value, delta FROM metrics ORDER BY type, id;"
+        findBatchQueryTpl    = "SELECT type, id, value, delta FROM metrics WHERE %s ORDER BY type, id;"
+        createReturningQuery = "INSERT INTO metrics (type, id, value, delta) VALUES ($1, $2, $3, $4) RETURNING type, id, value, delta;"
+        updateReturningQuery = "UPDATE metrics SET value = $1, delta = $2 WHERE type = $3 AND id = $4 RETURNING type, id, value, delta;"
+        upsertQuery          = `INSERT INTO metrics (type, id, value, delta) VALUES ($1, $2, $3, $4) ON CONFLICT (type, id) 
+    DO UPDATE SET value = EXCLUDED.value, delta = EXCLUDED.delta;`
+)
+
+func makeFindBatchQuery(mrs []*model.MetricRequest) (q string, params []any) <span class="cov0" title="0">{
+        const numColumns = 2
+        params = make([]any, 0, len(mrs)*numColumns)
+        args := make([]string, 0, len(mrs))
+        for i, mr := range mrs </span><span class="cov0" title="0">{
+                k := i*numColumns + 1
+                args = append(args, "(type=$"+strconv.Itoa(k)+" AND id=$"+strconv.Itoa(k+1)+")")
+                params = append(params, mr.MType, mr.ID)
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf(findBatchQueryTpl, strings.Join(args, " OR ")), params</span>
+}
+
+type statements struct {
+        findOneStmt         *sql.Stmt
+        findAllStmt         *sql.Stmt
+        createReturningStmt *sql.Stmt
+        updateReturningStmt *sql.Stmt
+        upsertStmt          *sql.Stmt
+}
+
+func (ps *PGXStorage) prepareStatements(ctx context.Context) (st *statements, err error) <span class="cov0" title="0">{
+        st = &amp;statements{}
+        st.findOneStmt, err = ps.db.PrepareContext(ctx, findOneQuery)
+        if err != nil </span><span class="cov0" title="0">{
+                return st, fmt.Errorf("failed to prepare findOneQuery: %w", err)
+        }</span>
+        <span class="cov0" title="0">st.findAllStmt, err = ps.db.PrepareContext(ctx, findAllQuery)
+        if err != nil </span><span class="cov0" title="0">{
+                return st, fmt.Errorf("failed to prepare findAllQuery: %w", err)
+        }</span>
+        <span class="cov0" title="0">st.createReturningStmt, err = ps.db.PrepareContext(ctx, createReturningQuery)
+        if err != nil </span><span class="cov0" title="0">{
+                return st, fmt.Errorf("failed to prepare createReturningQuery: %w", err)
+        }</span>
+        <span class="cov0" title="0">st.updateReturningStmt, err = ps.db.PrepareContext(ctx, updateReturningQuery)
+        if err != nil </span><span class="cov0" title="0">{
+                return st, fmt.Errorf("failed to prepare updateReturningQuery: %w", err)
+        }</span>
+        <span class="cov0" title="0">st.upsertStmt, err = ps.db.PrepareContext(ctx, upsertQuery)
+        if err != nil </span><span class="cov0" title="0">{
+                return st, fmt.Errorf("failed to prepare upsertQuery: %w", err)
+        }</span>
+        <span class="cov0" title="0">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file28" style="display: none">package server
+
+import (
+        "context"
+        "fmt"
+        "net/http"
+        "time"
+
+        "github.com/korobkovandrey/runtime-metrics/pkg/logging"
+)
+
+func ListenAndServe(ctx context.Context, l *logging.ZapLogger,
+        addr string, shutdownTimeout time.Duration, handler http.Handler) error <span class="cov0" title="0">{
+        server := http.Server{
+                Addr:              addr,
+                ErrorLog:          l.Std(),
+                Handler:           handler,
+                ReadHeaderTimeout: 10 * time.Second,
+        }
+        go func() </span><span class="cov0" title="0">{
+                ctxWithoutCancel := context.WithoutCancel(ctx)
+                &lt;-ctx.Done()
+                shCtx, cancel := context.WithTimeout(ctxWithoutCancel, shutdownTimeout)
+                defer cancel()
+                l.InfoCtx(shCtx, "Shutting down the HTTP server...")
+                if err := server.Shutdown(shCtx); err != nil </span><span class="cov0" title="0">{
+                        l.ErrorCtx(shCtx, fmt.Errorf("failed to shutdown server: %w", err).Error())
+                }</span>
+        }()
+        <span class="cov0" title="0">if err := server.ListenAndServe(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to start server: %w", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file29" style="display: none">package service
+
+import (
+        "context"
+        "fmt"
+        "sort"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=batchupdater.go -destination=mocks/mock_batchupdater.go -package=mocks
+type BatchUpdaterRepository interface {
+        FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
+        CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
+}
+
+type BatchUpdater struct {
+        r BatchUpdaterRepository
+}
+
+func NewBatchUpdater(r BatchUpdaterRepository) *BatchUpdater <span class="cov1" title="1">{
+        return &amp;BatchUpdater{r: r}
+}</span>
+
+func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov1" title="1">{
+        var mrsReq []*model.MetricRequest
+        mrsGaugeIndexMap := map[string]int{}
+        mrsCounterMap := map[string]*model.MetricRequest{}
+        for i := range mrs </span><span class="cov10" title="8">{
+                if mrs[i].MType != model.TypeCounter </span><span class="cov7" title="4">{
+                        mrsGaugeIndexMap[mrs[i].ID] = i
+                        continue</span>
+                }
+                <span class="cov7" title="4">if _, ok := mrsCounterMap[mrs[i].ID]; ok </span><span class="cov4" title="2">{
+                        *mrsCounterMap[mrs[i].ID].Delta += *mrs[i].Delta
+                }</span> else<span class="cov4" title="2"> {
+                        mrsCounterMap[mrs[i].ID] = mrs[i]
+                        mrsReq = append(mrsReq, mrsCounterMap[mrs[i].ID])
+                }</span>
+        }
+        <span class="cov1" title="1">if len(mrsReq) &gt; 0 </span><span class="cov1" title="1">{
+                mCounterExist, err := s.r.FindBatch(ctx, mrsReq)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to find batch: %w", err)
+                }</span>
+                <span class="cov1" title="1">for i := range mCounterExist </span><span class="cov1" title="1">{
+                        *mrsCounterMap[mCounterExist[i].ID].Delta += *mCounterExist[i].Delta
+                }</span>
+        }
+
+        <span class="cov1" title="1">if len(mrsGaugeIndexMap) &gt; 0 </span><span class="cov1" title="1">{
+                indexes := make([]int, len(mrsGaugeIndexMap))
+                k := 0
+                for _, i := range mrsGaugeIndexMap </span><span class="cov4" title="2">{
+                        indexes[k] = i
+                        k++
+                }</span>
+                <span class="cov1" title="1">sort.Ints(indexes)
+                for _, i := range indexes </span><span class="cov4" title="2">{
+                        mrsReq = append(mrsReq, mrs[i])
+                }</span>
+        }
+        <span class="cov1" title="1">if len(mrsReq) == 0 </span><span class="cov0" title="0">{
+                return []*model.Metric{}, nil
+        }</span>
+        <span class="cov1" title="1">res, err := s.r.CreateOrUpdateBatch(ctx, mrsReq)
+        if err != nil </span><span class="cov0" title="0">{
+                return res, fmt.Errorf("failed to update batch: %w", err)
+        }</span>
+        <span class="cov1" title="1">return res, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file30" style="display: none">package service
+
+import (
+        "context"
+        "fmt"
+        "slices"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=finder.go -destination=mocks/mock_finder.go -package=mocks
+type FinderRepository interface {
+        Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
+        FindAll(ctx context.Context) ([]*model.Metric, error)
+}
+
+type Finder struct {
+        r FinderRepository
+}
+
+func NewFinder(r FinderRepository) *Finder <span class="cov10" title="4">{
+        return &amp;Finder{r: r}
+}</span>
+
+func (s *Finder) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="2">{
+        m, err := s.r.Find(ctx, mr)
+        if err != nil </span><span class="cov1" title="1">{
+                return m, fmt.Errorf("failed to find metric: %w", err)
+        }</span>
+        <span class="cov1" title="1">return m, nil</span>
+}
+
+func (s *Finder) FindAll(ctx context.Context) ([]*model.Metric, error) <span class="cov5" title="2">{
+        metrics, err := s.r.FindAll(ctx)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to find all metrics: %w", err)
+        }</span>
+        <span class="cov1" title="1">slices.SortFunc(metrics, func(a *model.Metric, b *model.Metric) int </span><span class="cov1" title="1">{
+                if a.MType == b.MType </span><span class="cov0" title="0">{
+                        if a.ID &gt; b.ID </span><span class="cov0" title="0">{
+                                return 1
+                        }</span> else<span class="cov0" title="0"> if a.ID &lt; b.ID </span><span class="cov0" title="0">{
+                                return -1
+                        }</span>
+                        <span class="cov0" title="0">return 0</span>
+                }
+                <span class="cov1" title="1">if a.MType &gt; b.MType </span><span class="cov0" title="0">{
+                        return 1
+                }</span>
+                <span class="cov1" title="1">return -1</span>
+        })
+        <span class="cov1" title="1">return metrics, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file31" style="display: none">package service
+
+import (
+        "context"
+        "errors"
+        "fmt"
+
+        "github.com/korobkovandrey/runtime-metrics/internal/model"
+)
+
+//go:generate mockgen -source=updater.go -destination=mocks/mock_updater.go -package=mocks
+type UpdaterRepository interface {
+        Find(context.Context, *model.MetricRequest) (*model.Metric, error)
+        Create(context.Context, *model.MetricRequest) (*model.Metric, error)
+        Update(context.Context, *model.MetricRequest) (*model.Metric, error)
+}
+
+type Updater struct {
+        r UpdaterRepository
+}
+
+func NewUpdater(r UpdaterRepository) *Updater <span class="cov10" title="2">{
+        return &amp;Updater{r: r}
+}</span>
+
+func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov10" title="2">{
+        m, err := s.r.Find(ctx, mr)
+        if err != nil </span><span class="cov1" title="1">{
+                if !errors.Is(err, model.ErrMetricNotFound) </span><span class="cov0" title="0">{
+                        return m, fmt.Errorf("failed to find metric: %w", err)
+                }</span>
+                <span class="cov1" title="1">m, err = s.r.Create(ctx, mr)
+                if err == nil </span><span class="cov1" title="1">{
+                        return m, nil
+                }</span>
+                <span class="cov0" title="0">if !errors.Is(err, model.ErrMetricAlreadyExist) </span><span class="cov0" title="0">{
+                        return m, fmt.Errorf("failed to create metric: %w", err)
+                }</span>
+                <span class="cov0" title="0">m, err = s.r.Find(ctx, mr)
+                if err != nil </span><span class="cov0" title="0">{
+                        return m, fmt.Errorf("failed to find metric: %w", err)
+                }</span>
+        }
+        <span class="cov1" title="1">needUpdate := false
+        switch mr.MType </span>{
+        case model.TypeGauge:<span class="cov0" title="0">
+                if mr.Value != nil </span><span class="cov0" title="0">{
+                        needUpdate = true
+                }</span>
+        case model.TypeCounter:<span class="cov1" title="1">
+                if mr.Delta != nil </span><span class="cov1" title="1">{
+                        if m.Delta != nil </span><span class="cov1" title="1">{
+                                *mr.Delta += *m.Delta
+                        }</span>
+                        <span class="cov1" title="1">needUpdate = true</span>
+                }
+        }
+        <span class="cov1" title="1">if needUpdate </span><span class="cov1" title="1">{
+                m, err = s.r.Update(ctx, mr)
+                if err != nil </span><span class="cov0" title="0">{
+                        return m, fmt.Errorf("failed to update metric: %w", err)
+                }</span>
+                <span class="cov1" title="1">return m, nil</span>
+        }
+        <span class="cov0" title="0">return m, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file32" style="display: none">package compress
+
+import (
+        "compress/gzip"
+        "errors"
+        "fmt"
+        "io"
+        "net/http"
+        "strings"
+)
+
+type Writer struct {
+        w            http.ResponseWriter
+        zw           *gzip.Writer
+        Compressible bool
+}
+
+func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov0" title="0">{
+        return &amp;Writer{
+                w:            w,
+                Compressible: false,
+        }
+}</span>
+
+func (w *Writer) Header() http.Header <span class="cov0" title="0">{
+        return w.w.Header()
+}</span>
+
+func (w *Writer) Write(p []byte) (int, error) <span class="cov0" title="0">{
+        if w.Compressible </span><span class="cov0" title="0">{
+                if w.zw == nil </span><span class="cov0" title="0">{
+                        w.zw = gzip.NewWriter(w.w)
+                }</span>
+                <span class="cov0" title="0">n, err := w.zw.Write(p)
+                if err != nil </span><span class="cov0" title="0">{
+                        return n, fmt.Errorf("compress[Writer].Write: %w", err)
+                }</span>
+                <span class="cov0" title="0">return n, nil</span>
+        }
+        <span class="cov0" title="0">n, err := w.w.Write(p)
+        if err != nil </span><span class="cov0" title="0">{
+                return n, fmt.Errorf("compress[Writer].Write: %w", err)
+        }</span>
+        <span class="cov0" title="0">return n, nil</span>
+}
+
+func (w *Writer) WriteHeader(statusCode int) <span class="cov0" title="0">{
+        contentType := w.Header().Get("Content-Type")
+        isHTML := strings.Contains(contentType, "text/html")
+        isJSON := strings.Contains(contentType, "application/json")
+        if statusCode &lt; 300 &amp;&amp; (isHTML || isJSON) </span><span class="cov0" title="0">{
+                w.w.Header().Set("Content-Encoding", "gzip")
+                w.w.Header().Del("Content-Length")
+                w.Compressible = true
+        }</span>
+        <span class="cov0" title="0">w.w.WriteHeader(statusCode)</span>
+}
+
+func (w *Writer) Close() error <span class="cov0" title="0">{
+        if w.zw != nil </span><span class="cov0" title="0">{
+                if err := w.zw.Close(); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("compress[Writer].Close: %w", err)
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+type Reader struct {
+        r  io.ReadCloser
+        zr *gzip.Reader
+}
+
+func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov0" title="0">{
+        zr, err := gzip.NewReader(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("NewCompressReader: %w", err)
+        }</span>
+        <span class="cov0" title="0">return &amp;Reader{
+                r:  r,
+                zr: zr,
+        }, nil</span>
+}
+
+func (r *Reader) Read(p []byte) (int, error) <span class="cov0" title="0">{
+        n, err := r.zr.Read(p)
+        if err != nil &amp;&amp; !errors.Is(err, io.EOF) </span><span class="cov0" title="0">{
+                err = fmt.Errorf("compress[Reader].Read: %w", err)
+        }</span>
+        <span class="cov0" title="0">return n, err</span>
+}
+
+func (r *Reader) Close() error <span class="cov0" title="0">{
+        if err := r.r.Close(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("compress[Reader].Close: %w", err)
+        }</span>
+        <span class="cov0" title="0">if err := r.zr.Close(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("compress[Reader].Close: %w", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file33" style="display: none">package sign
+
+import (
+        "crypto/hmac"
+        "crypto/sha256"
+        "encoding/hex"
+)
+
+func Make(data, key []byte) []byte <span class="cov10" title="7">{
+        if len(data) == 0 || len(key) == 0 </span><span class="cov8" title="5">{
+                return nil
+        }</span>
+        <span class="cov4" title="2">h := hmac.New(sha256.New, key)
+        h.Write(data)
+        return h.Sum(nil)</span>
+}
+
+func EncodeToString(data []byte) string <span class="cov8" title="5">{
+        return hex.EncodeToString(data)
+}</span>
+
+func DecodeString(data string) ([]byte, error) <span class="cov6" title="3">{
+        return hex.DecodeString(data)
+}</span>
+
+func MakeToString(data, key []byte) string <span class="cov6" title="3">{
+        return EncodeToString(Make(data, key))
+}</span>
+
+func Validate(data, key, hash []byte) bool <span class="cov8" title="5">{
+        if len(key) == 0 || len(hash) == 0 </span><span class="cov6" title="3">{
+                return true
+        }</span>
+        <span class="cov4" title="2">h := hmac.New(sha256.New, key)
+        h.Write(data)
+        return hmac.Equal(hash, h.Sum(nil))</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -18,6 +18,7 @@ type Config struct {
 	RateLimit      int    `env:"RATE_LIMIT"`
 	Batching       bool   `env:"BATCHING"`
 	Sender         *sender.Config
+	PprofAddr      string `env:"PPROF_ADDRESS"`
 }
 
 func NewConfig() (*Config, error) {
@@ -32,6 +33,7 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&cfg.Key, "k", "", "key")
 	flag.IntVar(&cfg.RateLimit, "l", runtime.NumCPU(), "rate limit")
 	flag.BoolVar(&cfg.Batching, "b", true, "batching")
+	flag.StringVar(&cfg.PprofAddr, "pprof", "", "pprof address")
 
 	flag.Parse()
 
