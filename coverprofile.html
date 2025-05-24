@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/korobkovandrey/runtime-metrics/internal/agent/service/gen.go (84.6%)</option>
 				
-				<option value="file7">github.com/korobkovandrey/runtime-metrics/internal/agent/service/source.go (90.0%)</option>
+				<option value="file7">github.com/korobkovandrey/runtime-metrics/internal/agent/service/source.go (97.5%)</option>
 				
 				<option value="file8">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (70.6%)</option>
 				
@@ -148,7 +148,10 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">package main
+		<pre class="file" id="file0" style="display: none">// Package main contains entry point for agent service.
+// The agent service is simple web service which collect some runtime metrics
+// and send them to server.
+package main
 
 import (
         "context"
@@ -200,7 +203,9 @@ func main() <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package main
+		<pre class="file" id="file1" style="display: none">// Package main initializes and starts the server application.
+// It sets up logging, configures the server, and handles graceful shutdowns.
+package main
 
 import (
         "context"
@@ -584,44 +589,44 @@ type genResult struct {
         err error
 }
 
-func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="cov1" title="1">{
+func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="cov3" title="3">{
         out := make(chan genResult)
-        go func() </span><span class="cov1" title="1">{
+        go func() </span><span class="cov3" title="3">{
                 defer close(out)
                 v, err := mem.VirtualMemoryWithContext(ctx)
                 if err != nil </span><span class="cov0" title="0">{
                         out &lt;- genResult{err: err}
                         return
                 }</span>
-                <span class="cov1" title="1">out &lt;- genResult{m: model.NewMetricGauge("TotalMemory", float64(v.Total))}
+                <span class="cov3" title="3">out &lt;- genResult{m: model.NewMetricGauge("TotalMemory", float64(v.Total))}
                 out &lt;- genResult{m: model.NewMetricGauge("FreeMemory", float64(v.Free))}
                 pcts, err := cpu.PercentWithContext(ctx, 0, false)
                 if err != nil </span><span class="cov0" title="0">{
                         out &lt;- genResult{err: err}
                         return
                 }</span>
-                <span class="cov1" title="1">for i, pct := range pcts </span><span class="cov1" title="1">{
+                <span class="cov3" title="3">for i, pct := range pcts </span><span class="cov3" title="3">{
                         out &lt;- genResult{
                                 m: model.NewMetricGauge("CPUutilization"+strconv.Itoa(i+1), pct),
                         }
                 }</span>
         }()
-        <span class="cov1" title="1">return out</span>
+        <span class="cov3" title="3">return out</span>
 }
 
-func genPullMetrics() &lt;-chan *model.Metric <span class="cov1" title="1">{
+func genPullMetrics() &lt;-chan *model.Metric <span class="cov3" title="3">{
         out := make(chan *model.Metric)
-        go func() </span><span class="cov1" title="1">{
+        go func() </span><span class="cov3" title="3">{
                 defer close(out)
-                for k, v := range getRuntimeMetrics() </span><span class="cov10" title="27">{
+                for k, v := range getRuntimeMetrics() </span><span class="cov10" title="81">{
                         out &lt;- model.NewMetricGauge(k, v)
                 }</span>
-                <span class="cov1" title="1">out &lt;- model.NewMetricGauge("RandomValue", rand.Float64())</span> //nolint:gosec // ignore
+                <span class="cov3" title="3">out &lt;- model.NewMetricGauge("RandomValue", rand.Float64())</span> //nolint:gosec // ignore
         }()
-        <span class="cov1" title="1">return out</span>
+        <span class="cov3" title="3">return out</span>
 }
 
-func getRuntimeMetrics() (result map[string]float64) <span class="cov1" title="1">{
+func getRuntimeMetrics() (result map[string]float64) <span class="cov3" title="4">{
         memStats := &amp;runtime.MemStats{}
         runtime.ReadMemStats(memStats)
         return map[string]float64{
@@ -672,70 +677,71 @@ type Source struct {
         pollCount *model.Metric
 }
 
-func NewSource() *Source <span class="cov1" title="1">{
+func NewSource() *Source <span class="cov4" title="4">{
         return &amp;Source{
                 pollCount: model.NewMetricCounter("PollCount", 0),
         }
 }</span>
 
-func (s *Source) Collect(ctx context.Context) error <span class="cov1" title="1">{
+func (s *Source) Collect(ctx context.Context) error <span class="cov2" title="2">{
         finalCh := make(chan *model.Metric)
         g := new(errgroup.Group)
-        g.Go(func() error </span><span class="cov1" title="1">{
-                for m := range genPullMetrics() </span><span class="cov9" title="28">{
+        g.Go(func() error </span><span class="cov2" title="2">{
+                for m := range genPullMetrics() </span><span class="cov9" title="56">{
                         finalCh &lt;- m
                 }</span>
-                <span class="cov1" title="1">return nil</span>
+                <span class="cov2" title="2">return nil</span>
         })
-        <span class="cov1" title="1">g.Go(func() error </span><span class="cov1" title="1">{
-                for m := range genGopsutilMetrics(ctx) </span><span class="cov3" title="3">{
+        <span class="cov2" title="2">g.Go(func() error </span><span class="cov2" title="2">{
+                for m := range genGopsutilMetrics(ctx) </span><span class="cov4" title="6">{
                         if m.err != nil </span><span class="cov0" title="0">{
                                 return m.err
                         }</span>
-                        <span class="cov3" title="3">finalCh &lt;- m.m</span>
+                        <span class="cov4" title="6">finalCh &lt;- m.m</span>
                 }
-                <span class="cov1" title="1">return nil</span>
+                <span class="cov2" title="2">return nil</span>
         })
-        <span class="cov1" title="1">doneCh := make(chan struct{})
-        go func() </span><span class="cov1" title="1">{
+        <span class="cov2" title="2">doneCh := make(chan struct{})
+        go func() </span><span class="cov2" title="2">{
                 defer close(doneCh)
                 s.mu.RLock()
                 data := make([]*model.Metric, 0, len(s.data))
                 s.mu.RUnlock()
-                for m := range finalCh </span><span class="cov10" title="31">{
+                for m := range finalCh </span><span class="cov10" title="62">{
                         data = append(data, m)
                 }</span>
-                <span class="cov1" title="1">s.mu.Lock()
+                <span class="cov2" title="2">s.mu.Lock()
                 defer s.mu.Unlock()
                 s.data = data
                 *s.pollCount.Delta++</span>
         }()
-        <span class="cov1" title="1">err := g.Wait()
+        <span class="cov2" title="2">err := g.Wait()
         close(finalCh)
         &lt;-doneCh
         return err</span>
 }
 
-func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov1" title="1">{
+func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov2" title="2">{
         s.mu.RLock()
         defer s.mu.RUnlock()
         data = make([]*model.Metric, len(s.data)+1)
-        for i, m := range s.data </span><span class="cov10" title="31">{
+        for i, m := range s.data </span><span class="cov8" title="32">{
                 data[i] = m.Clone()
         }</span>
-        <span class="cov1" title="1">data[len(data)-1] = s.pollCount.Clone()
+        <span class="cov2" title="2">data[len(data)-1] = s.pollCount.Clone()
         delta = *s.pollCount.Delta
         return data, delta</span>
 }
 
-func (s *Source) Commit(delta int64) <span class="cov0" title="0">{
+func (s *Source) Commit(delta int64) <span class="cov2" title="2">{
         s.mu.Lock()
         defer s.mu.Unlock()
         *s.pollCount.Delta -= delta
 }</span>
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package model
+		<pre class="file" id="file8" style="display: none">// Package model contains structures for work with metrics.
+package model
 
 import (
         "encoding/json"
@@ -752,6 +758,7 @@ const (
         TypeCounter = "counter"
 )
 
+// Metric - metric structure
 type Metric struct {
         Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
         Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
@@ -759,6 +766,7 @@ type Metric struct {
         ID    string   `json:"id"`              // имя метрики
 }
 
+// Clone returns a copy of the metric
 func (m *Metric) Clone() *Metric <span class="cov4" title="3">{
         metric := &amp;Metric{
                 MType: m.MType,
@@ -775,6 +783,7 @@ func (m *Metric) Clone() *Metric <span class="cov4" title="3">{
         <span class="cov4" title="3">return metric</span>
 }
 
+// AnyValue returns the value of the metric as any
 func (m *Metric) AnyValue() any <span class="cov6" title="4">{
         if m.MType == TypeCounter </span><span class="cov3" title="2">{
                 if m.Delta == nil </span><span class="cov1" title="1">{
@@ -788,6 +797,7 @@ func (m *Metric) AnyValue() any <span class="cov6" title="4">{
         <span class="cov1" title="1">return *m.Value</span>
 }
 
+// ScanRow scans the row into the metric
 func (m *Metric) ScanRow(row pgx.Row) error <span class="cov0" title="0">{
         return row.Scan(
                 &amp;m.MType,
@@ -797,6 +807,7 @@ func (m *Metric) ScanRow(row pgx.Row) error <span class="cov0" title="0">{
         )
 }</span>
 
+// NewMetricGauge returns a new gauge metric
 func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="10">{
         return &amp;Metric{
                 Value: &amp;value,
@@ -805,6 +816,7 @@ func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="
         }
 }</span>
 
+// NewMetricCounter returns a new counter metric
 func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title="12">{
         return &amp;Metric{
                 Delta: &amp;delta,
@@ -813,10 +825,12 @@ func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title=
         }
 }</span>
 
+// MetricRequest - metric request structure
 type MetricRequest struct {
         *Metric
 }
 
+// RequiredValue returns an error if the value is not set
 func (mr *MetricRequest) RequiredValue() error <span class="cov6" title="5">{
         switch mr.MType </span>{
         case TypeGauge:<span class="cov3" title="2">
@@ -833,6 +847,7 @@ func (mr *MetricRequest) RequiredValue() error <span class="cov6" title="5">{
         <span class="cov3" title="2">return nil</span>
 }
 
+// ValidateType returns an error if the type is not valid
 func (mr *MetricRequest) ValidateType() error <span class="cov4" title="3">{
         if mr.MType != TypeGauge &amp;&amp; mr.MType != TypeCounter </span><span class="cov1" title="1">{
                 return ErrTypeIsNotValid
@@ -840,6 +855,7 @@ func (mr *MetricRequest) ValidateType() error <span class="cov4" title="3">{
         <span class="cov3" title="2">return nil</span>
 }
 
+// NewMetricRequest returns a new metric request
 func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="cov7" title="6">{
         var m *Metric
         switch t </span>{
@@ -861,6 +877,7 @@ func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="
         <span class="cov4" title="3">return &amp;MetricRequest{m}, nil</span>
 }
 
+// UnmarshalMetricRequestFromReader unmarshals the metric request from the reader
 func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span class="cov4" title="3">{
         body, err := io.ReadAll(r)
         if err != nil </span><span class="cov0" title="0">{
@@ -880,6 +897,7 @@ func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span
         <span class="cov3" title="2">return metric, nil</span>
 }
 
+// UnmarshalMetricsRequestFromReader unmarshals the metric request from the reader
 func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) <span class="cov0" title="0">{
         body, err := io.ReadAll(r)
         if err != nil </span><span class="cov0" title="0">{
@@ -899,6 +917,7 @@ func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) <s
         <span class="cov0" title="0">return metrics, nil</span>
 }
 
+// ValidateMetricsRequest returns an error if the metric request is not valid
 func ValidateMetricsRequest(metrics []*MetricRequest) error <span class="cov0" title="0">{
         for _, m := range metrics </span><span class="cov0" title="0">{
                 if err := m.RequiredValue(); err != nil </span><span class="cov0" title="0">{
@@ -962,7 +981,8 @@ func NewConfig() (*Config, error) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package server
+		<pre class="file" id="file10" style="display: none">// Package server provides a handler for the HTTP server.
+package server
 
 import (
         "context"
@@ -983,15 +1003,18 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// Handler is a handler for the HTTP server.
 type Handler struct {
         chi.Router
         closers []func() error
 }
 
+// NewHandler returns a new Handler.
 func NewHandler() *Handler <span class="cov10" title="35">{
         return &amp;Handler{Router: chi.NewRouter()}
 }</span>
 
+// Configure configures the handler.
 func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) error <span class="cov0" title="0">{
         h.Use(mcompress.GzipCompressed(l), msign.Signer([]byte(cfg.Key)), mlogger.RequestLogger(l))
         if cfg.Pprof </span><span class="cov0" title="0">{
@@ -1042,6 +1065,7 @@ func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.
         return nil</span>
 }
 
+// Close closes the handler.
 func (h *Handler) Close() error <span class="cov0" title="0">{
         var errs []error
         for i := range h.closers </span><span class="cov0" title="0">{
@@ -1052,6 +1076,7 @@ func (h *Handler) Close() error <span class="cov0" title="0">{
         <span class="cov0" title="0">return errors.Join(errs...)</span>
 }
 
+// setIndexRoute sets the index route.
 func (h *Handler) setIndexRoute(s handlers.AllFinder) error <span class="cov2" title="2">{
         indexHandler, err := handlers.NewIndexHandler(s)
         if err != nil </span><span class="cov0" title="0">{
@@ -1061,6 +1086,7 @@ func (h *Handler) setIndexRoute(s handlers.AllFinder) error <span class="cov2" t
         return nil</span>
 }
 
+// setPingRoute sets the ping route.
 func (h *Handler) setPingRoute(s handlers.Pinger) <span class="cov3" title="3">{
         var pingHandler http.HandlerFunc
         if s == nil </span><span class="cov1" title="1">{
@@ -1073,6 +1099,7 @@ func (h *Handler) setPingRoute(s handlers.Pinger) <span class="cov3" title="3">{
         <span class="cov3" title="3">h.Get("/ping", pingHandler)</span>
 }
 
+// setUpdateRoutes sets the update routes.
 func (h *Handler) setUpdateRoutes(s handlers.Updater) <span class="cov7" title="13">{
         h.Route("/update", func(r chi.Router) </span><span class="cov7" title="13">{
                 r.Post("/", handlers.NewUpdateJSONHandler(s))
@@ -1089,10 +1116,12 @@ func (h *Handler) setUpdateRoutes(s handlers.Updater) <span class="cov7" title="
         })
 }
 
+// setUpdatesRoute sets the updates route.
 func (h *Handler) setUpdatesRoute(s handlers.BatchUpdater) <span class="cov5" title="6">{
         h.Post("/updates/", handlers.NewUpdatesHandler(s))
 }</span>
 
+// setValueRoutes sets the value routes.
 func (h *Handler) setValueRoutes(s handlers.Finder) <span class="cov7" title="11">{
         h.Route("/value", func(r chi.Router) </span><span class="cov7" title="11">{
                 r.Post("/", handlers.NewValueJSONHandler(s))
@@ -2317,7 +2346,8 @@ func (ps *PGXStorage) prepareStatements(ctx context.Context) (st *statements, er
 }
 </pre>
 		
-		<pre class="file" id="file28" style="display: none">package server
+		<pre class="file" id="file28" style="display: none">// Package server contains the server logic.
+package server
 
 import (
         "context"
@@ -2328,6 +2358,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// ListenAndServe starts the HTTP server.
 func ListenAndServe(ctx context.Context, l *logging.ZapLogger,
         addr string, shutdownTimeout time.Duration, handler http.Handler) error <span class="cov0" title="0">{
         server := http.Server{

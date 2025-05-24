@@ -60,3 +60,52 @@ func TestSource_NewGaugeSource_Collect_GetDataForSend(t *testing.T) {
 		assert.Contains(t, gaugesMap, m)
 	}
 }
+
+func TestSource_Collect(t *testing.T) {
+	t.Run("Successful collection", func(t *testing.T) {
+		s := NewSource()
+		err := s.Collect(context.TODO())
+		require.NoError(t, err)
+		assert.NotEmpty(t, s.data)
+		assert.Equal(t, int64(1), *s.pollCount.Delta)
+	})
+}
+
+func TestSource_Get(t *testing.T) {
+	s := NewSource()
+	s.data = []*model.Metric{
+		model.NewMetricGauge("TestMetric", 42.0),
+	}
+	*s.pollCount.Delta = 5
+
+	data, delta := s.Get()
+
+	t.Run("Correct length and content", func(t *testing.T) {
+		assert.Len(t, data, 2)
+		assert.Equal(t, "TestMetric", data[0].ID)
+		assert.Equal(t, 42.0, *data[0].Value)
+		assert.Equal(t, "PollCount", data[1].ID)
+		assert.Equal(t, int64(5), *data[1].Delta)
+		assert.Equal(t, int64(5), delta)
+	})
+
+	t.Run("Deep copy", func(t *testing.T) {
+		*data[0].Value = 100.0
+		assert.Equal(t, 42.0, *s.data[0].Value)
+	})
+}
+
+func TestSource_Commit(t *testing.T) {
+	s := NewSource()
+	*s.pollCount.Delta = 10
+
+	t.Run("Reduce delta", func(t *testing.T) {
+		s.Commit(3)
+		assert.Equal(t, int64(7), *s.pollCount.Delta)
+	})
+
+	t.Run("Negative delta", func(t *testing.T) {
+		s.Commit(10)
+		assert.Equal(t, int64(-3), *s.pollCount.Delta)
+	})
+}
