@@ -18,7 +18,7 @@ type Config struct {
 	ShutdownTimeout     time.Duration
 	DatabasePingTimeout time.Duration
 	RetryDelays         []time.Duration
-	Pprof               bool
+	Pprof               bool `env:"PPROF"`
 }
 
 func NewConfig() (*Config, error) {

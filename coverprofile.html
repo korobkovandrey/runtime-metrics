@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/korobkovandrey/runtime-metrics/internal/agent/agent.go (0.0%)</option>
 				
-				<option value="file3">github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go (0.0%)</option>
+				<option value="file3">github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go (79.2%)</option>
 				
 				<option value="file4">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go (0.0%)</option>
 				
@@ -71,9 +71,9 @@
 				
 				<option value="file7">github.com/korobkovandrey/runtime-metrics/internal/agent/service/source.go (90.0%)</option>
 				
-				<option value="file8">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (52.9%)</option>
+				<option value="file8">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (70.6%)</option>
 				
-				<option value="file9">github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go (0.0%)</option>
+				<option value="file9">github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go (94.1%)</option>
 				
 				<option value="file10">github.com/korobkovandrey/runtime-metrics/internal/server/handler.go (40.7%)</option>
 				
@@ -117,11 +117,15 @@
 				
 				<option value="file30">github.com/korobkovandrey/runtime-metrics/internal/server/service/finder.go (68.4%)</option>
 				
-				<option value="file31">github.com/korobkovandrey/runtime-metrics/internal/server/service/updater.go (63.0%)</option>
+				<option value="file31">github.com/korobkovandrey/runtime-metrics/internal/server/service/updater.go (96.3%)</option>
 				
-				<option value="file32">github.com/korobkovandrey/runtime-metrics/pkg/compress/compress.go (0.0%)</option>
+				<option value="file32">github.com/korobkovandrey/runtime-metrics/pkg/compress/compress.go (86.8%)</option>
 				
-				<option value="file33">github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go (100.0%)</option>
+				<option value="file33">github.com/korobkovandrey/runtime-metrics/pkg/logging/logging.go (0.0%)</option>
+				
+				<option value="file34">github.com/korobkovandrey/runtime-metrics/pkg/logging/settings.go (0.0%)</option>
+				
+				<option value="file35">github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -322,7 +326,7 @@ type Config struct {
         PprofAddr      string `env:"PPROF_ADDRESS"`
 }
 
-func NewConfig() (*Config, error) <span class="cov0" title="0">{
+func NewConfig() (*Config, error) <span class="cov8" title="1">{
         const (
                 pollIntervalSeconds   = 2
                 reportIntervalSeconds = 10
@@ -343,27 +347,27 @@ func NewConfig() (*Config, error) <span class="cov0" title="0">{
                 return cfg, fmt.Errorf("failed to parse config: %w", err)
         }</span>
 
-        <span class="cov0" title="0">if cfg.ReportInterval &lt; 1 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if cfg.ReportInterval &lt; 1 </span><span class="cov0" title="0">{
                 return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
                         cfg.ReportInterval)
         }</span>
 
-        <span class="cov0" title="0">if cfg.PollInterval &lt; 1 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if cfg.PollInterval &lt; 1 </span><span class="cov0" title="0">{
                 return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
                         cfg.ReportInterval)
         }</span>
 
-        <span class="cov0" title="0">if cfg.ReportInterval &lt;= cfg.PollInterval </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if cfg.ReportInterval &lt;= cfg.PollInterval </span><span class="cov0" title="0">{
                 return cfg, fmt.Errorf("ReportInterval (%ds) must be greater than PollInterval (%ds)",
                         cfg.ReportInterval, cfg.PollInterval)
         }</span>
 
-        <span class="cov0" title="0">if cfg.RateLimit &lt; 1 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if cfg.RateLimit &lt; 1 </span><span class="cov0" title="0">{
                 return cfg, fmt.Errorf("RateLimit (%d) must be greater 0",
                         cfg.RateLimit)
         }</span>
 
-        <span class="cov0" title="0">baseURL := "http://" + cfg.Addr
+        <span class="cov8" title="1">baseURL := "http://" + cfg.Addr
         cfg.Sender = &amp;sender.Config{
                 UpdateURL:   baseURL + "/update/",
                 UpdatesURL:  baseURL + "/updates/",
@@ -755,7 +759,7 @@ type Metric struct {
         ID    string   `json:"id"`              // имя метрики
 }
 
-func (m *Metric) Clone() *Metric <span class="cov5" title="3">{
+func (m *Metric) Clone() *Metric <span class="cov4" title="3">{
         metric := &amp;Metric{
                 MType: m.MType,
                 ID:    m.ID,
@@ -764,11 +768,11 @@ func (m *Metric) Clone() *Metric <span class="cov5" title="3">{
                 metric.Value = new(float64)
                 *metric.Value = *m.Value
         }</span>
-        <span class="cov5" title="3">if m.Delta != nil </span><span class="cov1" title="1">{
+        <span class="cov4" title="3">if m.Delta != nil </span><span class="cov1" title="1">{
                 metric.Delta = new(int64)
                 *metric.Delta = *m.Delta
         }</span>
-        <span class="cov5" title="3">return metric</span>
+        <span class="cov4" title="3">return metric</span>
 }
 
 func (m *Metric) AnyValue() any <span class="cov6" title="4">{
@@ -793,7 +797,7 @@ func (m *Metric) ScanRow(row pgx.Row) error <span class="cov0" title="0">{
         )
 }</span>
 
-func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="8">{
+func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="10">{
         return &amp;Metric{
                 Value: &amp;value,
                 MType: TypeGauge,
@@ -801,7 +805,7 @@ func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="
         }
 }</span>
 
-func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title="10">{
+func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title="12">{
         return &amp;Metric{
                 Delta: &amp;delta,
                 MType: TypeCounter,
@@ -813,64 +817,64 @@ type MetricRequest struct {
         *Metric
 }
 
-func (mr *MetricRequest) RequiredValue() error <span class="cov0" title="0">{
+func (mr *MetricRequest) RequiredValue() error <span class="cov6" title="5">{
         switch mr.MType </span>{
-        case TypeGauge:<span class="cov0" title="0">
-                if mr.Value == nil </span><span class="cov0" title="0">{
+        case TypeGauge:<span class="cov3" title="2">
+                if mr.Value == nil </span><span class="cov1" title="1">{
                         return ErrValueIsNotValid
                 }</span>
-        case TypeCounter:<span class="cov0" title="0">
-                if mr.Delta == nil </span><span class="cov0" title="0">{
+        case TypeCounter:<span class="cov3" title="2">
+                if mr.Delta == nil </span><span class="cov1" title="1">{
                         return ErrValueIsNotValid
                 }</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov1" title="1">
                 return ErrTypeIsNotValid</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov3" title="2">return nil</span>
 }
 
-func (mr *MetricRequest) ValidateType() error <span class="cov0" title="0">{
-        if mr.MType != TypeGauge &amp;&amp; mr.MType != TypeCounter </span><span class="cov0" title="0">{
+func (mr *MetricRequest) ValidateType() error <span class="cov4" title="3">{
+        if mr.MType != TypeGauge &amp;&amp; mr.MType != TypeCounter </span><span class="cov1" title="1">{
                 return ErrTypeIsNotValid
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov3" title="2">return nil</span>
 }
 
-func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="cov6" title="4">{
+func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="cov7" title="6">{
         var m *Metric
         switch t </span>{
-        case TypeGauge:<span class="cov1" title="1">
+        case TypeGauge:<span class="cov3" title="2">
                 number, err := strconv.ParseFloat(value, 64)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov1" title="1">{
                         return nil, fmt.Errorf("%w: %w", ErrValueIsNotValid, err)
                 }</span>
                 <span class="cov1" title="1">m = NewMetricGauge(id, number)</span>
-        case TypeCounter:<span class="cov3" title="2">
+        case TypeCounter:<span class="cov4" title="3">
                 number, err := strconv.ParseInt(value, 10, 64)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov1" title="1">{
                         return nil, fmt.Errorf("%w: %w", ErrValueIsNotValid, err)
                 }</span>
                 <span class="cov3" title="2">m = NewMetricCounter(id, number)</span>
         default:<span class="cov1" title="1">
                 return nil, ErrTypeIsNotValid</span>
         }
-        <span class="cov5" title="3">return &amp;MetricRequest{m}, nil</span>
+        <span class="cov4" title="3">return &amp;MetricRequest{m}, nil</span>
 }
 
-func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span class="cov5" title="3">{
+func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span class="cov4" title="3">{
         body, err := io.ReadAll(r)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to read body: %w", err)
         }</span>
-        <span class="cov5" title="3">if len(body) == 0 </span><span class="cov0" title="0">{
+        <span class="cov4" title="3">if len(body) == 0 </span><span class="cov0" title="0">{
                 return nil, errors.New("empty body")
         }</span>
-        <span class="cov5" title="3">var metric *MetricRequest
+        <span class="cov4" title="3">var metric *MetricRequest
         err = json.Unmarshal(body, &amp;metric)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to unmarshal body: %w", err)
         }</span>
-        <span class="cov5" title="3">if metric == nil || metric.Metric == nil </span><span class="cov1" title="1">{
+        <span class="cov4" title="3">if metric == nil || metric.Metric == nil </span><span class="cov1" title="1">{
                 return nil, ErrMetricNotFound
         }</span>
         <span class="cov3" title="2">return metric, nil</span>
@@ -925,10 +929,10 @@ type Config struct {
         ShutdownTimeout     time.Duration
         DatabasePingTimeout time.Duration
         RetryDelays         []time.Duration
-        Pprof               bool
+        Pprof               bool `env:"PPROF"`
 }
 
-func NewConfig() (*Config, error) <span class="cov0" title="0">{
+func NewConfig() (*Config, error) <span class="cov8" title="1">{
         const (
                 storeInterval   = 0
                 shutdownTimeout = 5
@@ -950,7 +954,7 @@ func NewConfig() (*Config, error) <span class="cov0" title="0">{
                 return cfg, fmt.Errorf("failed to parse config: %w", err)
         }</span>
 
-        <span class="cov0" title="0">cfg.ShutdownTimeout = shutdownTimeout * time.Second
+        <span class="cov8" title="1">cfg.ShutdownTimeout = shutdownTimeout * time.Second
         cfg.DatabasePingTimeout = databasePingTimeout * time.Second
         cfg.RetryDelays = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 
@@ -2498,32 +2502,32 @@ type Updater struct {
         r UpdaterRepository
 }
 
-func NewUpdater(r UpdaterRepository) *Updater <span class="cov10" title="2">{
+func NewUpdater(r UpdaterRepository) *Updater <span class="cov10" title="7">{
         return &amp;Updater{r: r}
 }</span>
 
-func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov10" title="2">{
+func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov10" title="7">{
         m, err := s.r.Find(ctx, mr)
-        if err != nil </span><span class="cov1" title="1">{
-                if !errors.Is(err, model.ErrMetricNotFound) </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov7" title="4">{
+                if !errors.Is(err, model.ErrMetricNotFound) </span><span class="cov1" title="1">{
                         return m, fmt.Errorf("failed to find metric: %w", err)
                 }</span>
-                <span class="cov1" title="1">m, err = s.r.Create(ctx, mr)
+                <span class="cov6" title="3">m, err = s.r.Create(ctx, mr)
                 if err == nil </span><span class="cov1" title="1">{
                         return m, nil
                 }</span>
-                <span class="cov0" title="0">if !errors.Is(err, model.ErrMetricAlreadyExist) </span><span class="cov0" title="0">{
+                <span class="cov4" title="2">if !errors.Is(err, model.ErrMetricAlreadyExist) </span><span class="cov1" title="1">{
                         return m, fmt.Errorf("failed to create metric: %w", err)
                 }</span>
-                <span class="cov0" title="0">m, err = s.r.Find(ctx, mr)
-                if err != nil </span><span class="cov0" title="0">{
+                <span class="cov1" title="1">m, err = s.r.Find(ctx, mr)
+                if err != nil </span><span class="cov1" title="1">{
                         return m, fmt.Errorf("failed to find metric: %w", err)
                 }</span>
         }
-        <span class="cov1" title="1">needUpdate := false
+        <span class="cov6" title="3">needUpdate := false
         switch mr.MType </span>{
-        case model.TypeGauge:<span class="cov0" title="0">
-                if mr.Value != nil </span><span class="cov0" title="0">{
+        case model.TypeGauge:<span class="cov4" title="2">
+                if mr.Value != nil </span><span class="cov4" title="2">{
                         needUpdate = true
                 }</span>
         case model.TypeCounter:<span class="cov1" title="1">
@@ -2534,12 +2538,12 @@ func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.M
                         <span class="cov1" title="1">needUpdate = true</span>
                 }
         }
-        <span class="cov1" title="1">if needUpdate </span><span class="cov1" title="1">{
+        <span class="cov6" title="3">if needUpdate </span><span class="cov6" title="3">{
                 m, err = s.r.Update(ctx, mr)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov1" title="1">{
                         return m, fmt.Errorf("failed to update metric: %w", err)
                 }</span>
-                <span class="cov1" title="1">return m, nil</span>
+                <span class="cov4" title="2">return m, nil</span>
         }
         <span class="cov0" title="0">return m, nil</span>
 }
@@ -2562,54 +2566,54 @@ type Writer struct {
         Compressible bool
 }
 
-func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov0" title="0">{
+func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov10" title="11">{
         return &amp;Writer{
                 w:            w,
                 Compressible: false,
         }
 }</span>
 
-func (w *Writer) Header() http.Header <span class="cov0" title="0">{
+func (w *Writer) Header() http.Header <span class="cov7" title="5">{
         return w.w.Header()
 }</span>
 
-func (w *Writer) Write(p []byte) (int, error) <span class="cov0" title="0">{
-        if w.Compressible </span><span class="cov0" title="0">{
-                if w.zw == nil </span><span class="cov0" title="0">{
+func (w *Writer) Write(p []byte) (int, error) <span class="cov6" title="4">{
+        if w.Compressible </span><span class="cov5" title="3">{
+                if w.zw == nil </span><span class="cov5" title="3">{
                         w.zw = gzip.NewWriter(w.w)
                 }</span>
-                <span class="cov0" title="0">n, err := w.zw.Write(p)
-                if err != nil </span><span class="cov0" title="0">{
+                <span class="cov5" title="3">n, err := w.zw.Write(p)
+                if err != nil </span><span class="cov1" title="1">{
                         return n, fmt.Errorf("compress[Writer].Write: %w", err)
                 }</span>
-                <span class="cov0" title="0">return n, nil</span>
+                <span class="cov3" title="2">return n, nil</span>
         }
-        <span class="cov0" title="0">n, err := w.w.Write(p)
+        <span class="cov1" title="1">n, err := w.w.Write(p)
         if err != nil </span><span class="cov0" title="0">{
                 return n, fmt.Errorf("compress[Writer].Write: %w", err)
         }</span>
-        <span class="cov0" title="0">return n, nil</span>
+        <span class="cov1" title="1">return n, nil</span>
 }
 
-func (w *Writer) WriteHeader(statusCode int) <span class="cov0" title="0">{
+func (w *Writer) WriteHeader(statusCode int) <span class="cov6" title="4">{
         contentType := w.Header().Get("Content-Type")
         isHTML := strings.Contains(contentType, "text/html")
         isJSON := strings.Contains(contentType, "application/json")
-        if statusCode &lt; 300 &amp;&amp; (isHTML || isJSON) </span><span class="cov0" title="0">{
+        if statusCode &lt; 300 &amp;&amp; (isHTML || isJSON) </span><span class="cov3" title="2">{
                 w.w.Header().Set("Content-Encoding", "gzip")
                 w.w.Header().Del("Content-Length")
                 w.Compressible = true
         }</span>
-        <span class="cov0" title="0">w.w.WriteHeader(statusCode)</span>
+        <span class="cov6" title="4">w.w.WriteHeader(statusCode)</span>
 }
 
-func (w *Writer) Close() error <span class="cov0" title="0">{
-        if w.zw != nil </span><span class="cov0" title="0">{
+func (w *Writer) Close() error <span class="cov3" title="2">{
+        if w.zw != nil </span><span class="cov1" title="1">{
                 if err := w.zw.Close(); err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("compress[Writer].Close: %w", err)
                 }</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov3" title="2">return nil</span>
 }
 
 type Reader struct {
@@ -2617,37 +2621,222 @@ type Reader struct {
         zr *gzip.Reader
 }
 
-func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov0" title="0">{
+func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov7" title="5">{
         zr, err := gzip.NewReader(r)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov3" title="2">{
                 return nil, fmt.Errorf("NewCompressReader: %w", err)
         }</span>
-        <span class="cov0" title="0">return &amp;Reader{
+        <span class="cov5" title="3">return &amp;Reader{
                 r:  r,
                 zr: zr,
         }, nil</span>
 }
 
-func (r *Reader) Read(p []byte) (int, error) <span class="cov0" title="0">{
+func (r *Reader) Read(p []byte) (int, error) <span class="cov3" title="2">{
         n, err := r.zr.Read(p)
         if err != nil &amp;&amp; !errors.Is(err, io.EOF) </span><span class="cov0" title="0">{
                 err = fmt.Errorf("compress[Reader].Read: %w", err)
         }</span>
-        <span class="cov0" title="0">return n, err</span>
+        <span class="cov3" title="2">return n, err</span>
 }
 
-func (r *Reader) Close() error <span class="cov0" title="0">{
+func (r *Reader) Close() error <span class="cov1" title="1">{
         if err := r.r.Close(); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("compress[Reader].Close: %w", err)
         }</span>
-        <span class="cov0" title="0">if err := r.zr.Close(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov1" title="1">if err := r.zr.Close(); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("compress[Reader].Close: %w", err)
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov1" title="1">return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file33" style="display: none">package sign
+		<pre class="file" id="file33" style="display: none">package logging
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "strings"
+
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
+)
+
+type key string
+
+const zapFieldsKey key = "zapFields"
+
+type ZapFields map[string]zap.Field
+
+func (zf ZapFields) Append(fields ...zap.Field) ZapFields <span class="cov0" title="0">{
+        zfCopy := make(ZapFields)
+        for k, v := range zf </span><span class="cov0" title="0">{
+                zfCopy[k] = v
+        }</span>
+
+        <span class="cov0" title="0">for _, f := range fields </span><span class="cov0" title="0">{
+                zfCopy[f.Key] = f
+        }</span>
+
+        <span class="cov0" title="0">return zfCopy</span>
+}
+
+type ZapLogger struct {
+        logger *zap.Logger
+        level  zap.AtomicLevel
+}
+
+// NewZapLogger returns a new ZapLogger configured with the provided options.
+func NewZapLogger(level zapcore.Level) (*ZapLogger, error) <span class="cov0" title="0">{
+        atomic := zap.NewAtomicLevelAt(level)
+        settings := defaultSettings(atomic)
+
+        l, err := settings.config.Build(settings.opts...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("NewZapLogger: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;ZapLogger{
+                logger: l,
+                level:  atomic,
+        }, nil</span>
+}
+
+func (z *ZapLogger) WithContextFields(ctx context.Context, fields ...zap.Field) context.Context <span class="cov0" title="0">{
+        ctxFields, _ := ctx.Value(zapFieldsKey).(ZapFields)
+        if ctxFields == nil </span><span class="cov0" title="0">{
+                ctxFields = make(ZapFields)
+        }</span>
+
+        <span class="cov0" title="0">merged := ctxFields.Append(fields...)
+        return context.WithValue(ctx, zapFieldsKey, merged)</span>
+}
+
+func (z *ZapLogger) maskField(f zap.Field) zap.Field <span class="cov0" title="0">{
+        if f.Key == "password" </span><span class="cov0" title="0">{
+                return zap.String(f.Key, "******")
+        }</span>
+
+        <span class="cov0" title="0">if f.Key == "email" </span><span class="cov0" title="0">{
+                email := f.String
+                parts := strings.Split(email, "@")
+                if len(parts) == 2 </span><span class="cov0" title="0">{
+                        return zap.String(f.Key, "***@"+parts[1])
+                }</span>
+        }
+        <span class="cov0" title="0">return f</span>
+}
+
+func (z *ZapLogger) Sync() <span class="cov0" title="0">{
+        _ = z.logger.Sync()
+}</span>
+
+func (z *ZapLogger) withCtxFields(ctx context.Context, fields ...zap.Field) []zap.Field <span class="cov0" title="0">{
+        fs := make(ZapFields)
+
+        ctxFields, ok := ctx.Value(zapFieldsKey).(ZapFields)
+        if ok </span><span class="cov0" title="0">{
+                fs = ctxFields
+        }</span>
+
+        <span class="cov0" title="0">fs = fs.Append(fields...)
+
+        maskedFields := make([]zap.Field, len(fs))
+        i := 0
+        for _, f := range fs </span><span class="cov0" title="0">{
+                maskedFields[i] = z.maskField(f)
+                i++
+        }</span>
+
+        <span class="cov0" title="0">return maskedFields</span>
+}
+
+func (z *ZapLogger) InfoCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
+        z.logger.Info(msg, z.withCtxFields(ctx, fields...)...)
+}</span>
+
+func (z *ZapLogger) DebugCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
+        z.logger.Debug(msg, z.withCtxFields(ctx, fields...)...)
+}</span>
+
+func (z *ZapLogger) WarnCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
+        z.logger.Warn(msg, z.withCtxFields(ctx, fields...)...)
+}</span>
+
+func (z *ZapLogger) ErrorCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
+        z.logger.Error(msg, z.withCtxFields(ctx, fields...)...)
+}</span>
+
+func (z *ZapLogger) FatalCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
+        z.logger.Fatal(msg, z.withCtxFields(ctx, fields...)...)
+}</span>
+
+func (z *ZapLogger) PanicCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
+        z.logger.Panic(msg, z.withCtxFields(ctx, fields...)...)
+}</span>
+
+func (z *ZapLogger) SetLevel(level zapcore.Level) <span class="cov0" title="0">{
+        z.level.SetLevel(level)
+}</span>
+
+func (z *ZapLogger) Std() *log.Logger <span class="cov0" title="0">{
+        return zap.NewStdLog(z.logger)
+}</span>
+
+func (z *ZapLogger) Logger() *zap.Logger <span class="cov0" title="0">{
+        return z.logger
+}</span>
+</pre>
+		
+		<pre class="file" id="file34" style="display: none">package logging
+
+import (
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
+)
+
+type settings struct {
+        config *zap.Config
+        opts   []zap.Option
+}
+
+func defaultSettings(level zap.AtomicLevel) *settings <span class="cov0" title="0">{
+        config := &amp;zap.Config{
+                Level:       level,
+                Development: false,
+                Sampling: &amp;zap.SamplingConfig{
+                        Initial:    100,
+                        Thereafter: 100,
+                },
+                Encoding: "json",
+                EncoderConfig: zapcore.EncoderConfig{
+                        MessageKey:     "message",
+                        LevelKey:       "level",
+                        TimeKey:        "@timestamp",
+                        NameKey:        "logger",
+                        CallerKey:      "caller",
+                        StacktraceKey:  "stacktrace",
+                        LineEnding:     zapcore.DefaultLineEnding,
+                        EncodeLevel:    zapcore.CapitalLevelEncoder,
+                        EncodeTime:     zapcore.ISO8601TimeEncoder,
+                        EncodeDuration: zapcore.SecondsDurationEncoder,
+                        EncodeCaller:   zapcore.ShortCallerEncoder,
+                },
+                OutputPaths:      []string{"stderr"},
+                ErrorOutputPaths: []string{"stderr"},
+        }
+
+        return &amp;settings{
+                config: config,
+                opts: []zap.Option{
+                        zap.AddCallerSkip(1),
+                },
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file35" style="display: none">package sign
 
 import (
         "crypto/hmac"

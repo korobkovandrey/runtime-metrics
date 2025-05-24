@@ -226,6 +226,15 @@ func TestNewMetricRequest(t *testing.T) {
 			want: &MetricRequest{NewMetricCounter("test", 42)},
 		},
 		{
+			name: "counter error number",
+			args: args{
+				t:     TypeCounter,
+				name:  "test",
+				value: "invalid",
+			},
+			wantErr: ErrValueIsNotValid,
+		},
+		{
 			name: "gauge",
 			args: args{
 				t:     TypeGauge,
@@ -233,6 +242,15 @@ func TestNewMetricRequest(t *testing.T) {
 				value: "12.34",
 			},
 			want: &MetricRequest{NewMetricGauge("test", 12.34)},
+		},
+		{
+			name: "gauge error number",
+			args: args{
+				t:     TypeGauge,
+				name:  "test",
+				value: "invalid",
+			},
+			wantErr: ErrValueIsNotValid,
 		},
 		{
 			name: "unknown type",
@@ -309,6 +327,86 @@ func TestUnmarshalMetricRequestFromReader(t *testing.T) {
 				assert.ErrorIs(t, err, tt.wantErr)
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestMetricRequest_RequiredValue(t *testing.T) {
+	tests := []struct {
+		name    string
+		metric  *MetricRequest
+		wantErr error
+	}{
+		{
+			name:    "gauge",
+			metric:  &MetricRequest{NewMetricGauge("test", 12.34)},
+			wantErr: nil,
+		},
+		{
+			name:    "gauge error",
+			metric:  &MetricRequest{&Metric{MType: TypeGauge, ID: "test"}},
+			wantErr: ErrValueIsNotValid,
+		},
+		{
+			name:    "counter",
+			metric:  &MetricRequest{NewMetricCounter("test", 12)},
+			wantErr: nil,
+		},
+		{
+			name:    "counter error",
+			metric:  &MetricRequest{&Metric{MType: TypeCounter, ID: "test"}},
+			wantErr: ErrValueIsNotValid,
+		},
+		{
+			name:    "type error",
+			metric:  &MetricRequest{&Metric{MType: "invalid", ID: "test"}},
+			wantErr: ErrTypeIsNotValid,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.metric.RequiredValue()
+			if tt.wantErr == nil {
+				assert.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMetricRequest_ValidateType(t *testing.T) {
+	tests := []struct {
+		name    string
+		metric  *MetricRequest
+		wantErr error
+	}{
+		{
+			name:    "gauge",
+			metric:  &MetricRequest{NewMetricGauge("test", 12.34)},
+			wantErr: nil,
+		},
+		{
+			name:    "counter",
+			metric:  &MetricRequest{NewMetricCounter("test", 12)},
+			wantErr: nil,
+		},
+		{
+			name:    "type error",
+			metric:  &MetricRequest{&Metric{MType: "invalid", ID: "test"}},
+			wantErr: ErrTypeIsNotValid,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.metric.ValidateType()
+			if tt.wantErr == nil {
+				assert.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			}
 		})
 	}
 }
