@@ -1,3 +1,4 @@
+// Package mlogger provides middleware for logging response data.
 package mlogger
 
 import (
@@ -10,16 +11,19 @@ import (
 )
 
 type (
+	// responseData contains response data.
 	responseData struct {
 		status int
 		size   int
 	}
+	// loggingResponseWriter is a wrapper for http.ResponseWriter.
 	loggingResponseWriter struct {
 		http.ResponseWriter
 		responseData *responseData
 	}
 )
 
+// Write writes data to the response.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
@@ -29,15 +33,19 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	return size, nil
 }
 
+// WriteHeader writes the status code to the response.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
 }
 
+// key is a type for log message key.
 type key string
 
+// LogMessageKey is a key for log message.
 const LogMessageKey key = "logMessage"
 
+// RequestLogger returns a middleware for logging request data.
 func RequestLogger(l *logging.ZapLogger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

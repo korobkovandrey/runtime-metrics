@@ -8,6 +8,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// NewValueJSONHandler returns a handler that returns the value of the metric.
 func NewValueJSONHandler(s Finder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mr, err := model.UnmarshalMetricRequestFromReader(r.Body)

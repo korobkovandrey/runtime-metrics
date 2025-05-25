@@ -1,3 +1,4 @@
+// Package config contains the config logic.
 package config
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+// Config is the server config.
 type Config struct {
 	Addr                string `env:"ADDRESS"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
@@ -21,6 +23,7 @@ type Config struct {
 	Pprof               bool `env:"PPROF"`
 }
 
+// NewConfig returns the server config.
 func NewConfig() (*Config, error) {
 	const (
 		storeInterval   = 0

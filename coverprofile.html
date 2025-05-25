@@ -253,7 +253,10 @@ func main() <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package agent
+		<pre class="file" id="file2" style="display: none">// Package agent contains the agent logic.
+//
+// The agent is responsible for collecting runtime metrics, and sending them to the server.
+package agent
 
 import (
         "context"
@@ -267,6 +270,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// Run starts the agent.
 func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) <span class="cov0" title="0">{
         source := service.NewSource()
         tickPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
@@ -308,7 +312,8 @@ func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) <span cl
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package config
+		<pre class="file" id="file3" style="display: none">// Package config contains the config logic.
+package config
 
 import (
         "flag"
@@ -320,6 +325,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 )
 
+// Config is the agent config.
 type Config struct {
         Addr           string `env:"ADDRESS"`
         PollInterval   int    `env:"POLL_INTERVAL"`
@@ -331,6 +337,7 @@ type Config struct {
         PprofAddr      string `env:"PPROF_ADDRESS"`
 }
 
+// NewConfig returns the agent config.
 func NewConfig() (*Config, error) <span class="cov8" title="1">{
         const (
                 pollIntervalSeconds   = 2
@@ -403,6 +410,7 @@ import (
         "go.uber.org/zap"
 )
 
+// postData sends data to the server.
 func (s *Sender) postData(ctx context.Context, url string, data any) error <span class="cov0" title="0">{
         b, hash, err := s.makeBodyWithHash(data)
         if err != nil </span><span class="cov0" title="0">{
@@ -434,6 +442,7 @@ func (s *Sender) postData(ctx context.Context, url string, data any) error <span
         <span class="cov0" title="0">return nil</span>
 }
 
+// doRetry retries the request.
 func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Response, err error) <span class="cov0" title="0">{
         for i := 0; ; i++ </span><span class="cov0" title="0">{
                 if err = ctx.Err(); err != nil </span><span class="cov0" title="0">{
@@ -460,6 +469,7 @@ func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Res
         <span class="cov0" title="0">return resp, err</span>
 }
 
+// makeBodyWithHash makes the body with hash.
 func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) <span class="cov0" title="0">{
         if data == nil </span><span class="cov0" title="0">{
                 return nil, "", nil
@@ -471,6 +481,7 @@ func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err 
         <span class="cov0" title="0">return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil</span>
 }
 
+// makeGzipBuffer makes the gzip buffer.
 func makeGzipBuffer(data []byte) (io.Reader, error) <span class="cov0" title="0">{
         if data == nil </span><span class="cov0" title="0">{
                 return http.NoBody, nil
@@ -487,7 +498,8 @@ func makeGzipBuffer(data []byte) (io.Reader, error) <span class="cov0" title="0"
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package sender
+		<pre class="file" id="file5" style="display: none">// Package sender contains the sender logic.
+package sender
 
 import (
         "context"
@@ -500,6 +512,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// Config contains the configuration for the sender.
 type Config struct {
         UpdateURL   string
         UpdatesURL  string
@@ -509,18 +522,21 @@ type Config struct {
         RateLimit   int
 }
 
+// Sender sends metrics to the server.
 type Sender struct {
         cfg    *Config
         l      *logging.ZapLogger
         client *http.Client
 }
 
+// New creates a new sender.
 func New(cfg *Config, l *logging.ZapLogger) *Sender <span class="cov0" title="0">{
         return &amp;Sender{cfg: cfg, l: l, client: &amp;http.Client{
                 Timeout: cfg.Timeout,
         }}
 }</span>
 
+// SendMetric sends a metric to the server.
 func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error <span class="cov0" title="0">{
         if err := s.postData(ctx, s.cfg.UpdateURL, m); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to send metric: %w", err)
@@ -528,6 +544,7 @@ func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error <span cl
         <span class="cov0" title="0">return nil</span>
 }
 
+// SendBatchMetrics sends a batch of metrics to the server.
 func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error <span class="cov0" title="0">{
         if err := s.postData(ctx, s.cfg.UpdatesURL, ms); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to send metric: %w", err)
@@ -535,11 +552,13 @@ func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error
         <span class="cov0" title="0">return nil</span>
 }
 
+// JobResult contains the result of a job.
 type JobResult struct {
         *model.Metric
         Err error
 }
 
+// SendPoolMetrics sends metrics to the server in parallel.
 func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) &lt;-chan *JobResult <span class="cov0" title="0">{
         jobs := make(chan *model.Metric, len(ms))
         results := make(chan *JobResult, len(ms))
@@ -584,11 +603,13 @@ import (
         "github.com/shirou/gopsutil/v4/mem"
 )
 
+// genResult is the result of generating metrics.
 type genResult struct {
         m   *model.Metric
         err error
 }
 
+// genGopsutilMetrics generates metrics using gopsutil.
 func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="cov3" title="3">{
         out := make(chan genResult)
         go func() </span><span class="cov3" title="3">{
@@ -614,6 +635,7 @@ func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="co
         <span class="cov3" title="3">return out</span>
 }
 
+// genPullMetrics generates metrics from runtime and adds metric with random value.
 func genPullMetrics() &lt;-chan *model.Metric <span class="cov3" title="3">{
         out := make(chan *model.Metric)
         go func() </span><span class="cov3" title="3">{
@@ -626,6 +648,7 @@ func genPullMetrics() &lt;-chan *model.Metric <span class="cov3" title="3">{
         <span class="cov3" title="3">return out</span>
 }
 
+// getRuntimeMetrics returns runtime metrics.
 func getRuntimeMetrics() (result map[string]float64) <span class="cov3" title="4">{
         memStats := &amp;runtime.MemStats{}
         runtime.ReadMemStats(memStats)
@@ -671,18 +694,21 @@ import (
         "golang.org/x/sync/errgroup"
 )
 
+// Source is a structure that provides a source of metrics
 type Source struct {
         mu        sync.RWMutex
         data      []*model.Metric
         pollCount *model.Metric
 }
 
+// NewSource returns a new instance of Source
 func NewSource() *Source <span class="cov4" title="4">{
         return &amp;Source{
                 pollCount: model.NewMetricCounter("PollCount", 0),
         }
 }</span>
 
+// Collect collects metrics
 func (s *Source) Collect(ctx context.Context) error <span class="cov2" title="2">{
         finalCh := make(chan *model.Metric)
         g := new(errgroup.Group)
@@ -721,6 +747,7 @@ func (s *Source) Collect(ctx context.Context) error <span class="cov2" title="2"
         return err</span>
 }
 
+// Get returns metrics
 func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov2" title="2">{
         s.mu.RLock()
         defer s.mu.RUnlock()
@@ -733,6 +760,7 @@ func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov2" ti
         return data, delta</span>
 }
 
+// Commit commits metrics
 func (s *Source) Commit(delta int64) <span class="cov2" title="2">{
         s.mu.Lock()
         defer s.mu.Unlock()
@@ -928,7 +956,8 @@ func ValidateMetricsRequest(metrics []*MetricRequest) error <span class="cov0" t
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package config
+		<pre class="file" id="file9" style="display: none">// Package config contains the config logic.
+package config
 
 import (
         "flag"
@@ -938,6 +967,7 @@ import (
         "github.com/caarlos0/env/v6"
 )
 
+// Config is the server config.
 type Config struct {
         Addr                string `env:"ADDRESS"`
         FileStoragePath     string `env:"FILE_STORAGE_PATH"`
@@ -951,6 +981,7 @@ type Config struct {
         Pprof               bool `env:"PPROF"`
 }
 
+// NewConfig returns the server config.
 func NewConfig() (*Config, error) <span class="cov8" title="1">{
         const (
                 storeInterval   = 0
@@ -1141,11 +1172,14 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// AllFinder is an interface for finding all metrics
+//
 //go:generate mockgen -source=index.go -destination=mocks/mock_allfinder.go -package=mocks
 type AllFinder interface {
         FindAll(context.Context) ([]*model.Metric, error)
 }
 
+// NewIndexHandler creates a new index handler
 func NewIndexHandler(s AllFinder) (http.HandlerFunc, error) <span class="cov10" title="2">{
         tpl, err := template.ParseFiles("./web/template/index.html")
         if err != nil </span><span class="cov0" title="0">{
@@ -1177,11 +1211,14 @@ import (
         "net/http"
 )
 
+// Pinger is an interface for database/sql.Pinger
+//
 //go:generate mockgen -source=ping.go -destination=mocks/mock_pinger.go -package=mocks
 type Pinger interface {
         driver.Pinger
 }
 
+// NewPingHandler creates a new ping handler
 func NewPingHandler(s Pinger) http.HandlerFunc <span class="cov10" title="2">{
         return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
                 if err := s.Ping(r.Context()); err != nil </span><span class="cov1" title="1">{
@@ -1205,11 +1242,14 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// Updater updates metrics
+//
 //go:generate mockgen -source=updatejson.go -destination=mocks/mock_updater.go -package=mocks
 type Updater interface {
         Update(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
+// NewUpdateJSONHandler returns a handler for updating metrics
 func NewUpdateJSONHandler(s Updater) http.HandlerFunc <span class="cov10" title="3">{
         return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="3">{
                 mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
@@ -1256,11 +1296,14 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// BatchUpdater is an interface for batch updating metrics
+//
 //go:generate mockgen -source=updates.go -destination=mocks/mock_batchupdater.go -package=mocks
 type BatchUpdater interface {
         UpdateBatch(context.Context, []*model.MetricRequest) ([]*model.Metric, error)
 }
 
+// NewUpdatesHandler returns a handler for updating metrics
 func NewUpdatesHandler(s BatchUpdater) http.HandlerFunc <span class="cov10" title="6">{
         return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="6">{
                 mrs, err := model.UnmarshalMetricsRequestFromReader(r.Body)
@@ -1306,6 +1349,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// NewUpdateURIHandler returns handler for updating metrics
 func NewUpdateURIHandler(s Updater) http.HandlerFunc <span class="cov10" title="5">{
         return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="5">{
                 t := r.PathValue("type")
@@ -1349,14 +1393,17 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 )
 
+// RequestCtxWithLogMessage adds log message to request context
 func RequestCtxWithLogMessage(r *http.Request, msg string) <span class="cov10" title="18">{
         *r = *r.WithContext(context.WithValue(r.Context(), mlogger.LogMessageKey, msg))
 }</span>
 
+// RequestCtxWithLogMessageFromError adds log message to request context
 func RequestCtxWithLogMessageFromError(r *http.Request, err error) <span class="cov10" title="18">{
         RequestCtxWithLogMessage(r, err.Error())
 }</span>
 
+// responseMarshaled marshals data and writes it to response
 func responseMarshaled(data any, w http.ResponseWriter, r *http.Request) <span class="cov4" title="3">{
         response, err := json.Marshal(data)
         if err == nil </span><span class="cov4" title="3">{
@@ -1382,6 +1429,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// NewValueJSONHandler returns a handler that returns the value of the metric.
 func NewValueJSONHandler(s Finder) http.HandlerFunc <span class="cov10" title="3">{
         return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="3">{
                 mr, err := model.UnmarshalMetricRequestFromReader(r.Body)
@@ -1425,11 +1473,14 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// Finder is a finder for metrics.
+//
 //go:generate mockgen -source=valueuri.go -destination=mocks/mock_finder.go -package=mocks
 type Finder interface {
         Find(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
+// NewValueURIHandler returns a handler for the value URI.
 func NewValueURIHandler(s Finder) http.HandlerFunc <span class="cov10" title="4">{
         return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="4">{
                 t := r.PathValue("type")
@@ -1465,7 +1516,8 @@ func NewValueURIHandler(s Finder) http.HandlerFunc <span class="cov10" title="4"
 }
 </pre>
 		
-		<pre class="file" id="file19" style="display: none">package mcompress
+		<pre class="file" id="file19" style="display: none">// Package mcompress provides a middleware for compressing responses and decompressing requests.
+package mcompress
 
 import (
         "fmt"
@@ -1476,6 +1528,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// GzipCompressed returns a middleware that compresses responses and decompresses requests.
 func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler <span class="cov10" title="10">{
         return func(h http.Handler) http.Handler </span><span class="cov10" title="10">{
                 return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="10">{
@@ -1514,7 +1567,8 @@ func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler <spa
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package mlogger
+		<pre class="file" id="file20" style="display: none">// Package mlogger provides middleware for logging response data.
+package mlogger
 
 import (
         "fmt"
@@ -1526,16 +1580,19 @@ import (
 )
 
 type (
+        // responseData contains response data.
         responseData struct {
                 status int
                 size   int
         }
+        // loggingResponseWriter is a wrapper for http.ResponseWriter.
         loggingResponseWriter struct {
                 http.ResponseWriter
                 responseData *responseData
         }
 )
 
+// Write writes data to the response.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) <span class="cov0" title="0">{
         size, err := r.ResponseWriter.Write(b)
         r.responseData.size += size
@@ -1545,15 +1602,19 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) <span class="cov0" 
         <span class="cov0" title="0">return size, nil</span>
 }
 
+// WriteHeader writes the status code to the response.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) <span class="cov0" title="0">{
         r.ResponseWriter.WriteHeader(statusCode)
         r.responseData.status = statusCode
 }</span>
 
+// key is a type for log message key.
 type key string
 
+// LogMessageKey is a key for log message.
 const LogMessageKey key = "logMessage"
 
+// RequestLogger returns a middleware for logging request data.
 func RequestLogger(l *logging.ZapLogger) func(h http.Handler) http.Handler <span class="cov0" title="0">{
         return func(h http.Handler) http.Handler </span><span class="cov0" title="0">{
                 return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
@@ -1587,7 +1648,8 @@ func RequestLogger(l *logging.ZapLogger) func(h http.Handler) http.Handler <span
 }
 </pre>
 		
-		<pre class="file" id="file21" style="display: none">package msign
+		<pre class="file" id="file21" style="display: none">// Package msign provides a middleware for signing requests and responses.
+package msign
 
 import (
         "bytes"
@@ -1598,14 +1660,18 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/sign"
 )
 
+// errorReadCloser is an io.ReadCloser that returns an error.
 type errorReadCloser struct {
         io.ReadCloser
         err error
 }
 
+// newErrorReadCloser returns an io.ReadCloser that returns an error.
 func newErrorReadCloser(r io.ReadCloser, err error) *errorReadCloser <span class="cov1" title="1">{
         return &amp;errorReadCloser{r, err}
 }</span>
+
+// Read returns an error if the errorReadCloser has an error.
 func (r *errorReadCloser) Read(p []byte) (int, error) <span class="cov1" title="1">{
         if r.err != nil </span><span class="cov1" title="1">{
                 return 0, r.err
@@ -1613,6 +1679,7 @@ func (r *errorReadCloser) Read(p []byte) (int, error) <span class="cov1" title="
         <span class="cov0" title="0">return r.ReadCloser.Read(p)</span>
 }
 
+// signWriter is a http.ResponseWriter that signs the response.
 type signWriter struct {
         http.ResponseWriter
         buf        *bytes.Buffer
@@ -1620,6 +1687,7 @@ type signWriter struct {
         key        []byte
 }
 
+// newSignWriter returns a new signWriter.
 func newSignWriter(w http.ResponseWriter, key []byte) *signWriter <span class="cov10" title="2">{
         return &amp;signWriter{
                 ResponseWriter: w,
@@ -1628,14 +1696,17 @@ func newSignWriter(w http.ResponseWriter, key []byte) *signWriter <span class="c
         }
 }</span>
 
+// Write writes the data to the buffer.
 func (w *signWriter) Write(data []byte) (n int, err error) <span class="cov10" title="2">{
         return w.buf.Write(data)
 }</span>
 
+// WriteHeader sets the status code.
 func (w *signWriter) WriteHeader(statusCode int) <span class="cov10" title="2">{
         w.statusCode = statusCode
 }</span>
 
+// close signs the response and writes it to the response writer.
 func (w *signWriter) close() <span class="cov10" title="2">{
         data := w.buf.Bytes()
         if hash := sign.MakeToString(data, w.key); hash != "" </span><span class="cov10" title="2">{
@@ -1645,6 +1716,7 @@ func (w *signWriter) close() <span class="cov10" title="2">{
         _, _ = w.ResponseWriter.Write(data)</span>
 }
 
+// Signer returns a middleware that signs the request and response.
 func Signer(key []byte) func(h http.Handler) http.Handler <span class="cov10" title="2">{
         return func(h http.Handler) http.Handler </span><span class="cov10" title="2">{
                 return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
@@ -1673,7 +1745,13 @@ func Signer(key []byte) func(h http.Handler) http.Handler <span class="cov10" ti
 }
 </pre>
 		
-		<pre class="file" id="file22" style="display: none">package repository
+		<pre class="file" id="file22" style="display: none">// Package repository provides a file storage implementation for metrics.
+//
+// The FileStorage struct embeds MemStorage and adds functionality for
+// persisting metrics to a file. It supports creating, updating, and
+// restoring metrics from a file. The storage can be synchronized
+// periodically or on-demand.
+package repository
 
 import (
         "context"
@@ -1689,6 +1767,7 @@ import (
         "github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// FileStorage is a file storage for metrics.
 type FileStorage struct {
         *MemStorage
         cfg       *config.Config
@@ -1696,6 +1775,7 @@ type FileStorage struct {
         isChanged bool
 }
 
+// NewFileStorage creates a new file storage.
 func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage <span class="cov0" title="0">{
         return &amp;FileStorage{
                 MemStorage: ms,
@@ -1704,6 +1784,7 @@ func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage <span class
         }
 }</span>
 
+// Create creates a new metric.
 func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
         f.mux.Lock()
         defer f.mux.Unlock()
@@ -1721,6 +1802,7 @@ func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*mod
         <span class="cov0" title="0">return m, nil</span>
 }
 
+// Update updates an existing metric.
 func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
         f.mux.Lock()
         defer f.mux.Unlock()
@@ -1738,6 +1820,7 @@ func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*mod
         <span class="cov0" title="0">return m, nil</span>
 }
 
+// CreateOrUpdateBatch creates or updates a batch of metrics.
 func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
         f.mux.Lock()
         defer f.mux.Unlock()
@@ -1755,10 +1838,12 @@ func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.Metr
         <span class="cov0" title="0">return res, nil</span>
 }
 
+// Close closes the file storage.
 func (f *FileStorage) Close() error <span class="cov0" title="0">{
         return f.sync(true, false)
 }</span>
 
+// Restore restores the file storage.
 func (f *FileStorage) Restore() error <span class="cov0" title="0">{
         if f.cfg.FileStoragePath == "" </span><span class="cov0" title="0">{
                 return nil
@@ -1794,6 +1879,7 @@ func (f *FileStorage) Restore() error <span class="cov0" title="0">{
         <span class="cov0" title="0">return nil</span>
 }
 
+// sync syncs the file storage.
 func (f *FileStorage) sync(safe, tryRetry bool) error <span class="cov0" title="0">{
         if safe </span><span class="cov0" title="0">{
                 f.mux.Lock()
@@ -1832,6 +1918,7 @@ func (f *FileStorage) sync(safe, tryRetry bool) error <span class="cov0" title="
         return nil</span>
 }
 
+// Run runs the file storage.
 func (f *FileStorage) Run(ctx context.Context, l *logging.ZapLogger) <span class="cov0" title="0">{
         if f.cfg.StoreInterval &lt;= 0 </span><span class="cov0" title="0">{
                 return
@@ -1852,7 +1939,18 @@ func (f *FileStorage) Run(ctx context.Context, l *logging.ZapLogger) <span class
 }
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package repository
+		<pre class="file" id="file23" style="display: none">// Package repository MemStorage is a simple in-memory storage for metrics.
+//
+// It supports the following operations:
+//
+// - Create: adds a new metric to the storage.
+// - Update: updates an existing metric in the storage.
+// - CreateOrUpdateBatch: adds or updates multiple metrics in the storage.
+// - Find: finds a metric in the storage by its ID and name.
+// - FindAll: finds all metrics in the storage.
+//
+// The storage is thread-safe and provides a simple locking mechanism.
+package repository
 
 import (
         "context"
@@ -1862,12 +1960,14 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// MemStorage is a simple in-memory storage for metrics.
 type MemStorage struct {
         mux   *sync.Mutex
         index map[string]map[string]int
         data  []*model.Metric
 }
 
+// NewMemStorage creates a new MemStorage.
 func NewMemStorage() *MemStorage <span class="cov1" title="1">{
         return &amp;MemStorage{
                 mux:   &amp;sync.Mutex{},
@@ -1876,11 +1976,13 @@ func NewMemStorage() *MemStorage <span class="cov1" title="1">{
         }
 }</span>
 
+// unsafeIndex returns the index of the metric in the data slice.
 func (ms *MemStorage) unsafeIndex(mr *model.MetricRequest) (int, bool) <span class="cov10" title="8">{
         i, ok := ms.index[mr.MType][mr.ID]
         return i, ok &amp;&amp; i &lt; len(ms.data)
 }</span>
 
+// Find returns the metric with the given ID.
 func (ms *MemStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
@@ -1890,6 +1992,7 @@ func (ms *MemStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model
         <span class="cov1" title="1">return nil, model.ErrMetricNotFound</span>
 }
 
+// unsafeFindAll returns all metrics.
 func (ms *MemStorage) unsafeFindAll() []*model.Metric <span class="cov4" title="2">{
         data := make([]*model.Metric, len(ms.data))
         for i := range ms.data </span><span class="cov4" title="2">{
@@ -1898,12 +2001,14 @@ func (ms *MemStorage) unsafeFindAll() []*model.Metric <span class="cov4" title="
         <span class="cov4" title="2">return data</span>
 }
 
+// FindAll returns all metrics.
 func (ms *MemStorage) FindAll(ctx context.Context) ([]*model.Metric, error) <span class="cov4" title="2">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeFindAll(), nil
 }</span>
 
+// FindBatch returns the metrics with the given IDs.
 func (ms *MemStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
@@ -1916,6 +2021,7 @@ func (ms *MemStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest)
         <span class="cov0" title="0">return res, nil</span>
 }
 
+// unsafeCreate creates a new metric.
 func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
         if _, ok := ms.unsafeIndex(mr); ok </span><span class="cov1" title="1">{
                 return nil, model.ErrMetricAlreadyExist
@@ -1928,12 +2034,14 @@ func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, erro
         return ms.data[ms.index[mr.MType][mr.ID]].Clone(), nil</span>
 }
 
+// Create creates a new metric.
 func (ms *MemStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeCreate(mr)
 }</span>
 
+// unsafeUpdate updates the metric.
 func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
         i, ok := ms.unsafeIndex(mr)
         if !ok </span><span class="cov1" title="1">{
@@ -1954,12 +2062,14 @@ func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, erro
         <span class="cov4" title="2">return ms.data[i].Clone(), nil</span>
 }
 
+// Update updates the metric.
 func (ms *MemStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeUpdate(mr)
 }</span>
 
+// unsafeCreateOrUpdateBatch creates or updates the metrics.
 func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
         res := make([]*model.Metric, len(mrs))
         for i, mr := range mrs </span><span class="cov0" title="0">{
@@ -1981,12 +2091,14 @@ func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*
         <span class="cov0" title="0">return res, nil</span>
 }
 
+// CreateOrUpdateBatch creates or updates the metrics.
 func (ms *MemStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeCreateOrUpdateBatch(mrs)
 }</span>
 
+// fill fills the storage with the given metrics.
 func (ms *MemStorage) fill(data []*model.Metric) <span class="cov7" title="4">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
@@ -2146,7 +2258,10 @@ func runMigrations(dsn string) error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file26" style="display: none">package pgxstorage
+		<pre class="file" id="file26" style="display: none">// Package pgxstorage contains a PostgreSQL storage for metrics.
+//
+// It uses jackc/pgx library for database operations.
+package pgxstorage
 
 import (
         "context"
@@ -2161,18 +2276,21 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// Config is the PostgreSQL storage config.
 type Config struct {
         DSN         string
         PingTimeout time.Duration
         RetryDelays []time.Duration
 }
 
+// PGXStorage is the PostgreSQL storage.
 type PGXStorage struct {
         cfg   *Config
         db    *sql.DB
         stmts *statements
 }
 
+// NewPGXStorage creates a new PostgreSQL storage.
 func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) <span class="cov0" title="0">{
         ps := &amp;PGXStorage{cfg: cfg}
         var err error
@@ -2198,20 +2316,24 @@ func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) <span 
         <span class="cov0" title="0">return ps, nil</span>
 }
 
+// Close closes the PostgreSQL storage.
 func (ps *PGXStorage) Close() error <span class="cov0" title="0">{
         return ps.db.Close()
 }</span>
 
+// Ping pings the PostgreSQL storage.
 func (ps *PGXStorage) Ping(ctx context.Context) error <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, ps.cfg.PingTimeout)
         defer cancel()
         return ps.db.PingContext(ctx)
 }</span>
 
+// Find returns the metric with the given ID.
 func (ps *PGXStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
         return ps.retryForOne(ctx, mr, ps.find)
 }</span>
 
+// FindAll returns all metrics.
 func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err error) <span class="cov0" title="0">{
         var e *pgconn.PgError
         for i := 0; ; i++ </span><span class="cov0" title="0">{
@@ -2225,6 +2347,7 @@ func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err err
         <span class="cov0" title="0">return res, err</span>
 }
 
+// FindBatch returns the metrics with the given IDs.
 func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) (res []*model.Metric, err error) <span class="cov0" title="0">{
         var e *pgconn.PgError
         for i := 0; ; i++ </span><span class="cov0" title="0">{
@@ -2238,14 +2361,17 @@ func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest)
         <span class="cov0" title="0">return res, err</span>
 }
 
+// Create creates a new metric.
 func (ps *PGXStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
         return ps.retryForOne(ctx, mr, ps.create)
 }</span>
 
+// Update updates the metric.
 func (ps *PGXStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
         return ps.retryForOne(ctx, mr, ps.update)
 }</span>
 
+// CreateOrUpdateBatch creates or updates the metrics.
 func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
         var e *pgconn.PgError
         var err error
@@ -2263,6 +2389,7 @@ func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.Metr
         <span class="cov0" title="0">return ps.FindBatch(ctx, mrs)</span>
 }
 
+// retryForOne retries the function for one metric.
 func (ps *PGXStorage) retryForOne(ctx context.Context, mr *model.MetricRequest,
         f func(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)) (m *model.Metric, err error) <span class="cov0" title="0">{
         var e *pgconn.PgError
@@ -2384,7 +2511,10 @@ func ListenAndServe(ctx context.Context, l *logging.ZapLogger,
 }
 </pre>
 		
-		<pre class="file" id="file29" style="display: none">package service
+		<pre class="file" id="file29" style="display: none">// Package service contains the service logic.
+//
+// The service provides methods for working with metrics.
+package service
 
 import (
         "context"
@@ -2394,20 +2524,25 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// BatchUpdaterRepository is an interface for batch updating metrics
+//
 //go:generate mockgen -source=batchupdater.go -destination=mocks/mock_batchupdater.go -package=mocks
 type BatchUpdaterRepository interface {
         FindBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
         CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
+// BatchUpdater is a service for batch updating metrics
 type BatchUpdater struct {
         r BatchUpdaterRepository
 }
 
+// NewBatchUpdater returns a service for batch updating metrics
 func NewBatchUpdater(r BatchUpdaterRepository) *BatchUpdater <span class="cov1" title="1">{
         return &amp;BatchUpdater{r: r}
 }</span>
 
+// UpdateBatch updates the metrics
 func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov1" title="1">{
         var mrsReq []*model.MetricRequest
         mrsGaugeIndexMap := map[string]int{}
@@ -2457,7 +2592,12 @@ func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricReque
 }
 </pre>
 		
-		<pre class="file" id="file30" style="display: none">package service
+		<pre class="file" id="file30" style="display: none">// Package service Finder is a structure that provides a way to find metrics
+//
+// It contains a repository, which is used to find metrics. The Finder
+// structure is a simple wrapper around the repository, which provides
+// a convenient way to find metrics.
+package service
 
 import (
         "context"
@@ -2467,20 +2607,25 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// FinderRepository is a repository for finding metrics
+//
 //go:generate mockgen -source=finder.go -destination=mocks/mock_finder.go -package=mocks
 type FinderRepository interface {
         Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)
         FindAll(ctx context.Context) ([]*model.Metric, error)
 }
 
+// Finder is a structure that provides a way to find metrics
 type Finder struct {
         r FinderRepository
 }
 
+// NewFinder returns a new finder
 func NewFinder(r FinderRepository) *Finder <span class="cov10" title="4">{
         return &amp;Finder{r: r}
 }</span>
 
+// Find returns the metric with the given ID
 func (s *Finder) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="2">{
         m, err := s.r.Find(ctx, mr)
         if err != nil </span><span class="cov1" title="1">{
@@ -2489,6 +2634,7 @@ func (s *Finder) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metr
         <span class="cov1" title="1">return m, nil</span>
 }
 
+// FindAll returns all metrics
 func (s *Finder) FindAll(ctx context.Context) ([]*model.Metric, error) <span class="cov5" title="2">{
         metrics, err := s.r.FindAll(ctx)
         if err != nil </span><span class="cov1" title="1">{
@@ -2512,7 +2658,10 @@ func (s *Finder) FindAll(ctx context.Context) ([]*model.Metric, error) <span cla
 }
 </pre>
 		
-		<pre class="file" id="file31" style="display: none">package service
+		<pre class="file" id="file31" style="display: none">// Package service contains the service logic.
+//
+// It provides a way to update metrics.
+package service
 
 import (
         "context"
@@ -2522,6 +2671,8 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// UpdaterRepository is an interface for updating metrics
+//
 //go:generate mockgen -source=updater.go -destination=mocks/mock_updater.go -package=mocks
 type UpdaterRepository interface {
         Find(context.Context, *model.MetricRequest) (*model.Metric, error)
@@ -2529,14 +2680,17 @@ type UpdaterRepository interface {
         Update(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
+// Updater is a service for updating metrics
 type Updater struct {
         r UpdaterRepository
 }
 
+// NewUpdater returns a new Updater
 func NewUpdater(r UpdaterRepository) *Updater <span class="cov10" title="7">{
         return &amp;Updater{r: r}
 }</span>
 
+// Update updates the metric
 func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov10" title="7">{
         m, err := s.r.Find(ctx, mr)
         if err != nil </span><span class="cov7" title="4">{
@@ -2580,7 +2734,14 @@ func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.M
 }
 </pre>
 		
-		<pre class="file" id="file32" style="display: none">package compress
+		<pre class="file" id="file32" style="display: none">// Package compress provides a way to compress and decompress data.
+//
+// It provides a io.Writer implementation that can be used to compress data
+// and a io.Reader implementation that can be used to decompress data.
+//
+// The package also provides a http.ResponseWriter implementation that can be
+// used to compress responses of a HTTP server.
+package compress
 
 import (
         "compress/gzip"
@@ -2591,12 +2752,14 @@ import (
         "strings"
 )
 
+// Writer is a io.Writer that can be used to compress data.
 type Writer struct {
         w            http.ResponseWriter
         zw           *gzip.Writer
         Compressible bool
 }
 
+// NewCompressWriter returns a new Writer that can be used to compress data.
 func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov10" title="11">{
         return &amp;Writer{
                 w:            w,
@@ -2604,10 +2767,12 @@ func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov10" title=
         }
 }</span>
 
+// Header returns the http.Header of the underlying http.ResponseWriter.
 func (w *Writer) Header() http.Header <span class="cov7" title="5">{
         return w.w.Header()
 }</span>
 
+// Write writes data to the underlying http.ResponseWriter.
 func (w *Writer) Write(p []byte) (int, error) <span class="cov6" title="4">{
         if w.Compressible </span><span class="cov5" title="3">{
                 if w.zw == nil </span><span class="cov5" title="3">{
@@ -2626,6 +2791,7 @@ func (w *Writer) Write(p []byte) (int, error) <span class="cov6" title="4">{
         <span class="cov1" title="1">return n, nil</span>
 }
 
+// WriteHeader writes the http.Header to the underlying http.ResponseWriter.
 func (w *Writer) WriteHeader(statusCode int) <span class="cov6" title="4">{
         contentType := w.Header().Get("Content-Type")
         isHTML := strings.Contains(contentType, "text/html")
@@ -2638,6 +2804,7 @@ func (w *Writer) WriteHeader(statusCode int) <span class="cov6" title="4">{
         <span class="cov6" title="4">w.w.WriteHeader(statusCode)</span>
 }
 
+// Close closes the underlying gzip.Writer.
 func (w *Writer) Close() error <span class="cov3" title="2">{
         if w.zw != nil </span><span class="cov1" title="1">{
                 if err := w.zw.Close(); err != nil </span><span class="cov0" title="0">{
@@ -2647,11 +2814,13 @@ func (w *Writer) Close() error <span class="cov3" title="2">{
         <span class="cov3" title="2">return nil</span>
 }
 
+// Reader is a io.Reader that can be used to decompress data.
 type Reader struct {
         r  io.ReadCloser
         zr *gzip.Reader
 }
 
+// NewCompressReader returns a new Reader that can be used to decompress data.
 func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov7" title="5">{
         zr, err := gzip.NewReader(r)
         if err != nil </span><span class="cov3" title="2">{
@@ -2663,6 +2832,7 @@ func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov7" titl
         }, nil</span>
 }
 
+// Read reads data from the underlying gzip.Reader.
 func (r *Reader) Read(p []byte) (int, error) <span class="cov3" title="2">{
         n, err := r.zr.Read(p)
         if err != nil &amp;&amp; !errors.Is(err, io.EOF) </span><span class="cov0" title="0">{
@@ -2671,6 +2841,7 @@ func (r *Reader) Read(p []byte) (int, error) <span class="cov3" title="2">{
         <span class="cov3" title="2">return n, err</span>
 }
 
+// Close closes the underlying gzip.Reader.
 func (r *Reader) Close() error <span class="cov1" title="1">{
         if err := r.r.Close(); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("compress[Reader].Close: %w", err)
@@ -2682,7 +2853,8 @@ func (r *Reader) Close() error <span class="cov1" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file33" style="display: none">package logging
+		<pre class="file" id="file33" style="display: none">// Package logging provides a logging package for the application.
+package logging
 
 import (
         "context"
@@ -2700,6 +2872,7 @@ const zapFieldsKey key = "zapFields"
 
 type ZapFields map[string]zap.Field
 
+// Append appends the provided fields to the existing ZapFields.
 func (zf ZapFields) Append(fields ...zap.Field) ZapFields <span class="cov0" title="0">{
         zfCopy := make(ZapFields)
         for k, v := range zf </span><span class="cov0" title="0">{
@@ -2713,6 +2886,7 @@ func (zf ZapFields) Append(fields ...zap.Field) ZapFields <span class="cov0" tit
         <span class="cov0" title="0">return zfCopy</span>
 }
 
+// ZapLogger is a wrapper around zap.Logger.
 type ZapLogger struct {
         logger *zap.Logger
         level  zap.AtomicLevel
@@ -2734,6 +2908,7 @@ func NewZapLogger(level zapcore.Level) (*ZapLogger, error) <span class="cov0" ti
         }, nil</span>
 }
 
+// WithContextFields returns a new context with the provided fields.
 func (z *ZapLogger) WithContextFields(ctx context.Context, fields ...zap.Field) context.Context <span class="cov0" title="0">{
         ctxFields, _ := ctx.Value(zapFieldsKey).(ZapFields)
         if ctxFields == nil </span><span class="cov0" title="0">{
@@ -2744,6 +2919,7 @@ func (z *ZapLogger) WithContextFields(ctx context.Context, fields ...zap.Field) 
         return context.WithValue(ctx, zapFieldsKey, merged)</span>
 }
 
+// maskField masks the value of a field if its key is "password" or "email".
 func (z *ZapLogger) maskField(f zap.Field) zap.Field <span class="cov0" title="0">{
         if f.Key == "password" </span><span class="cov0" title="0">{
                 return zap.String(f.Key, "******")
@@ -2759,10 +2935,12 @@ func (z *ZapLogger) maskField(f zap.Field) zap.Field <span class="cov0" title="0
         <span class="cov0" title="0">return f</span>
 }
 
+// Sync flushes any buffered log entries.
 func (z *ZapLogger) Sync() <span class="cov0" title="0">{
         _ = z.logger.Sync()
 }</span>
 
+// withCtxFields appends the provided fields to the existing ZapFields in the context.
 func (z *ZapLogger) withCtxFields(ctx context.Context, fields ...zap.Field) []zap.Field <span class="cov0" title="0">{
         fs := make(ZapFields)
 
@@ -2783,38 +2961,47 @@ func (z *ZapLogger) withCtxFields(ctx context.Context, fields ...zap.Field) []za
         <span class="cov0" title="0">return maskedFields</span>
 }
 
+// InfoCtx logs an info message with the provided fields.
 func (z *ZapLogger) InfoCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
         z.logger.Info(msg, z.withCtxFields(ctx, fields...)...)
 }</span>
 
+// DebugCtx logs a debug message with the provided fields.
 func (z *ZapLogger) DebugCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
         z.logger.Debug(msg, z.withCtxFields(ctx, fields...)...)
 }</span>
 
+// WarnCtx logs a warning message with the provided fields.
 func (z *ZapLogger) WarnCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
         z.logger.Warn(msg, z.withCtxFields(ctx, fields...)...)
 }</span>
 
+// ErrorCtx logs an error message with the provided fields.
 func (z *ZapLogger) ErrorCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
         z.logger.Error(msg, z.withCtxFields(ctx, fields...)...)
 }</span>
 
+// FatalCtx logs a fatal message with the provided fields.
 func (z *ZapLogger) FatalCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
         z.logger.Fatal(msg, z.withCtxFields(ctx, fields...)...)
 }</span>
 
+// PanicCtx logs a panic message with the provided fields.
 func (z *ZapLogger) PanicCtx(ctx context.Context, msg string, fields ...zap.Field) <span class="cov0" title="0">{
         z.logger.Panic(msg, z.withCtxFields(ctx, fields...)...)
 }</span>
 
+// SetLevel sets the log level.
 func (z *ZapLogger) SetLevel(level zapcore.Level) <span class="cov0" title="0">{
         z.level.SetLevel(level)
 }</span>
 
+// Std returns a log.Logger that writes to the zap.Logger.
 func (z *ZapLogger) Std() *log.Logger <span class="cov0" title="0">{
         return zap.NewStdLog(z.logger)
 }</span>
 
+// Logger returns the underlying zap.Logger.
 func (z *ZapLogger) Logger() *zap.Logger <span class="cov0" title="0">{
         return z.logger
 }</span>
@@ -2832,6 +3019,7 @@ type settings struct {
         opts   []zap.Option
 }
 
+// defaultSettings returns the default Zap settings.
 func defaultSettings(level zap.AtomicLevel) *settings <span class="cov0" title="0">{
         config := &amp;zap.Config{
                 Level:       level,
@@ -2867,7 +3055,8 @@ func defaultSettings(level zap.AtomicLevel) *settings <span class="cov0" title="
 }</span>
 </pre>
 		
-		<pre class="file" id="file35" style="display: none">package sign
+		<pre class="file" id="file35" style="display: none">// Package sign contains the sign logic.
+package sign
 
 import (
         "crypto/hmac"
@@ -2875,6 +3064,7 @@ import (
         "encoding/hex"
 )
 
+// Make returns the HMAC-SHA256 hash of the given data and key.
 func Make(data, key []byte) []byte <span class="cov10" title="7">{
         if len(data) == 0 || len(key) == 0 </span><span class="cov8" title="5">{
                 return nil
@@ -2884,18 +3074,22 @@ func Make(data, key []byte) []byte <span class="cov10" title="7">{
         return h.Sum(nil)</span>
 }
 
+// EncodeToString returns the hexadecimal encoding of the given data.
 func EncodeToString(data []byte) string <span class="cov8" title="5">{
         return hex.EncodeToString(data)
 }</span>
 
+// DecodeString decodes the given hexadecimal string into a byte slice.
 func DecodeString(data string) ([]byte, error) <span class="cov6" title="3">{
         return hex.DecodeString(data)
 }</span>
 
+// MakeToString returns the hexadecimal encoding of the HMAC-SHA256 hash of the given data and key.
 func MakeToString(data, key []byte) string <span class="cov6" title="3">{
         return EncodeToString(Make(data, key))
 }</span>
 
+// Validate checks if the given hash is valid for the given data and key.
 func Validate(data, key, hash []byte) bool <span class="cov8" title="5">{
         if len(key) == 0 || len(hash) == 0 </span><span class="cov6" title="3">{
                 return true

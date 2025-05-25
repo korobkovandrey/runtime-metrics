@@ -1,3 +1,9 @@
+// Package repository provides a file storage implementation for metrics.
+//
+// The FileStorage struct embeds MemStorage and adds functionality for
+// persisting metrics to a file. It supports creating, updating, and
+// restoring metrics from a file. The storage can be synchronized
+// periodically or on-demand.
 package repository
 
 import (
@@ -14,6 +20,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// FileStorage is a file storage for metrics.
 type FileStorage struct {
 	*MemStorage
 	cfg       *config.Config
@@ -21,6 +28,7 @@ type FileStorage struct {
 	isChanged bool
 }
 
+// NewFileStorage creates a new file storage.
 func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage {
 	return &FileStorage{
 		MemStorage: ms,
@@ -29,6 +37,7 @@ func NewFileStorage(ms *MemStorage, cfg *config.Config) *FileStorage {
 	}
 }
 
+// Create creates a new metric.
 func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
@@ -46,6 +55,7 @@ func (f *FileStorage) Create(ctx context.Context, mr *model.MetricRequest) (*mod
 	return m, nil
 }
 
+// Update updates an existing metric.
 func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
@@ -63,6 +73,7 @@ func (f *FileStorage) Update(ctx context.Context, mr *model.MetricRequest) (*mod
 	return m, nil
 }
 
+// CreateOrUpdateBatch creates or updates a batch of metrics.
 func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
@@ -80,10 +91,12 @@ func (f *FileStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.Metr
 	return res, nil
 }
 
+// Close closes the file storage.
 func (f *FileStorage) Close() error {
 	return f.sync(true, false)
 }
 
+// Restore restores the file storage.
 func (f *FileStorage) Restore() error {
 	if f.cfg.FileStoragePath == "" {
 		return nil
@@ -119,6 +132,7 @@ func (f *FileStorage) Restore() error {
 	return nil
 }
 
+// sync syncs the file storage.
 func (f *FileStorage) sync(safe, tryRetry bool) error {
 	if safe {
 		f.mux.Lock()
@@ -157,6 +171,7 @@ func (f *FileStorage) sync(safe, tryRetry bool) error {
 	return nil
 }
 
+// Run runs the file storage.
 func (f *FileStorage) Run(ctx context.Context, l *logging.ZapLogger) {
 	if f.cfg.StoreInterval <= 0 {
 		return

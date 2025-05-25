@@ -1,3 +1,4 @@
+// Package msign provides a middleware for signing requests and responses.
 package msign
 
 import (
@@ -9,14 +10,18 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/pkg/sign"
 )
 
+// errorReadCloser is an io.ReadCloser that returns an error.
 type errorReadCloser struct {
 	io.ReadCloser
 	err error
 }
 
+// newErrorReadCloser returns an io.ReadCloser that returns an error.
 func newErrorReadCloser(r io.ReadCloser, err error) *errorReadCloser {
 	return &errorReadCloser{r, err}
 }
+
+// Read returns an error if the errorReadCloser has an error.
 func (r *errorReadCloser) Read(p []byte) (int, error) {
 	if r.err != nil {
 		return 0, r.err
@@ -24,6 +29,7 @@ func (r *errorReadCloser) Read(p []byte) (int, error) {
 	return r.ReadCloser.Read(p)
 }
 
+// signWriter is a http.ResponseWriter that signs the response.
 type signWriter struct {
 	http.ResponseWriter
 	buf        *bytes.Buffer
@@ -31,6 +37,7 @@ type signWriter struct {
 	key        []byte
 }
 
+// newSignWriter returns a new signWriter.
 func newSignWriter(w http.ResponseWriter, key []byte) *signWriter {
 	return &signWriter{
 		ResponseWriter: w,
@@ -39,14 +46,17 @@ func newSignWriter(w http.ResponseWriter, key []byte) *signWriter {
 	}
 }
 
+// Write writes the data to the buffer.
 func (w *signWriter) Write(data []byte) (n int, err error) {
 	return w.buf.Write(data)
 }
 
+// WriteHeader sets the status code.
 func (w *signWriter) WriteHeader(statusCode int) {
 	w.statusCode = statusCode
 }
 
+// close signs the response and writes it to the response writer.
 func (w *signWriter) close() {
 	data := w.buf.Bytes()
 	if hash := sign.MakeToString(data, w.key); hash != "" {
@@ -56,6 +66,7 @@ func (w *signWriter) close() {
 	_, _ = w.ResponseWriter.Write(data)
 }
 
+// Signer returns a middleware that signs the request and response.
 func Signer(key []byte) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

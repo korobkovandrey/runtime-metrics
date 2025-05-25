@@ -8,6 +8,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// NewUpdateURIHandler returns handler for updating metrics
 func NewUpdateURIHandler(s Updater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")

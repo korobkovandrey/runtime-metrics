@@ -1,3 +1,6 @@
+// Package agent contains the agent logic.
+//
+// The agent is responsible for collecting runtime metrics, and sending them to the server.
 package agent
 
 import (
@@ -12,6 +15,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// Run starts the agent.
 func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) {
 	source := service.NewSource()
 	tickPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)

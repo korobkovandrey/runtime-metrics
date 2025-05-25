@@ -1,3 +1,6 @@
+// Package pgxstorage contains a PostgreSQL storage for metrics.
+//
+// It uses jackc/pgx library for database operations.
 package pgxstorage
 
 import (
@@ -13,18 +16,21 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// Config is the PostgreSQL storage config.
 type Config struct {
 	DSN         string
 	PingTimeout time.Duration
 	RetryDelays []time.Duration
 }
 
+// PGXStorage is the PostgreSQL storage.
 type PGXStorage struct {
 	cfg   *Config
 	db    *sql.DB
 	stmts *statements
 }
 
+// NewPGXStorage creates a new PostgreSQL storage.
 func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) {
 	ps := &PGXStorage{cfg: cfg}
 	var err error
@@ -50,20 +56,24 @@ func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) {
 	return ps, nil
 }
 
+// Close closes the PostgreSQL storage.
 func (ps *PGXStorage) Close() error {
 	return ps.db.Close()
 }
 
+// Ping pings the PostgreSQL storage.
 func (ps *PGXStorage) Ping(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, ps.cfg.PingTimeout)
 	defer cancel()
 	return ps.db.PingContext(ctx)
 }
 
+// Find returns the metric with the given ID.
 func (ps *PGXStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	return ps.retryForOne(ctx, mr, ps.find)
 }
 
+// FindAll returns all metrics.
 func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err error) {
 	var e *pgconn.PgError
 	for i := 0; ; i++ {
@@ -77,6 +87,7 @@ func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err err
 	return res, err
 }
 
+// FindBatch returns the metrics with the given IDs.
 func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) (res []*model.Metric, err error) {
 	var e *pgconn.PgError
 	for i := 0; ; i++ {
@@ -90,14 +101,17 @@ func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest)
 	return res, err
 }
 
+// Create creates a new metric.
 func (ps *PGXStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	return ps.retryForOne(ctx, mr, ps.create)
 }
 
+// Update updates the metric.
 func (ps *PGXStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	return ps.retryForOne(ctx, mr, ps.update)
 }
 
+// CreateOrUpdateBatch creates or updates the metrics.
 func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	var e *pgconn.PgError
 	var err error
@@ -115,6 +129,7 @@ func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.Metr
 	return ps.FindBatch(ctx, mrs)
 }
 
+// retryForOne retries the function for one metric.
 func (ps *PGXStorage) retryForOne(ctx context.Context, mr *model.MetricRequest,
 	f func(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)) (m *model.Metric, err error) {
 	var e *pgconn.PgError

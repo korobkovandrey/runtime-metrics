@@ -9,11 +9,14 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// BatchUpdater is an interface for batch updating metrics
+//
 //go:generate mockgen -source=updates.go -destination=mocks/mock_batchupdater.go -package=mocks
 type BatchUpdater interface {
 	UpdateBatch(context.Context, []*model.MetricRequest) ([]*model.Metric, error)
 }
 
+// NewUpdatesHandler returns a handler for updating metrics
 func NewUpdatesHandler(s BatchUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mrs, err := model.UnmarshalMetricsRequestFromReader(r.Body)

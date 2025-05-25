@@ -8,18 +8,21 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Source is a structure that provides a source of metrics
 type Source struct {
 	mu        sync.RWMutex
 	data      []*model.Metric
 	pollCount *model.Metric
 }
 
+// NewSource returns a new instance of Source
 func NewSource() *Source {
 	return &Source{
 		pollCount: model.NewMetricCounter("PollCount", 0),
 	}
 }
 
+// Collect collects metrics
 func (s *Source) Collect(ctx context.Context) error {
 	finalCh := make(chan *model.Metric)
 	g := new(errgroup.Group)
@@ -58,6 +61,7 @@ func (s *Source) Collect(ctx context.Context) error {
 	return err
 }
 
+// Get returns metrics
 func (s *Source) Get() (data []*model.Metric, delta int64) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -70,6 +74,7 @@ func (s *Source) Get() (data []*model.Metric, delta int64) {
 	return data, delta
 }
 
+// Commit commits metrics
 func (s *Source) Commit(delta int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

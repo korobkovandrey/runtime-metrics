@@ -1,3 +1,4 @@
+// Package config contains the config logic.
 package config
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 )
 
+// Config is the agent config.
 type Config struct {
 	Addr           string `env:"ADDRESS"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
@@ -21,6 +23,7 @@ type Config struct {
 	PprofAddr      string `env:"PPROF_ADDRESS"`
 }
 
+// NewConfig returns the agent config.
 func NewConfig() (*Config, error) {
 	const (
 		pollIntervalSeconds   = 2

@@ -9,11 +9,14 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// Updater updates metrics
+//
 //go:generate mockgen -source=updatejson.go -destination=mocks/mock_updater.go -package=mocks
 type Updater interface {
 	Update(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
+// NewUpdateJSONHandler returns a handler for updating metrics
 func NewUpdateJSONHandler(s Updater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mr, err := model.UnmarshalMetricRequestFromReader(r.Body)

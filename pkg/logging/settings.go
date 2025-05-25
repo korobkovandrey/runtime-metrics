@@ -10,6 +10,7 @@ type settings struct {
 	opts   []zap.Option
 }
 
+// defaultSettings returns the default Zap settings.
 func defaultSettings(level zap.AtomicLevel) *settings {
 	config := &zap.Config{
 		Level:       level,

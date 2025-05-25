@@ -1,3 +1,6 @@
+// Package service contains the service logic.
+//
+// It provides a way to update metrics.
 package service
 
 import (
@@ -8,6 +11,8 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// UpdaterRepository is an interface for updating metrics
+//
 //go:generate mockgen -source=updater.go -destination=mocks/mock_updater.go -package=mocks
 type UpdaterRepository interface {
 	Find(context.Context, *model.MetricRequest) (*model.Metric, error)
@@ -15,14 +20,17 @@ type UpdaterRepository interface {
 	Update(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
+// Updater is a service for updating metrics
 type Updater struct {
 	r UpdaterRepository
 }
 
+// NewUpdater returns a new Updater
 func NewUpdater(r UpdaterRepository) *Updater {
 	return &Updater{r: r}
 }
 
+// Update updates the metric
 func (s *Updater) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) {
 	m, err := s.r.Find(ctx, mr)
 	if err != nil {

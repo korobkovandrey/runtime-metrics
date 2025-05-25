@@ -1,3 +1,6 @@
+// Package main contains entry point for agent service.
+// The agent service is simple web service which collect some runtime metrics
+// and send them to server.
 package main
 
 import (

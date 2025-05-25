@@ -1,3 +1,4 @@
+// Package model contains structures for work with metrics.
 package model
 
 import (
@@ -15,6 +16,7 @@ const (
 	TypeCounter = "counter"
 )
 
+// Metric - metric structure
 type Metric struct {
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
@@ -22,6 +24,7 @@ type Metric struct {
 	ID    string   `json:"id"`              // имя метрики
 }
 
+// Clone returns a copy of the metric
 func (m *Metric) Clone() *Metric {
 	metric := &Metric{
 		MType: m.MType,
@@ -38,6 +41,7 @@ func (m *Metric) Clone() *Metric {
 	return metric
 }
 
+// AnyValue returns the value of the metric as any
 func (m *Metric) AnyValue() any {
 	if m.MType == TypeCounter {
 		if m.Delta == nil {
@@ -51,6 +55,7 @@ func (m *Metric) AnyValue() any {
 	return *m.Value
 }
 
+// ScanRow scans the row into the metric
 func (m *Metric) ScanRow(row pgx.Row) error {
 	return row.Scan(
 		&m.MType,
@@ -60,6 +65,7 @@ func (m *Metric) ScanRow(row pgx.Row) error {
 	)
 }
 
+// NewMetricGauge returns a new gauge metric
 func NewMetricGauge(id string, value float64) *Metric {
 	return &Metric{
 		Value: &value,
@@ -68,6 +74,7 @@ func NewMetricGauge(id string, value float64) *Metric {
 	}
 }
 
+// NewMetricCounter returns a new counter metric
 func NewMetricCounter(id string, delta int64) *Metric {
 	return &Metric{
 		Delta: &delta,
@@ -76,10 +83,12 @@ func NewMetricCounter(id string, delta int64) *Metric {
 	}
 }
 
+// MetricRequest - metric request structure
 type MetricRequest struct {
 	*Metric
 }
 
+// RequiredValue returns an error if the value is not set
 func (mr *MetricRequest) RequiredValue() error {
 	switch mr.MType {
 	case TypeGauge:
@@ -96,6 +105,7 @@ func (mr *MetricRequest) RequiredValue() error {
 	return nil
 }
 
+// ValidateType returns an error if the type is not valid
 func (mr *MetricRequest) ValidateType() error {
 	if mr.MType != TypeGauge && mr.MType != TypeCounter {
 		return ErrTypeIsNotValid
@@ -103,6 +113,7 @@ func (mr *MetricRequest) ValidateType() error {
 	return nil
 }
 
+// NewMetricRequest returns a new metric request
 func NewMetricRequest(t, id, value string) (*MetricRequest, error) {
 	var m *Metric
 	switch t {
@@ -124,6 +135,7 @@ func NewMetricRequest(t, id, value string) (*MetricRequest, error) {
 	return &MetricRequest{m}, nil
 }
 
+// UnmarshalMetricRequestFromReader unmarshals the metric request from the reader
 func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) {
 	body, err := io.ReadAll(r)
 	if err != nil {
@@ -143,6 +155,7 @@ func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) {
 	return metric, nil
 }
 
+// UnmarshalMetricsRequestFromReader unmarshals the metric request from the reader
 func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) {
 	body, err := io.ReadAll(r)
 	if err != nil {
@@ -162,6 +175,7 @@ func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) {
 	return metrics, nil
 }
 
+// ValidateMetricsRequest returns an error if the metric request is not valid
 func ValidateMetricsRequest(metrics []*MetricRequest) error {
 	for _, m := range metrics {
 		if err := m.RequiredValue(); err != nil {

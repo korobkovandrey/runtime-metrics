@@ -9,11 +9,14 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// AllFinder is an interface for finding all metrics
+//
 //go:generate mockgen -source=index.go -destination=mocks/mock_allfinder.go -package=mocks
 type AllFinder interface {
 	FindAll(context.Context) ([]*model.Metric, error)
 }
 
+// NewIndexHandler creates a new index handler
 func NewIndexHandler(s AllFinder) (http.HandlerFunc, error) {
 	tpl, err := template.ParseFiles("./web/template/index.html")
 	if err != nil {

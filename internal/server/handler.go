@@ -1,3 +1,4 @@
+// Package server provides a handler for the HTTP server.
 package server
 
 import (
@@ -19,15 +20,18 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// Handler is a handler for the HTTP server.
 type Handler struct {
 	chi.Router
 	closers []func() error
 }
 
+// NewHandler returns a new Handler.
 func NewHandler() *Handler {
 	return &Handler{Router: chi.NewRouter()}
 }
 
+// Configure configures the handler.
 func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) error {
 	h.Use(mcompress.GzipCompressed(l), msign.Signer([]byte(cfg.Key)), mlogger.RequestLogger(l))
 	if cfg.Pprof {
@@ -78,6 +82,7 @@ func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.
 	return nil
 }
 
+// Close closes the handler.
 func (h *Handler) Close() error {
 	var errs []error
 	for i := range h.closers {
@@ -88,6 +93,7 @@ func (h *Handler) Close() error {
 	return errors.Join(errs...)
 }
 
+// setIndexRoute sets the index route.
 func (h *Handler) setIndexRoute(s handlers.AllFinder) error {
 	indexHandler, err := handlers.NewIndexHandler(s)
 	if err != nil {
@@ -97,6 +103,7 @@ func (h *Handler) setIndexRoute(s handlers.AllFinder) error {
 	return nil
 }
 
+// setPingRoute sets the ping route.
 func (h *Handler) setPingRoute(s handlers.Pinger) {
 	var pingHandler http.HandlerFunc
 	if s == nil {
@@ -109,6 +116,7 @@ func (h *Handler) setPingRoute(s handlers.Pinger) {
 	h.Get("/ping", pingHandler)
 }
 
+// setUpdateRoutes sets the update routes.
 func (h *Handler) setUpdateRoutes(s handlers.Updater) {
 	h.Route("/update", func(r chi.Router) {
 		r.Post("/", handlers.NewUpdateJSONHandler(s))
@@ -125,10 +133,12 @@ func (h *Handler) setUpdateRoutes(s handlers.Updater) {
 	})
 }
 
+// setUpdatesRoute sets the updates route.
 func (h *Handler) setUpdatesRoute(s handlers.BatchUpdater) {
 	h.Post("/updates/", handlers.NewUpdatesHandler(s))
 }
 
+// setValueRoutes sets the value routes.
 func (h *Handler) setValueRoutes(s handlers.Finder) {
 	h.Route("/value", func(r chi.Router) {
 		r.Post("/", handlers.NewValueJSONHandler(s))

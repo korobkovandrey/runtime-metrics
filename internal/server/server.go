@@ -1,3 +1,4 @@
+// Package server contains the server logic.
 package server
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// ListenAndServe starts the HTTP server.
 func ListenAndServe(ctx context.Context, l *logging.ZapLogger,
 	addr string, shutdownTimeout time.Duration, handler http.Handler) error {
 	server := http.Server{

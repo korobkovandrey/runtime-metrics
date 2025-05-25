@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// postData sends data to the server.
 func (s *Sender) postData(ctx context.Context, url string, data any) error {
 	b, hash, err := s.makeBodyWithHash(data)
 	if err != nil {
@@ -47,6 +48,7 @@ func (s *Sender) postData(ctx context.Context, url string, data any) error {
 	return nil
 }
 
+// doRetry retries the request.
 func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Response, err error) {
 	for i := 0; ; i++ {
 		if err = ctx.Err(); err != nil {
@@ -73,6 +75,7 @@ func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Res
 	return resp, err
 }
 
+// makeBodyWithHash makes the body with hash.
 func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) {
 	if data == nil {
 		return nil, "", nil
@@ -84,6 +87,7 @@ func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err 
 	return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil
 }
 
+// makeGzipBuffer makes the gzip buffer.
 func makeGzipBuffer(data []byte) (io.Reader, error) {
 	if data == nil {
 		return http.NoBody, nil

@@ -9,11 +9,14 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
+// Finder is a finder for metrics.
+//
 //go:generate mockgen -source=valueuri.go -destination=mocks/mock_finder.go -package=mocks
 type Finder interface {
 	Find(context.Context, *model.MetricRequest) (*model.Metric, error)
 }
 
+// NewValueURIHandler returns a handler for the value URI.
 func NewValueURIHandler(s Finder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := r.PathValue("type")

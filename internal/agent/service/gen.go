@@ -11,11 +11,13 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 )
 
+// genResult is the result of generating metrics.
 type genResult struct {
 	m   *model.Metric
 	err error
 }
 
+// genGopsutilMetrics generates metrics using gopsutil.
 func genGopsutilMetrics(ctx context.Context) <-chan genResult {
 	out := make(chan genResult)
 	go func() {
@@ -41,6 +43,7 @@ func genGopsutilMetrics(ctx context.Context) <-chan genResult {
 	return out
 }
 
+// genPullMetrics generates metrics from runtime and adds metric with random value.
 func genPullMetrics() <-chan *model.Metric {
 	out := make(chan *model.Metric)
 	go func() {
@@ -53,6 +56,7 @@ func genPullMetrics() <-chan *model.Metric {
 	return out
 }
 
+// getRuntimeMetrics returns runtime metrics.
 func getRuntimeMetrics() (result map[string]float64) {
 	memStats := &runtime.MemStats{}
 	runtime.ReadMemStats(memStats)

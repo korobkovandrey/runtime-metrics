@@ -1,3 +1,4 @@
+// Package mcompress provides a middleware for compressing responses and decompressing requests.
 package mcompress
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
 
+// GzipCompressed returns a middleware that compresses responses and decompresses requests.
 func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

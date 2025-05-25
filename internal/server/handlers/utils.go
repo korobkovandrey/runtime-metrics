@@ -9,14 +9,17 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 )
 
+// RequestCtxWithLogMessage adds log message to request context
 func RequestCtxWithLogMessage(r *http.Request, msg string) {
 	*r = *r.WithContext(context.WithValue(r.Context(), mlogger.LogMessageKey, msg))
 }
 
+// RequestCtxWithLogMessageFromError adds log message to request context
 func RequestCtxWithLogMessageFromError(r *http.Request, err error) {
 	RequestCtxWithLogMessage(r, err.Error())
 }
 
+// responseMarshaled marshals data and writes it to response
 func responseMarshaled(data any, w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(data)
 	if err == nil {

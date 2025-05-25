@@ -1,3 +1,5 @@
+// Package main initializes and starts the server application.
+// It sets up logging, configures the server, and handles graceful shutdowns.
 package main
 
 import (
