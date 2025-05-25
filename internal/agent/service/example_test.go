@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/service"
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
 func Example() {
@@ -26,14 +27,20 @@ func Example() {
 	source.Commit(delta)
 
 	// Print a subset of collected metrics (example metrics, actual count may vary)
+	p := map[string]*model.Metric{}
 	for _, m := range metrics {
 		if m.ID == "Alloc" || m.ID == "TotalMemory" || m.ID == "PollCount" {
-			if m.MType == "gauge" {
-				fmt.Printf("Metric: %s, Type: %s, Value not nil: %v\n", m.ID, m.MType, m.Value != nil)
-			} else {
-				fmt.Printf("Metric: %s, Type: %s, Delta: %d\n", m.ID, m.MType, *m.Delta)
-			}
+			p[m.ID] = m
 		}
+	}
+	if _, ok := p["Alloc"]; ok {
+		fmt.Printf("Metric: %s, Type: %s, Value not nil: %v\n", p["Alloc"].ID, p["Alloc"].MType, p["Alloc"].Value != nil)
+	}
+	if _, ok := p["TotalMemory"]; ok {
+		fmt.Printf("Metric: %s, Type: %s, Value not nil: %v\n", p["TotalMemory"].ID, p["TotalMemory"].MType, p["Alloc"].Value != nil)
+	}
+	if _, ok := p["PollCount"]; ok {
+		fmt.Printf("Metric: %s, Type: %s, Delta: %d\n", p["PollCount"].ID, p["PollCount"].MType, *p["PollCount"].Delta)
 	}
 
 	// Get metrics again to check poll count after commit
@@ -78,14 +85,20 @@ func ExampleSource_Get() {
 
 	// Get metrics and poll count
 	metrics, delta := source.Get()
+	p := map[string]*model.Metric{}
 	for _, m := range metrics {
 		if m.ID == "HeapAlloc" || m.ID == "FreeMemory" || m.ID == "PollCount" {
-			if m.MType == "gauge" {
-				fmt.Printf("Metric: %s, Type: %s, Value not nil: %v\n", m.ID, m.MType, m.Value != nil)
-			} else {
-				fmt.Printf("Metric: %s, Type: %s, Delta: %d\n", m.ID, m.MType, *m.Delta)
-			}
+			p[m.ID] = m
 		}
+	}
+	if _, ok := p["HeapAlloc"]; ok {
+		fmt.Printf("Metric: %s, Type: %s, Value not nil: %v\n", p["HeapAlloc"].ID, p["HeapAlloc"].MType, p["HeapAlloc"].Value != nil)
+	}
+	if _, ok := p["FreeMemory"]; ok {
+		fmt.Printf("Metric: %s, Type: %s, Value not nil: %v\n", p["FreeMemory"].ID, p["FreeMemory"].MType, p["FreeMemory"].Value != nil)
+	}
+	if _, ok := p["PollCount"]; ok {
+		fmt.Printf("Metric: %s, Type: %s, Delta: %d\n", p["PollCount"].ID, p["PollCount"].MType, *p["PollCount"].Delta)
 	}
 	fmt.Printf("Poll count: %d\n", delta)
 	// Output:
