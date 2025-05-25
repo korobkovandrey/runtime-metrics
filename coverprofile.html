@@ -63,9 +63,9 @@
 				
 				<option value="file3">github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go (79.2%)</option>
 				
-				<option value="file4">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go (0.0%)</option>
+				<option value="file4">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go (62.3%)</option>
 				
-				<option value="file5">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go (0.0%)</option>
+				<option value="file5">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go (88.0%)</option>
 				
 				<option value="file6">github.com/korobkovandrey/runtime-metrics/internal/agent/service/gen.go (84.6%)</option>
 				
@@ -93,15 +93,15 @@
 				
 				<option value="file18">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/valueuri.go (88.0%)</option>
 				
-				<option value="file19">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress/mcompress.go (79.2%)</option>
+				<option value="file19">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress/mcompress.go (80.0%)</option>
 				
 				<option value="file20">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger/mlogger.go (0.0%)</option>
 				
-				<option value="file21">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go (89.7%)</option>
+				<option value="file21">github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go (96.6%)</option>
 				
 				<option value="file22">github.com/korobkovandrey/runtime-metrics/internal/server/repository/filestorage.go (0.0%)</option>
 				
-				<option value="file23">github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go (65.3%)</option>
+				<option value="file23">github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go (81.9%)</option>
 				
 				<option value="file24">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/methods.go (0.0%)</option>
 				
@@ -411,46 +411,46 @@ import (
 )
 
 // postData sends data to the server.
-func (s *Sender) postData(ctx context.Context, url string, data any) error <span class="cov0" title="0">{
+func (s *Sender) postData(ctx context.Context, url string, data any) error <span class="cov10" title="8">{
         b, hash, err := s.makeBodyWithHash(data)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to make body with hash: %w", err)
         }</span>
-        <span class="cov0" title="0">postBody, err := makeGzipBuffer(b)
+        <span class="cov10" title="8">postBody, err := makeGzipBuffer(b)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to make gzip buffer: %w", err)
         }</span>
-        <span class="cov0" title="0">req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, postBody)
+        <span class="cov10" title="8">req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, postBody)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to create request: %w", err)
         }</span>
-        <span class="cov0" title="0">req.Header.Set("Content-Type", "application/json")
+        <span class="cov10" title="8">req.Header.Set("Content-Type", "application/json")
         req.Header.Set("Accept-Encoding", "gzip")
         req.Header.Set("Content-Encoding", "gzip")
-        if hash != "" </span><span class="cov0" title="0">{
+        if hash != "" </span><span class="cov10" title="8">{
                 req.Header.Set("HashSHA256", hash)
         }</span>
-        <span class="cov0" title="0">resp, err := s.doRetry(ctx, req)
+        <span class="cov10" title="8">resp, err := s.doRetry(ctx, req)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to send request: %w", err)
         }</span>
-        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+        <span class="cov10" title="8">defer func() </span><span class="cov10" title="8">{
                 if err := resp.Body.Close(); err != nil </span><span class="cov0" title="0">{
                         s.l.WarnCtx(ctx, "failed to close the resp body", zap.Error(err))
                 }</span>
         }()
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov10" title="8">return nil</span>
 }
 
 // doRetry retries the request.
-func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Response, err error) <span class="cov0" title="0">{
-        for i := 0; ; i++ </span><span class="cov0" title="0">{
+func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Response, err error) <span class="cov10" title="8">{
+        for i := 0; ; i++ </span><span class="cov10" title="8">{
                 if err = ctx.Err(); err != nil </span><span class="cov0" title="0">{
                         break</span>
                 }
-                <span class="cov0" title="0">resp, err = s.client.Do(req)
-                if err == nil </span><span class="cov0" title="0">{
-                        if resp.StatusCode &gt;= http.StatusOK || resp.StatusCode &lt; http.StatusInternalServerError </span><span class="cov0" title="0">{
+                <span class="cov10" title="8">resp, err = s.client.Do(req)
+                if err == nil </span><span class="cov10" title="8">{
+                        if resp.StatusCode &gt;= http.StatusOK || resp.StatusCode &lt; http.StatusInternalServerError </span><span class="cov10" title="8">{
                                 break</span>
                         }
                         <span class="cov0" title="0">if err = resp.Body.Close(); err != nil </span><span class="cov0" title="0">{
@@ -466,35 +466,35 @@ func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Res
                 <span class="cov0" title="0">s.l.WarnCtx(ctx, "failed to send request, will retry", zap.Int("attempt", i+1), zap.Error(err))
                 time.Sleep(s.cfg.RetryDelays[i])</span>
         }
-        <span class="cov0" title="0">return resp, err</span>
+        <span class="cov10" title="8">return resp, err</span>
 }
 
 // makeBodyWithHash makes the body with hash.
-func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) <span class="cov0" title="0">{
+func (s *Sender) makeBodyWithHash(data any) (dataBytes []byte, hash string, err error) <span class="cov10" title="8">{
         if data == nil </span><span class="cov0" title="0">{
                 return nil, "", nil
         }</span>
-        <span class="cov0" title="0">dataBytes, err = json.Marshal(data)
+        <span class="cov10" title="8">dataBytes, err = json.Marshal(data)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, "", fmt.Errorf("failed to marshal data: %w", err)
         }</span>
-        <span class="cov0" title="0">return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil</span>
+        <span class="cov10" title="8">return dataBytes, sign.MakeToString(dataBytes, s.cfg.Key), nil</span>
 }
 
 // makeGzipBuffer makes the gzip buffer.
-func makeGzipBuffer(data []byte) (io.Reader, error) <span class="cov0" title="0">{
+func makeGzipBuffer(data []byte) (io.Reader, error) <span class="cov10" title="8">{
         if data == nil </span><span class="cov0" title="0">{
                 return http.NoBody, nil
         }</span>
-        <span class="cov0" title="0">buf := bytes.NewBuffer(nil)
+        <span class="cov10" title="8">buf := bytes.NewBuffer(nil)
         gz := gzip.NewWriter(buf)
         if _, err := gz.Write(data); err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to gzip data: %w", err)
         }</span>
-        <span class="cov0" title="0">if err := gz.Close(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov10" title="8">if err := gz.Close(); err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to close gzip writer: %w", err)
         }</span>
-        <span class="cov0" title="0">return buf, nil</span>
+        <span class="cov10" title="8">return buf, nil</span>
 }
 </pre>
 		
@@ -530,26 +530,26 @@ type Sender struct {
 }
 
 // New creates a new sender.
-func New(cfg *Config, l *logging.ZapLogger) *Sender <span class="cov0" title="0">{
+func New(cfg *Config, l *logging.ZapLogger) *Sender <span class="cov7" title="4">{
         return &amp;Sender{cfg: cfg, l: l, client: &amp;http.Client{
                 Timeout: cfg.Timeout,
         }}
 }</span>
 
 // SendMetric sends a metric to the server.
-func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error <span class="cov0" title="0">{
+func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error <span class="cov10" title="6">{
         if err := s.postData(ctx, s.cfg.UpdateURL, m); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to send metric: %w", err)
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov10" title="6">return nil</span>
 }
 
 // SendBatchMetrics sends a batch of metrics to the server.
-func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error <span class="cov0" title="0">{
+func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error <span class="cov4" title="2">{
         if err := s.postData(ctx, s.cfg.UpdatesURL, ms); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to send metric: %w", err)
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov4" title="2">return nil</span>
 }
 
 // JobResult contains the result of a job.
@@ -559,34 +559,34 @@ type JobResult struct {
 }
 
 // SendPoolMetrics sends metrics to the server in parallel.
-func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) &lt;-chan *JobResult <span class="cov0" title="0">{
+func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) &lt;-chan *JobResult <span class="cov4" title="2">{
         jobs := make(chan *model.Metric, len(ms))
         results := make(chan *JobResult, len(ms))
         var wg sync.WaitGroup
         wg.Add(numWorkers)
-        for i := 0; i &lt; numWorkers; i++ </span><span class="cov0" title="0">{
-                go func() </span><span class="cov0" title="0">{
+        for i := 0; i &lt; numWorkers; i++ </span><span class="cov7" title="4">{
+                go func() </span><span class="cov7" title="4">{
                         defer wg.Done()
-                        for j := range jobs </span><span class="cov0" title="0">{
+                        for j := range jobs </span><span class="cov7" title="4">{
                                 if ctx.Err() != nil </span><span class="cov0" title="0">{
                                         break</span>
                                 }
-                                <span class="cov0" title="0">results &lt;- &amp;JobResult{
+                                <span class="cov7" title="4">results &lt;- &amp;JobResult{
                                         Metric: j,
                                         Err:    s.SendMetric(ctx, j),
                                 }</span>
                         }
                 }()
         }
-        <span class="cov0" title="0">for _, m := range ms </span><span class="cov0" title="0">{
+        <span class="cov4" title="2">for _, m := range ms </span><span class="cov7" title="4">{
                 jobs &lt;- m
         }</span>
-        <span class="cov0" title="0">close(jobs)
-        go func() </span><span class="cov0" title="0">{
+        <span class="cov4" title="2">close(jobs)
+        go func() </span><span class="cov4" title="2">{
                 wg.Wait()
                 close(results)
         }</span>()
-        <span class="cov0" title="0">return results</span>
+        <span class="cov4" title="2">return results</span>
 }
 </pre>
 		
@@ -610,46 +610,46 @@ type genResult struct {
 }
 
 // genGopsutilMetrics generates metrics using gopsutil.
-func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="cov3" title="3">{
+func genGopsutilMetrics(ctx context.Context) &lt;-chan genResult <span class="cov4" title="7">{
         out := make(chan genResult)
-        go func() </span><span class="cov3" title="3">{
+        go func() </span><span class="cov4" title="7">{
                 defer close(out)
                 v, err := mem.VirtualMemoryWithContext(ctx)
                 if err != nil </span><span class="cov0" title="0">{
                         out &lt;- genResult{err: err}
                         return
                 }</span>
-                <span class="cov3" title="3">out &lt;- genResult{m: model.NewMetricGauge("TotalMemory", float64(v.Total))}
+                <span class="cov4" title="7">out &lt;- genResult{m: model.NewMetricGauge("TotalMemory", float64(v.Total))}
                 out &lt;- genResult{m: model.NewMetricGauge("FreeMemory", float64(v.Free))}
                 pcts, err := cpu.PercentWithContext(ctx, 0, false)
                 if err != nil </span><span class="cov0" title="0">{
                         out &lt;- genResult{err: err}
                         return
                 }</span>
-                <span class="cov3" title="3">for i, pct := range pcts </span><span class="cov3" title="3">{
+                <span class="cov4" title="7">for i, pct := range pcts </span><span class="cov4" title="7">{
                         out &lt;- genResult{
                                 m: model.NewMetricGauge("CPUutilization"+strconv.Itoa(i+1), pct),
                         }
                 }</span>
         }()
-        <span class="cov3" title="3">return out</span>
+        <span class="cov4" title="7">return out</span>
 }
 
 // genPullMetrics generates metrics from runtime and adds metric with random value.
-func genPullMetrics() &lt;-chan *model.Metric <span class="cov3" title="3">{
+func genPullMetrics() &lt;-chan *model.Metric <span class="cov4" title="7">{
         out := make(chan *model.Metric)
-        go func() </span><span class="cov3" title="3">{
+        go func() </span><span class="cov4" title="7">{
                 defer close(out)
-                for k, v := range getRuntimeMetrics() </span><span class="cov10" title="81">{
+                for k, v := range getRuntimeMetrics() </span><span class="cov10" title="189">{
                         out &lt;- model.NewMetricGauge(k, v)
                 }</span>
-                <span class="cov3" title="3">out &lt;- model.NewMetricGauge("RandomValue", rand.Float64())</span> //nolint:gosec // ignore
+                <span class="cov4" title="7">out &lt;- model.NewMetricGauge("RandomValue", rand.Float64())</span> //nolint:gosec // ignore
         }()
-        <span class="cov3" title="3">return out</span>
+        <span class="cov4" title="7">return out</span>
 }
 
 // getRuntimeMetrics returns runtime metrics.
-func getRuntimeMetrics() (result map[string]float64) <span class="cov3" title="4">{
+func getRuntimeMetrics() (result map[string]float64) <span class="cov4" title="8">{
         memStats := &amp;runtime.MemStats{}
         runtime.ReadMemStats(memStats)
         return map[string]float64{
@@ -702,66 +702,66 @@ type Source struct {
 }
 
 // NewSource returns a new instance of Source
-func NewSource() *Source <span class="cov4" title="4">{
+func NewSource() *Source <span class="cov4" title="8">{
         return &amp;Source{
                 pollCount: model.NewMetricCounter("PollCount", 0),
         }
 }</span>
 
 // Collect collects metrics
-func (s *Source) Collect(ctx context.Context) error <span class="cov2" title="2">{
+func (s *Source) Collect(ctx context.Context) error <span class="cov3" title="6">{
         finalCh := make(chan *model.Metric)
         g := new(errgroup.Group)
-        g.Go(func() error </span><span class="cov2" title="2">{
-                for m := range genPullMetrics() </span><span class="cov9" title="56">{
+        g.Go(func() error </span><span class="cov3" title="6">{
+                for m := range genPullMetrics() </span><span class="cov9" title="168">{
                         finalCh &lt;- m
                 }</span>
-                <span class="cov2" title="2">return nil</span>
+                <span class="cov3" title="6">return nil</span>
         })
-        <span class="cov2" title="2">g.Go(func() error </span><span class="cov2" title="2">{
-                for m := range genGopsutilMetrics(ctx) </span><span class="cov4" title="6">{
+        <span class="cov3" title="6">g.Go(func() error </span><span class="cov3" title="6">{
+                for m := range genGopsutilMetrics(ctx) </span><span class="cov5" title="18">{
                         if m.err != nil </span><span class="cov0" title="0">{
                                 return m.err
                         }</span>
-                        <span class="cov4" title="6">finalCh &lt;- m.m</span>
+                        <span class="cov5" title="18">finalCh &lt;- m.m</span>
                 }
-                <span class="cov2" title="2">return nil</span>
+                <span class="cov3" title="6">return nil</span>
         })
-        <span class="cov2" title="2">doneCh := make(chan struct{})
-        go func() </span><span class="cov2" title="2">{
+        <span class="cov3" title="6">doneCh := make(chan struct{})
+        go func() </span><span class="cov3" title="6">{
                 defer close(doneCh)
                 s.mu.RLock()
                 data := make([]*model.Metric, 0, len(s.data))
                 s.mu.RUnlock()
-                for m := range finalCh </span><span class="cov10" title="62">{
+                for m := range finalCh </span><span class="cov9" title="186">{
                         data = append(data, m)
                 }</span>
-                <span class="cov2" title="2">s.mu.Lock()
+                <span class="cov3" title="6">s.mu.Lock()
                 defer s.mu.Unlock()
                 s.data = data
                 *s.pollCount.Delta++</span>
         }()
-        <span class="cov2" title="2">err := g.Wait()
+        <span class="cov3" title="6">err := g.Wait()
         close(finalCh)
         &lt;-doneCh
         return err</span>
 }
 
 // Get returns metrics
-func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov2" title="2">{
+func (s *Source) Get() (data []*model.Metric, delta int64) <span class="cov4" title="8">{
         s.mu.RLock()
         defer s.mu.RUnlock()
         data = make([]*model.Metric, len(s.data)+1)
-        for i, m := range s.data </span><span class="cov8" title="32">{
+        for i, m := range s.data </span><span class="cov10" title="218">{
                 data[i] = m.Clone()
         }</span>
-        <span class="cov2" title="2">data[len(data)-1] = s.pollCount.Clone()
+        <span class="cov4" title="8">data[len(data)-1] = s.pollCount.Clone()
         delta = *s.pollCount.Delta
         return data, delta</span>
 }
 
 // Commit commits metrics
-func (s *Source) Commit(delta int64) <span class="cov2" title="2">{
+func (s *Source) Commit(delta int64) <span class="cov3" title="4">{
         s.mu.Lock()
         defer s.mu.Unlock()
         *s.pollCount.Delta -= delta
@@ -1529,39 +1529,40 @@ import (
 )
 
 // GzipCompressed returns a middleware that compresses responses and decompresses requests.
-func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler <span class="cov10" title="10">{
-        return func(h http.Handler) http.Handler </span><span class="cov10" title="10">{
-                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="10">{
+func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler <span class="cov10" title="13">{
+        return func(h http.Handler) http.Handler </span><span class="cov10" title="13">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="13">{
                         ow := w
                         acceptEncoding := r.Header.Get("Accept-Encoding")
                         supportsGzip := strings.Contains(acceptEncoding, "gzip")
-                        if supportsGzip </span><span class="cov8" title="6">{
+                        if supportsGzip </span><span class="cov8" title="8">{
                                 cw := compress.NewCompressWriter(w)
                                 ow = cw
-                                defer func(cw *compress.Writer) </span><span class="cov8" title="6">{
+                                defer func(cw *compress.Writer) </span><span class="cov8" title="8">{
                                         if err := cw.Close(); err != nil </span><span class="cov0" title="0">{
                                                 l.ErrorCtx(r.Context(), fmt.Errorf("failed to close compress writer: %w", err).Error())
                                         }</span>
                                 }(cw)
                         }
 
-                        <span class="cov10" title="10">contentEncoding := r.Header.Get("Content-Encoding")
+                        <span class="cov10" title="13">contentEncoding := r.Header.Get("Content-Encoding")
                         sendsGzip := strings.Contains(contentEncoding, "gzip")
-                        if sendsGzip </span><span class="cov8" title="7">{
+                        if sendsGzip </span><span class="cov8" title="8">{
                                 cr, err := compress.NewCompressReader(r.Body)
                                 if err != nil </span><span class="cov0" title="0">{
                                         l.ErrorCtx(r.Context(), fmt.Errorf("failed to create compress reader: %w", err).Error())
                                         w.WriteHeader(http.StatusInternalServerError)
                                         return
                                 }</span>
-                                <span class="cov8" title="7">r.Body = cr
-                                defer func(cr *compress.Reader) </span><span class="cov8" title="7">{
+                                <span class="cov8" title="8">r.Body = cr
+                                r.Header.Del("Content-Encoding")
+                                defer func(cr *compress.Reader) </span><span class="cov8" title="8">{
                                         if err := cr.Close(); err != nil </span><span class="cov0" title="0">{
                                                 l.ErrorCtx(r.Context(), fmt.Errorf("failed to close compress reader: %w", err).Error())
                                         }</span>
                                 }(cr)
                         }
-                        <span class="cov10" title="10">h.ServeHTTP(ow, r)</span>
+                        <span class="cov10" title="13">h.ServeHTTP(ow, r)</span>
                 })
         }
 }
@@ -1667,13 +1668,13 @@ type errorReadCloser struct {
 }
 
 // newErrorReadCloser returns an io.ReadCloser that returns an error.
-func newErrorReadCloser(r io.ReadCloser, err error) *errorReadCloser <span class="cov1" title="1">{
+func newErrorReadCloser(r io.ReadCloser, err error) *errorReadCloser <span class="cov4" title="2">{
         return &amp;errorReadCloser{r, err}
 }</span>
 
 // Read returns an error if the errorReadCloser has an error.
-func (r *errorReadCloser) Read(p []byte) (int, error) <span class="cov1" title="1">{
-        if r.err != nil </span><span class="cov1" title="1">{
+func (r *errorReadCloser) Read(p []byte) (int, error) <span class="cov4" title="2">{
+        if r.err != nil </span><span class="cov4" title="2">{
                 return 0, r.err
         }</span>
         <span class="cov0" title="0">return r.ReadCloser.Read(p)</span>
@@ -1688,7 +1689,7 @@ type signWriter struct {
 }
 
 // newSignWriter returns a new signWriter.
-func newSignWriter(w http.ResponseWriter, key []byte) *signWriter <span class="cov10" title="2">{
+func newSignWriter(w http.ResponseWriter, key []byte) *signWriter <span class="cov9" title="6">{
         return &amp;signWriter{
                 ResponseWriter: w,
                 buf:            &amp;bytes.Buffer{},
@@ -1697,47 +1698,47 @@ func newSignWriter(w http.ResponseWriter, key []byte) *signWriter <span class="c
 }</span>
 
 // Write writes the data to the buffer.
-func (w *signWriter) Write(data []byte) (n int, err error) <span class="cov10" title="2">{
+func (w *signWriter) Write(data []byte) (n int, err error) <span class="cov9" title="6">{
         return w.buf.Write(data)
 }</span>
 
 // WriteHeader sets the status code.
-func (w *signWriter) WriteHeader(statusCode int) <span class="cov10" title="2">{
+func (w *signWriter) WriteHeader(statusCode int) <span class="cov9" title="6">{
         w.statusCode = statusCode
 }</span>
 
 // close signs the response and writes it to the response writer.
-func (w *signWriter) close() <span class="cov10" title="2">{
+func (w *signWriter) close() <span class="cov9" title="6">{
         data := w.buf.Bytes()
-        if hash := sign.MakeToString(data, w.key); hash != "" </span><span class="cov10" title="2">{
+        if hash := sign.MakeToString(data, w.key); hash != "" </span><span class="cov9" title="6">{
                 w.ResponseWriter.Header().Set("HashSHA256", hash)
         }</span>
-        <span class="cov10" title="2">w.ResponseWriter.WriteHeader(w.statusCode)
+        <span class="cov9" title="6">w.ResponseWriter.WriteHeader(w.statusCode)
         _, _ = w.ResponseWriter.Write(data)</span>
 }
 
 // Signer returns a middleware that signs the request and response.
-func Signer(key []byte) func(h http.Handler) http.Handler <span class="cov10" title="2">{
-        return func(h http.Handler) http.Handler </span><span class="cov10" title="2">{
-                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
-                        if len(key) == 0 </span><span class="cov0" title="0">{
+func Signer(key []byte) func(h http.Handler) http.Handler <span class="cov10" title="7">{
+        return func(h http.Handler) http.Handler </span><span class="cov10" title="7">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="7">{
+                        if len(key) == 0 </span><span class="cov1" title="1">{
                                 h.ServeHTTP(w, r)
                                 return
                         }</span>
-                        <span class="cov10" title="2">var body []byte
+                        <span class="cov9" title="6">var body []byte
                         bh, err := sign.DecodeString(r.Header.Get("HashSHA256"))
-                        if err == nil </span><span class="cov10" title="2">{
+                        if err == nil </span><span class="cov8" title="5">{
                                 body, err = io.ReadAll(r.Body)
                                 if err == nil &amp;&amp; !sign.Validate(body, key, bh) </span><span class="cov1" title="1">{
                                         err = errors.New("invalid signature")
                                 }</span>
                         }
-                        <span class="cov10" title="2">if err != nil </span><span class="cov1" title="1">{
+                        <span class="cov9" title="6">if err != nil </span><span class="cov4" title="2">{
                                 r.Body = newErrorReadCloser(r.Body, err)
-                        }</span> else<span class="cov1" title="1"> {
+                        }</span> else<span class="cov7" title="4"> {
                                 r.Body = io.NopCloser(bytes.NewBuffer(body))
                         }</span>
-                        <span class="cov10" title="2">sw := newSignWriter(w, key)
+                        <span class="cov9" title="6">sw := newSignWriter(w, key)
                         defer sw.close()
                         h.ServeHTTP(sw, r)</span>
                 })
@@ -1968,7 +1969,7 @@ type MemStorage struct {
 }
 
 // NewMemStorage creates a new MemStorage.
-func NewMemStorage() *MemStorage <span class="cov1" title="1">{
+func NewMemStorage() *MemStorage <span class="cov6" title="7">{
         return &amp;MemStorage{
                 mux:   &amp;sync.Mutex{},
                 index: map[string]map[string]int{},
@@ -1977,32 +1978,32 @@ func NewMemStorage() *MemStorage <span class="cov1" title="1">{
 }</span>
 
 // unsafeIndex returns the index of the metric in the data slice.
-func (ms *MemStorage) unsafeIndex(mr *model.MetricRequest) (int, bool) <span class="cov10" title="8">{
+func (ms *MemStorage) unsafeIndex(mr *model.MetricRequest) (int, bool) <span class="cov10" title="24">{
         i, ok := ms.index[mr.MType][mr.ID]
         return i, ok &amp;&amp; i &lt; len(ms.data)
 }</span>
 
 // Find returns the metric with the given ID.
-func (ms *MemStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
+func (ms *MemStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="5">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
-        if i, ok := ms.unsafeIndex(mr); ok </span><span class="cov4" title="2">{
+        if i, ok := ms.unsafeIndex(mr); ok </span><span class="cov4" title="4">{
                 return ms.data[i].Clone(), nil
         }</span>
         <span class="cov1" title="1">return nil, model.ErrMetricNotFound</span>
 }
 
 // unsafeFindAll returns all metrics.
-func (ms *MemStorage) unsafeFindAll() []*model.Metric <span class="cov4" title="2">{
+func (ms *MemStorage) unsafeFindAll() []*model.Metric <span class="cov4" title="3">{
         data := make([]*model.Metric, len(ms.data))
-        for i := range ms.data </span><span class="cov4" title="2">{
+        for i := range ms.data </span><span class="cov4" title="4">{
                 data[i] = ms.data[i].Clone()
         }</span>
-        <span class="cov4" title="2">return data</span>
+        <span class="cov4" title="3">return data</span>
 }
 
 // FindAll returns all metrics.
-func (ms *MemStorage) FindAll(ctx context.Context) ([]*model.Metric, error) <span class="cov4" title="2">{
+func (ms *MemStorage) FindAll(ctx context.Context) ([]*model.Metric, error) <span class="cov4" title="3">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeFindAll(), nil
@@ -2022,57 +2023,57 @@ func (ms *MemStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest)
 }
 
 // unsafeCreate creates a new metric.
-func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
+func (ms *MemStorage) unsafeCreate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov7" title="10">{
         if _, ok := ms.unsafeIndex(mr); ok </span><span class="cov1" title="1">{
                 return nil, model.ErrMetricAlreadyExist
         }</span>
-        <span class="cov1" title="1">if _, ok := ms.index[mr.MType]; !ok </span><span class="cov1" title="1">{
+        <span class="cov7" title="9">if _, ok := ms.index[mr.MType]; !ok </span><span class="cov7" title="9">{
                 ms.index[mr.MType] = map[string]int{}
         }</span>
-        <span class="cov1" title="1">ms.index[mr.MType][mr.ID] = len(ms.data)
+        <span class="cov7" title="9">ms.index[mr.MType][mr.ID] = len(ms.data)
         ms.data = append(ms.data, mr.Clone())
         return ms.data[ms.index[mr.MType][mr.ID]].Clone(), nil</span>
 }
 
 // Create creates a new metric.
-func (ms *MemStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
+func (ms *MemStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov6" title="6">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeCreate(mr)
 }</span>
 
 // unsafeUpdate updates the metric.
-func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
+func (ms *MemStorage) unsafeUpdate(mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="5">{
         i, ok := ms.unsafeIndex(mr)
         if !ok </span><span class="cov1" title="1">{
                 return nil, model.ErrMetricNotFound
         }</span>
-        <span class="cov4" title="2">if mr.Value != nil </span><span class="cov1" title="1">{
+        <span class="cov4" title="4">if mr.Value != nil </span><span class="cov4" title="3">{
                 if ms.data[i].Value == nil </span><span class="cov0" title="0">{
                         ms.data[i].Value = new(float64)
                 }</span>
-                <span class="cov1" title="1">*ms.data[i].Value = *mr.Value</span>
+                <span class="cov4" title="3">*ms.data[i].Value = *mr.Value</span>
         }
-        <span class="cov4" title="2">if mr.Delta != nil </span><span class="cov1" title="1">{
+        <span class="cov4" title="4">if mr.Delta != nil </span><span class="cov1" title="1">{
                 if ms.data[i].Delta == nil </span><span class="cov0" title="0">{
                         ms.data[i].Delta = new(int64)
                 }</span>
                 <span class="cov1" title="1">*ms.data[i].Delta = *mr.Delta</span>
         }
-        <span class="cov4" title="2">return ms.data[i].Clone(), nil</span>
+        <span class="cov4" title="4">return ms.data[i].Clone(), nil</span>
 }
 
 // Update updates the metric.
-func (ms *MemStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
+func (ms *MemStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="5">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeUpdate(mr)
 }</span>
 
 // unsafeCreateOrUpdateBatch creates or updates the metrics.
-func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov2" title="2">{
         res := make([]*model.Metric, len(mrs))
-        for i, mr := range mrs </span><span class="cov0" title="0">{
+        for i, mr := range mrs </span><span class="cov4" title="4">{
                 var m *model.Metric
                 var err error
                 if _, ok := ms.unsafeIndex(mr); ok </span><span class="cov0" title="0">{
@@ -2080,35 +2081,35 @@ func (ms *MemStorage) unsafeCreateOrUpdateBatch(mrs []*model.MetricRequest) ([]*
                         if err != nil </span><span class="cov0" title="0">{
                                 return nil, fmt.Errorf("failed to update metric: %w", err)
                         }</span>
-                } else<span class="cov0" title="0"> {
+                } else<span class="cov4" title="4"> {
                         m, err = ms.unsafeCreate(mr)
                         if err != nil </span><span class="cov0" title="0">{
                                 return nil, fmt.Errorf("failed to create metric: %w", err)
                         }</span>
                 }
-                <span class="cov0" title="0">res[i] = m</span>
+                <span class="cov4" title="4">res[i] = m</span>
         }
-        <span class="cov0" title="0">return res, nil</span>
+        <span class="cov2" title="2">return res, nil</span>
 }
 
 // CreateOrUpdateBatch creates or updates the metrics.
-func (ms *MemStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+func (ms *MemStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov2" title="2">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         return ms.unsafeCreateOrUpdateBatch(mrs)
 }</span>
 
 // fill fills the storage with the given metrics.
-func (ms *MemStorage) fill(data []*model.Metric) <span class="cov7" title="4">{
+func (ms *MemStorage) fill(data []*model.Metric) <span class="cov4" title="4">{
         ms.mux.Lock()
         defer ms.mux.Unlock()
         ms.index = map[string]map[string]int{}
         ms.data = make([]*model.Metric, len(data))
-        for i := range data </span><span class="cov7" title="4">{
-                if _, ok := ms.index[data[i].MType]; !ok </span><span class="cov7" title="4">{
+        for i := range data </span><span class="cov4" title="4">{
+                if _, ok := ms.index[data[i].MType]; !ok </span><span class="cov4" title="4">{
                         ms.index[data[i].MType] = map[string]int{}
                 }</span>
-                <span class="cov7" title="4">ms.index[data[i].MType][data[i].ID] = i
+                <span class="cov4" title="4">ms.index[data[i].MType][data[i].ID] = i
                 ms.data[i] = data[i].Clone()</span>
         }
 }
@@ -2760,7 +2761,7 @@ type Writer struct {
 }
 
 // NewCompressWriter returns a new Writer that can be used to compress data.
-func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov10" title="11">{
+func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov10" title="14">{
         return &amp;Writer{
                 w:            w,
                 Compressible: false,
@@ -2768,21 +2769,21 @@ func NewCompressWriter(w http.ResponseWriter) *Writer <span class="cov10" title=
 }</span>
 
 // Header returns the http.Header of the underlying http.ResponseWriter.
-func (w *Writer) Header() http.Header <span class="cov7" title="5">{
+func (w *Writer) Header() http.Header <span class="cov9" title="11">{
         return w.w.Header()
 }</span>
 
 // Write writes data to the underlying http.ResponseWriter.
-func (w *Writer) Write(p []byte) (int, error) <span class="cov6" title="4">{
-        if w.Compressible </span><span class="cov5" title="3">{
-                if w.zw == nil </span><span class="cov5" title="3">{
+func (w *Writer) Write(p []byte) (int, error) <span class="cov7" title="7">{
+        if w.Compressible </span><span class="cov7" title="6">{
+                if w.zw == nil </span><span class="cov7" title="6">{
                         w.zw = gzip.NewWriter(w.w)
                 }</span>
-                <span class="cov5" title="3">n, err := w.zw.Write(p)
+                <span class="cov7" title="6">n, err := w.zw.Write(p)
                 if err != nil </span><span class="cov1" title="1">{
                         return n, fmt.Errorf("compress[Writer].Write: %w", err)
                 }</span>
-                <span class="cov3" title="2">return n, nil</span>
+                <span class="cov6" title="5">return n, nil</span>
         }
         <span class="cov1" title="1">n, err := w.w.Write(p)
         if err != nil </span><span class="cov0" title="0">{
@@ -2792,26 +2793,26 @@ func (w *Writer) Write(p []byte) (int, error) <span class="cov6" title="4">{
 }
 
 // WriteHeader writes the http.Header to the underlying http.ResponseWriter.
-func (w *Writer) WriteHeader(statusCode int) <span class="cov6" title="4">{
+func (w *Writer) WriteHeader(statusCode int) <span class="cov7" title="7">{
         contentType := w.Header().Get("Content-Type")
         isHTML := strings.Contains(contentType, "text/html")
         isJSON := strings.Contains(contentType, "application/json")
-        if statusCode &lt; 300 &amp;&amp; (isHTML || isJSON) </span><span class="cov3" title="2">{
+        if statusCode &lt; 300 &amp;&amp; (isHTML || isJSON) </span><span class="cov6" title="5">{
                 w.w.Header().Set("Content-Encoding", "gzip")
                 w.w.Header().Del("Content-Length")
                 w.Compressible = true
         }</span>
-        <span class="cov6" title="4">w.w.WriteHeader(statusCode)</span>
+        <span class="cov7" title="7">w.w.WriteHeader(statusCode)</span>
 }
 
 // Close closes the underlying gzip.Writer.
-func (w *Writer) Close() error <span class="cov3" title="2">{
-        if w.zw != nil </span><span class="cov1" title="1">{
+func (w *Writer) Close() error <span class="cov6" title="5">{
+        if w.zw != nil </span><span class="cov5" title="4">{
                 if err := w.zw.Close(); err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("compress[Writer].Close: %w", err)
                 }</span>
         }
-        <span class="cov3" title="2">return nil</span>
+        <span class="cov6" title="5">return nil</span>
 }
 
 // Reader is a io.Reader that can be used to decompress data.
@@ -2821,35 +2822,35 @@ type Reader struct {
 }
 
 // NewCompressReader returns a new Reader that can be used to decompress data.
-func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov7" title="5">{
+func NewCompressReader(r io.ReadCloser) (*Reader, error) <span class="cov7" title="7">{
         zr, err := gzip.NewReader(r)
         if err != nil </span><span class="cov3" title="2">{
                 return nil, fmt.Errorf("NewCompressReader: %w", err)
         }</span>
-        <span class="cov5" title="3">return &amp;Reader{
+        <span class="cov6" title="5">return &amp;Reader{
                 r:  r,
                 zr: zr,
         }, nil</span>
 }
 
 // Read reads data from the underlying gzip.Reader.
-func (r *Reader) Read(p []byte) (int, error) <span class="cov3" title="2">{
+func (r *Reader) Read(p []byte) (int, error) <span class="cov5" title="4">{
         n, err := r.zr.Read(p)
         if err != nil &amp;&amp; !errors.Is(err, io.EOF) </span><span class="cov0" title="0">{
                 err = fmt.Errorf("compress[Reader].Read: %w", err)
         }</span>
-        <span class="cov3" title="2">return n, err</span>
+        <span class="cov5" title="4">return n, err</span>
 }
 
 // Close closes the underlying gzip.Reader.
-func (r *Reader) Close() error <span class="cov1" title="1">{
+func (r *Reader) Close() error <span class="cov4" title="3">{
         if err := r.r.Close(); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("compress[Reader].Close: %w", err)
         }</span>
-        <span class="cov1" title="1">if err := r.zr.Close(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov4" title="3">if err := r.zr.Close(); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("compress[Reader].Close: %w", err)
         }</span>
-        <span class="cov1" title="1">return nil</span>
+        <span class="cov4" title="3">return nil</span>
 }
 </pre>
 		
@@ -3065,36 +3066,36 @@ import (
 )
 
 // Make returns the HMAC-SHA256 hash of the given data and key.
-func Make(data, key []byte) []byte <span class="cov10" title="7">{
-        if len(data) == 0 || len(key) == 0 </span><span class="cov8" title="5">{
+func Make(data, key []byte) []byte <span class="cov10" title="10">{
+        if len(data) == 0 || len(key) == 0 </span><span class="cov7" title="5">{
                 return nil
         }</span>
-        <span class="cov4" title="2">h := hmac.New(sha256.New, key)
+        <span class="cov7" title="5">h := hmac.New(sha256.New, key)
         h.Write(data)
         return h.Sum(nil)</span>
 }
 
 // EncodeToString returns the hexadecimal encoding of the given data.
-func EncodeToString(data []byte) string <span class="cov8" title="5">{
+func EncodeToString(data []byte) string <span class="cov8" title="7">{
         return hex.EncodeToString(data)
 }</span>
 
 // DecodeString decodes the given hexadecimal string into a byte slice.
-func DecodeString(data string) ([]byte, error) <span class="cov6" title="3">{
+func DecodeString(data string) ([]byte, error) <span class="cov7" title="5">{
         return hex.DecodeString(data)
 }</span>
 
 // MakeToString returns the hexadecimal encoding of the HMAC-SHA256 hash of the given data and key.
-func MakeToString(data, key []byte) string <span class="cov6" title="3">{
+func MakeToString(data, key []byte) string <span class="cov5" title="3">{
         return EncodeToString(Make(data, key))
 }</span>
 
 // Validate checks if the given hash is valid for the given data and key.
-func Validate(data, key, hash []byte) bool <span class="cov8" title="5">{
-        if len(key) == 0 || len(hash) == 0 </span><span class="cov6" title="3">{
+func Validate(data, key, hash []byte) bool <span class="cov9" title="8">{
+        if len(key) == 0 || len(hash) == 0 </span><span class="cov5" title="3">{
                 return true
         }</span>
-        <span class="cov4" title="2">h := hmac.New(sha256.New, key)
+        <span class="cov7" title="5">h := hmac.New(sha256.New, key)
         h.Write(data)
         return hmac.Equal(hash, h.Sum(nil))</span>
 }

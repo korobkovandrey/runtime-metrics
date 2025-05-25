@@ -37,6 +37,7 @@ func GzipCompressed(l *logging.ZapLogger) func(h http.Handler) http.Handler {
 					return
 				}
 				r.Body = cr
+				r.Header.Del("Content-Encoding")
 				defer func(cr *compress.Reader) {
 					if err := cr.Close(); err != nil {
 						l.ErrorCtx(r.Context(), fmt.Errorf("failed to close compress reader: %w", err).Error())

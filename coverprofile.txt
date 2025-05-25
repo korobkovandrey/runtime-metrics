@@ -2,14 +2,14 @@ github.com/korobkovandrey/runtime-metrics/cmd/agent/main.go:24:						main					0.
 github.com/korobkovandrey/runtime-metrics/cmd/server/main.go:20:					main					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/agent.go:19:					Run					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:27:				NewConfig				79.2%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:20:				postData				0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:52:				doRetry					0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:79:				makeBodyWithHash			0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:91:				makeGzipBuffer				0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:33:				New					0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:40:				SendMetric				0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:48:				SendBatchMetrics			0.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:62:				SendPoolMetrics				0.0%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:20:				postData				76.2%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:52:				doRetry					41.2%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:79:				makeBodyWithHash			66.7%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:91:				makeGzipBuffer				66.7%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:33:				New					100.0%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:40:				SendMetric				66.7%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:48:				SendBatchMetrics			66.7%
+github.com/korobkovandrey/runtime-metrics/internal/agent/sender/sender.go:62:				SendPoolMetrics				94.4%
 github.com/korobkovandrey/runtime-metrics/internal/agent/service/gen.go:21:				genGopsutilMetrics			75.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/service/gen.go:47:				genPullMetrics				100.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/service/gen.go:60:				getRuntimeMetrics			100.0%
@@ -47,7 +47,7 @@ github.com/korobkovandrey/runtime-metrics/internal/server/handlers/utils.go:18:	
 github.com/korobkovandrey/runtime-metrics/internal/server/handlers/utils.go:23:				responseMarshaled			66.7%
 github.com/korobkovandrey/runtime-metrics/internal/server/handlers/valuejson.go:12:			NewValueJSONHandler			81.8%
 github.com/korobkovandrey/runtime-metrics/internal/server/handlers/valueuri.go:20:			NewValueURIHandler			88.0%
-github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress/mcompress.go:14:		GzipCompressed				79.2%
+github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress/mcompress.go:14:		GzipCompressed				80.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger/mlogger.go:27:		Write					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger/mlogger.go:37:		WriteHeader				0.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger/mlogger.go:49:		RequestLogger				0.0%
@@ -57,7 +57,7 @@ github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign
 github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go:50:			Write					100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go:55:			WriteHeader				100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go:60:			close					100.0%
-github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go:70:			Signer					88.2%
+github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign/msign.go:70:			Signer					100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/filestorage.go:32:			NewFileStorage				0.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/filestorage.go:41:			Create					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/filestorage.go:59:			Update					0.0%
@@ -76,8 +76,8 @@ github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:97:			Create					100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:104:			unsafeUpdate				83.3%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:125:			Update					100.0%
-github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:132:			unsafeCreateOrUpdateBatch		0.0%
-github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:154:			CreateOrUpdateBatch			0.0%
+github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:132:			unsafeCreateOrUpdateBatch		69.2%
+github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:154:			CreateOrUpdateBatch			100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go:161:			fill					100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/methods.go:14:		find					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/methods.go:27:		findAll					0.0%
@@ -136,4 +136,4 @@ github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:21:						EncodeToStri
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:26:						DecodeString				100.0%
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:31:						MakeToString				100.0%
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:36:						Validate				100.0%
-total:													(statements)				46.0%
+total:													(statements)				52.4%
