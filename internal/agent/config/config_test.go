@@ -1,7 +1,6 @@
 package config
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -11,20 +10,13 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	err := os.Setenv("ADDRESS", "test.host:1234")
-	require.NoError(t, err)
-	err = os.Setenv("POLL_INTERVAL", "3")
-	require.NoError(t, err)
-	err = os.Setenv("REPORT_INTERVAL", "11")
-	require.NoError(t, err)
-	err = os.Setenv("KEY", "test_KEY")
-	require.NoError(t, err)
-	err = os.Setenv("RATE_LIMIT", "15")
-	require.NoError(t, err)
-	err = os.Setenv("BATCHING", "true")
-	require.NoError(t, err)
-	err = os.Setenv("PPROF_ADDRESS", ":6066")
-	require.NoError(t, err)
+	t.Setenv("ADDRESS", "test.host:1234")
+	t.Setenv("POLL_INTERVAL", "3")
+	t.Setenv("REPORT_INTERVAL", "11")
+	t.Setenv("KEY", "test_KEY")
+	t.Setenv("RATE_LIMIT", "15")
+	t.Setenv("BATCHING", "true")
+	t.Setenv("PPROF_ADDRESS", ":6066")
 	cfg, err := NewConfig()
 	require.NoError(t, err)
 	assert.Equal(t, "test.host:1234", cfg.Addr)
