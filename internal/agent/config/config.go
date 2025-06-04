@@ -13,14 +13,14 @@ import (
 
 // Config is the agent config.
 type Config struct {
+	Sender         *sender.Config
 	Addr           string `env:"ADDRESS"`
+	Key            string `env:"KEY"`
+	PprofAddr      string `env:"PPROF_ADDRESS"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
-	Key            string `env:"KEY"`
 	RateLimit      int    `env:"RATE_LIMIT"`
 	Batching       bool   `env:"BATCHING"`
-	Sender         *sender.Config
-	PprofAddr      string `env:"PPROF_ADDRESS"`
 }
 
 // NewConfig returns the agent config.

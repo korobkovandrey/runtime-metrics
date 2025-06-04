@@ -24,6 +24,7 @@ func newErrorReadCloser(r io.ReadCloser, err error) *errorReadCloser {
 // Read returns an error if the errorReadCloser has an error.
 func (r *errorReadCloser) Read(p []byte) (int, error) {
 	if r.err != nil {
+		//nolint:wrapcheck // ignore
 		return 0, r.err
 	}
 	return r.ReadCloser.Read(p)
@@ -33,8 +34,8 @@ func (r *errorReadCloser) Read(p []byte) (int, error) {
 type signWriter struct {
 	http.ResponseWriter
 	buf        *bytes.Buffer
-	statusCode int
 	key        []byte
+	statusCode int
 }
 
 // newSignWriter returns a new signWriter.
@@ -48,6 +49,7 @@ func newSignWriter(w http.ResponseWriter, key []byte) *signWriter {
 
 // Write writes the data to the buffer.
 func (w *signWriter) Write(data []byte) (n int, err error) {
+	//nolint:wrapcheck // ignore
 	return w.buf.Write(data)
 }
 

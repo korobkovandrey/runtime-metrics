@@ -24,6 +24,7 @@ func EncodeToString(data []byte) string {
 
 // DecodeString decodes the given hexadecimal string into a byte slice.
 func DecodeString(data string) ([]byte, error) {
+	//nolint:wrapcheck // ignore
 	return hex.DecodeString(data)
 }
 

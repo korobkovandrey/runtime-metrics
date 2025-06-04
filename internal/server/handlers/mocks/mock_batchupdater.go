@@ -19,9 +19,9 @@ import (
 
 // MockBatchUpdater is a mock of BatchUpdater interface.
 type MockBatchUpdater struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockBatchUpdaterMockRecorder
-	isgomock struct{}
 }
 
 // MockBatchUpdaterMockRecorder is the mock recorder for MockBatchUpdater.

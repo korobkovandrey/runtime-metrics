@@ -13,12 +13,12 @@ import (
 	"go.uber.org/zap"
 )
 
-// float64Ptr creates a pointer to a float64
+// float64Ptr creates a pointer to a float64.
 func float64Ptr(f float64) *float64 {
 	return &f
 }
 
-// int64Ptr creates a pointer to an int64
+// int64Ptr creates a pointer to an int64.
 func int64Ptr(i int64) *int64 {
 	return &i
 }

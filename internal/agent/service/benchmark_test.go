@@ -67,6 +67,7 @@ func BenchmarkGenPullMetrics(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ch := genPullMetrics()
+		//nolint:revive // ignore
 		for range ch {
 			// Просто читаем канал до закрытия
 		}

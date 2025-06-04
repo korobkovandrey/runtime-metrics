@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"testing"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
@@ -24,12 +23,12 @@ func TestBatchUpdater_UpdateBatch(t *testing.T) {
 		model.NewMetricGauge("testNotExist", 22.5),
 		model.NewMetricGauge("testExist", 66.7),
 	}
-	var mrsR []*model.MetricRequest
+	mrsR := make([]*model.MetricRequest, len(want))
 	for i := range want {
-		mrsR = append(mrsR, &model.MetricRequest{Metric: want[i].Clone()})
+		mrsR[i] = &model.MetricRequest{Metric: want[i].Clone()}
 	}
 	r.EXPECT().CreateOrUpdateBatch(gomock.Any(), gomock.Eq(mrsR)).Return(want, nil)
-	got, err := NewBatchUpdater(r).UpdateBatch(context.TODO(), []*model.MetricRequest{
+	got, err := NewBatchUpdater(r).UpdateBatch(t.Context(), []*model.MetricRequest{
 		{Metric: model.NewMetricGauge("testNotExist", 12.3)},
 		{Metric: model.NewMetricCounter("testNotExist", 1)},
 		{Metric: model.NewMetricGauge("testNotExist", 22.5)},

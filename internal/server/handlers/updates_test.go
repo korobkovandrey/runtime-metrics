@@ -18,13 +18,13 @@ func TestNewUpdatesHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
+		mockSetup       func(*mocks.MockBatchUpdater)
 		name            string
 		json            string
-		mockSetup       func(*mocks.MockBatchUpdater)
-		wantCode        int
 		wantContentType string
 		wantJSON        string
 		containsStrings []string
+		wantCode        int
 	}{
 		{
 			name: "valid",

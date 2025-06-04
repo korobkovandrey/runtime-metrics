@@ -19,9 +19,9 @@ import (
 
 // MockAllFinder is a mock of AllFinder interface.
 type MockAllFinder struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockAllFinderMockRecorder
-	isgomock struct{}
 }
 
 // MockAllFinderMockRecorder is the mock recorder for MockAllFinder.

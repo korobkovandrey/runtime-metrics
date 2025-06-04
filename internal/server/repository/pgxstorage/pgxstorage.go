@@ -19,8 +19,8 @@ import (
 // Config is the PostgreSQL storage config.
 type Config struct {
 	DSN         string
-	PingTimeout time.Duration
 	RetryDelays []time.Duration
+	PingTimeout time.Duration
 }
 
 // PGXStorage is the PostgreSQL storage.

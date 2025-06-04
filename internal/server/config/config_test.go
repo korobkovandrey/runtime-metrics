@@ -1,7 +1,6 @@
 package config
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -10,20 +9,13 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	err := os.Setenv("ADDRESS", "test_ADDRESS")
-	require.NoError(t, err)
-	err = os.Setenv("FILE_STORAGE_PATH", "test_FILE_STORAGE_PATH")
-	require.NoError(t, err)
-	err = os.Setenv("DATABASE_DSN", "test_DATABASE_DSN")
-	require.NoError(t, err)
-	err = os.Setenv("RESTORE", "true")
-	require.NoError(t, err)
-	err = os.Setenv("STORE_INTERVAL", "5")
-	require.NoError(t, err)
-	err = os.Setenv("KEY", "test_KEY")
-	require.NoError(t, err)
-	err = os.Setenv("PPROF", "true")
-	require.NoError(t, err)
+	t.Setenv("ADDRESS", "test_ADDRESS")
+	t.Setenv("FILE_STORAGE_PATH", "test_FILE_STORAGE_PATH")
+	t.Setenv("DATABASE_DSN", "test_DATABASE_DSN")
+	t.Setenv("RESTORE", "true")
+	t.Setenv("STORE_INTERVAL", "5")
+	t.Setenv("KEY", "test_KEY")
+	t.Setenv("PPROF", "true")
 	cfg, err := NewConfig()
 	require.NoError(t, err)
 	assert.Equal(t, "test_ADDRESS", cfg.Addr)

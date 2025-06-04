@@ -18,11 +18,11 @@ func TestNewIndexHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
+		serviceError    error
 		name            string
 		serviceResponse []*model.Metric
-		serviceError    error
-		wantCode        int
 		containsStrings []string
+		wantCode        int
 	}{
 		{
 			name: "success",
@@ -52,12 +52,10 @@ func TestNewIndexHandler(t *testing.T) {
 
 			currentDir, err := os.Getwd()
 			require.NoError(t, err)
-			err = os.Chdir("../../..")
-			require.NoError(t, err)
+			t.Chdir("../../..")
 			handler, err := NewIndexHandler(s)
 			require.NoError(t, err)
-			err = os.Chdir(currentDir)
-			require.NoError(t, err)
+			t.Chdir(currentDir)
 
 			r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 			w := httptest.NewRecorder()

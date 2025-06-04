@@ -17,11 +17,11 @@ func TestNewUpdateURIHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
-		name            string
 		pathValues      map[string]string
 		mockSetup       func(*mocks.MockUpdater)
-		wantCode        int
+		name            string
 		containsStrings []string
+		wantCode        int
 	}{
 		{
 			name: "valid update",

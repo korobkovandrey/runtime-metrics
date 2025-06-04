@@ -21,6 +21,7 @@ type mockResponseWriter struct {
 
 func (m *mockResponseWriter) Header() http.Header {
 	args := m.Called()
+	//nolint:forcetypeassert // ignore
 	return args.Get(0).(http.Header)
 }
 

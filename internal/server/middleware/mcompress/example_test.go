@@ -25,8 +25,7 @@ func Example() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("<html>Hello, World!</html>"))
-		if err != nil {
+		if _, err := w.Write([]byte("<html>Hello, World!</html>")); err != nil {
 			logger.ErrorCtx(r.Context(), fmt.Errorf("failed to write response: %w", err).Error())
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -59,7 +58,7 @@ func ExampleGzipCompressed_response() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte(`{"message": "Hello, World!"}`))
+		_, err = w.Write([]byte(`{"message": "Hello, World!"}`))
 		if err != nil {
 			logger.ErrorCtx(r.Context(), fmt.Errorf("failed to write response: %w", err).Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -86,7 +85,9 @@ func ExampleGzipCompressed_response() {
 		fmt.Printf("Error creating compress reader: %v\n", err)
 		return
 	}
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	data, err := io.ReadAll(reader)
 	if err != nil {
@@ -109,7 +110,8 @@ func ExampleGzipCompressed_request() {
 
 	// Create a handler that reads the request body
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data, err := io.ReadAll(r.Body)
+		var data []byte
+		data, err = io.ReadAll(r.Body)
 		if err != nil {
 			logger.ErrorCtx(r.Context(), fmt.Errorf("failed to read request body: %w", err).Error())
 			w.WriteHeader(http.StatusInternalServerError)

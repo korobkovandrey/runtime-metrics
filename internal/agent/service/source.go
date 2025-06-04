@@ -10,9 +10,9 @@ import (
 
 // Source is a structure that provides a source of metrics
 type Source struct {
-	mu        sync.RWMutex
-	data      []*model.Metric
 	pollCount *model.Metric
+	data      []*model.Metric
+	mu        sync.RWMutex
 }
 
 // NewSource returns a new instance of Source

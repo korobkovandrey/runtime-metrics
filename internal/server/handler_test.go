@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -21,11 +20,11 @@ type testCase struct {
 	method          string
 	url             string
 	postBody        string
-	wantCode        int
 	wantContentType string
 	wantJSON        string
 	wantBody        string
 	containsStrings []string
+	wantCode        int
 }
 
 func TestHandler_setIndexRoute(t *testing.T) {
@@ -80,12 +79,10 @@ func TestHandler_setIndexRoute(t *testing.T) {
 			h := NewHandler()
 			currentDir, err := os.Getwd()
 			require.NoError(t, err)
-			err = os.Chdir("../..")
-			require.NoError(t, err)
+			t.Chdir("../..")
 			err = h.setIndexRoute(s)
 			require.NoError(t, err)
-			err = os.Chdir(currentDir)
-			require.NoError(t, err)
+			t.Chdir(currentDir)
 			testHelper(t, h, tt.testCase)
 		})
 	}
@@ -620,7 +617,7 @@ func testRequest(
 	t *testing.T, ts *httptest.Server,
 	method, path string, postBody io.Reader) (body []byte, statusCode int, contentType string) {
 	t.Helper()
-	req, err := http.NewRequestWithContext(context.TODO(), method, ts.URL+path, postBody)
+	req, err := http.NewRequestWithContext(t.Context(), method, ts.URL+path, postBody)
 	require.NoError(t, err)
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)

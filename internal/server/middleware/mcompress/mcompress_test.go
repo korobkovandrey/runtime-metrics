@@ -18,9 +18,9 @@ func TestGzipCompressed(t *testing.T) {
 	require.NoError(t, err)
 
 	type send struct {
+		text         []byte
 		acceptGzip   bool
 		encodingGzip bool
-		text         []byte
 	}
 	type response struct {
 		headers map[string]string
@@ -29,8 +29,8 @@ func TestGzipCompressed(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		send     send
 		response response
+		send     send
 		wantGzip bool
 	}{
 		{

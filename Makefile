@@ -2,6 +2,9 @@
 golangci-lint-run:
 	golangci-lint run -c .golangci.yml
 
+staticlint:
+	go run ./cmd/staticlint ./...
+
 coverprofile:
 	go test ./... -covermode=count -coverprofile cover.out.tmp && cat cover.out.tmp | grep -v -e "mock" > cover.out \
  		&& rm cover.out.tmp && go tool cover -html cover.out -o coverprofile.html \

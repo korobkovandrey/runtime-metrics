@@ -17,12 +17,12 @@ func TestNewValueURIHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
-		name            string
 		pathValues      map[string]string
 		mockSetup       func(*mocks.MockFinder)
-		wantCode        int
+		name            string
 		wantBody        string
 		containsStrings []string
+		wantCode        int
 	}{
 		{
 			name: "valid",

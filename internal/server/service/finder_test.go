@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -23,7 +22,7 @@ func TestFinder_Find(t *testing.T) {
 		r := mocks.NewMockFinderRepository(ctrl)
 		r.EXPECT().Find(gomock.Any(), gomock.Eq(mr)).Return(want, nil)
 		s := NewFinder(r)
-		got, err := s.Find(context.TODO(), mr)
+		got, err := s.Find(t.Context(), mr)
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
@@ -34,7 +33,7 @@ func TestFinder_Find(t *testing.T) {
 		r := mocks.NewMockFinderRepository(ctrl)
 		r.EXPECT().Find(gomock.Any(), gomock.Eq(mr)).Return(nil, model.ErrMetricNotFound)
 		s := NewFinder(r)
-		got, err := s.Find(context.TODO(), mr)
+		got, err := s.Find(t.Context(), mr)
 		assert.Nil(t, got)
 		assert.ErrorIs(t, err, model.ErrMetricNotFound)
 	})
@@ -51,7 +50,7 @@ func TestFinder_FindAll(t *testing.T) {
 		r := mocks.NewMockFinderRepository(ctrl)
 		r.EXPECT().FindAll(gomock.Any()).Return(want, nil)
 		s := NewFinder(r)
-		got, err := s.FindAll(context.TODO())
+		got, err := s.FindAll(t.Context())
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, want, got)
 	})
@@ -61,7 +60,7 @@ func TestFinder_FindAll(t *testing.T) {
 		r.EXPECT().FindAll(gomock.Any()).
 			Return([]*model.Metric{}, errors.New("error"))
 		s := NewFinder(r)
-		got, err := s.FindAll(context.TODO())
+		got, err := s.FindAll(t.Context())
 		assert.Nil(t, got)
 		assert.Error(t, err)
 	})

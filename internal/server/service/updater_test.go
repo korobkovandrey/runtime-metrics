@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -25,7 +24,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Eq(mr)).Return(want, nil)
 		r.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
@@ -41,7 +40,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Any()).MaxTimes(0)
 		r.EXPECT().Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: want})).Return(want, nil)
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
@@ -57,7 +56,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Any()).MaxTimes(0)
 		r.EXPECT().Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: want})).Return(want, nil)
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.NoError(t, err)
 		assert.Same(t, want, got)
 	})
@@ -70,7 +69,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Any()).MaxTimes(0)
 		r.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.Nil(t, got)
 		assert.Error(t, err)
 	})
@@ -83,7 +82,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Eq(mr)).Return(nil, errors.New("error"))
 		r.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.Nil(t, got)
 		assert.Error(t, err)
 	})
@@ -96,7 +95,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Eq(mr)).Return(nil, model.ErrMetricAlreadyExist)
 		r.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.Nil(t, got)
 		assert.Error(t, err)
 	})
@@ -112,7 +111,7 @@ func TestUpdater_Update(t *testing.T) {
 		r.EXPECT().Create(gomock.Any(), gomock.Any()).MaxTimes(0)
 		r.EXPECT().Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: want})).Return(nil, errors.New("error"))
 		s := NewUpdater(r)
-		got, err := s.Update(context.TODO(), mr)
+		got, err := s.Update(t.Context(), mr)
 		assert.Nil(t, got)
 		assert.Error(t, err)
 	})

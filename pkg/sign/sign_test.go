@@ -57,8 +57,8 @@ func TestMake(t *testing.T) {
 func TestEncodeToString(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     []byte
 		expected string
+		data     []byte
 	}{
 		{
 			name:     "Valid input",
@@ -123,9 +123,9 @@ func TestDecodeString(t *testing.T) {
 func TestMakeToString(t *testing.T) {
 	tests := []struct {
 		name     string
+		expected string
 		data     []byte
 		key      []byte
-		expected string
 	}{
 		{
 			name: "Valid input",

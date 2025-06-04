@@ -79,8 +79,11 @@ func (ps *PGXStorage) createOrUpdateBatch(ctx context.Context, mrs []*model.Metr
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback() //nolint:errcheck // ignore
+	defer func() {
+		_ = tx.Rollback()
+	}()
 	for _, mr := range mrs {
+		//nolint:sqlclosecheck // ignore
 		_, err = tx.StmtContext(ctx, ps.stmts.upsertStmt).ExecContext(ctx, mr.MType, mr.ID, mr.Value, mr.Delta)
 		if err != nil {
 			return fmt.Errorf("failed to query: %w", err)

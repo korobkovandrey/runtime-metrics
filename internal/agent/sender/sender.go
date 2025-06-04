@@ -16,9 +16,9 @@ import (
 type Config struct {
 	UpdateURL   string
 	UpdatesURL  string
-	Timeout     time.Duration
 	RetryDelays []time.Duration
 	Key         []byte
+	Timeout     time.Duration
 	RateLimit   int
 }
 

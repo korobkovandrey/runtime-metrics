@@ -34,7 +34,7 @@ func main() {
 	h := server.NewHandler()
 	defer func() {
 		l.InfoCtx(ctx, "Closing handler...")
-		if err := h.Close(); err != nil {
+		if err = h.Close(); err != nil {
 			l.ErrorCtx(ctx, fmt.Errorf("failed to close handler: %w", err).Error())
 		}
 	}()

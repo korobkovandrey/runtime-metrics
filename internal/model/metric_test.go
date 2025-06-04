@@ -18,9 +18,9 @@ func TestMetric_AnyValue(t *testing.T) {
 		Metric *Metric
 	}
 	tests := []struct {
-		name string
-		args args
 		want any
+		args args
+		name string
 	}{
 		{
 			name: "gauge",
@@ -69,9 +69,9 @@ func TestMetric_Clone(t *testing.T) {
 		Metric *Metric
 	}
 	tests := []struct {
-		name string
 		args args
 		want *Metric
+		name string
 	}{
 		{
 			name: "gauge",
@@ -124,9 +124,9 @@ func TestNewMetricCounter(t *testing.T) {
 		delta int64
 	}
 	tests := []struct {
+		want *Metric
 		name string
 		args args
-		want *Metric
 	}{
 		{
 			name: "positive delta",
@@ -167,9 +167,9 @@ func TestNewMetricGauge(t *testing.T) {
 		value float64
 	}
 	tests := []struct {
+		want *Metric
 		name string
 		args args
-		want *Metric
 	}{
 		{
 			name: "positive value",
@@ -211,10 +211,10 @@ func TestNewMetricRequest(t *testing.T) {
 		value string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    *MetricRequest
 		wantErr error
+		want    *MetricRequest
+		args    args
+		name    string
 	}{
 		{
 			name: "counter",
@@ -290,10 +290,10 @@ func TestUnmarshalMetricRequestFromReader(t *testing.T) {
 		r io.Reader
 	}
 	tests := []struct {
-		name    string
 		args    args
-		want    *MetricRequest
 		wantErr error
+		want    *MetricRequest
+		name    string
 	}{
 		{
 			name: "counter from reader",
@@ -333,9 +333,9 @@ func TestUnmarshalMetricRequestFromReader(t *testing.T) {
 
 func TestMetricRequest_RequiredValue(t *testing.T) {
 	tests := []struct {
-		name    string
-		metric  *MetricRequest
 		wantErr error
+		metric  *MetricRequest
+		name    string
 	}{
 		{
 			name:    "gauge",
@@ -378,9 +378,9 @@ func TestMetricRequest_RequiredValue(t *testing.T) {
 
 func TestMetricRequest_ValidateType(t *testing.T) {
 	tests := []struct {
-		name    string
-		metric  *MetricRequest
 		wantErr error
+		metric  *MetricRequest
+		name    string
 	}{
 		{
 			name:    "gauge",

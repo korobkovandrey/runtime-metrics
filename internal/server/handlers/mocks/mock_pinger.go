@@ -18,9 +18,9 @@ import (
 
 // MockPinger is a mock of Pinger interface.
 type MockPinger struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockPingerMockRecorder
-	isgomock struct{}
 }
 
 // MockPingerMockRecorder is the mock recorder for MockPinger.

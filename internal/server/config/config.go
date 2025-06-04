@@ -14,12 +14,12 @@ type Config struct {
 	Addr                string `env:"ADDRESS"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
 	DatabaseDSN         string `env:"DATABASE_DSN"`
-	Restore             bool   `env:"RESTORE"`
-	StoreInterval       int64  `env:"STORE_INTERVAL"`
 	Key                 string `env:"KEY"`
+	RetryDelays         []time.Duration
+	StoreInterval       int64 `env:"STORE_INTERVAL"`
 	ShutdownTimeout     time.Duration
 	DatabasePingTimeout time.Duration
-	RetryDelays         []time.Duration
+	Restore             bool `env:"RESTORE"`
 	Pprof               bool `env:"PPROF"`
 }
 

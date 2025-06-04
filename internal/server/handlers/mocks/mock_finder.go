@@ -19,9 +19,9 @@ import (
 
 // MockFinder is a mock of Finder interface.
 type MockFinder struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockFinderMockRecorder
-	isgomock struct{}
 }
 
 // MockFinderMockRecorder is the mock recorder for MockFinder.

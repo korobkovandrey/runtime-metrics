@@ -18,12 +18,12 @@ func TestNewValueJSONHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
+		mockSetup       func(*mocks.MockFinder)
 		name            string
 		json            string
-		mockSetup       func(*mocks.MockFinder)
-		wantCode        int
 		wantJSON        string
 		containsStrings []string
+		wantCode        int
 	}{
 		{
 			name: "valid",

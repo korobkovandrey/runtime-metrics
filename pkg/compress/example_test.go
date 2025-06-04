@@ -3,6 +3,7 @@ package compress_test
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,7 +30,7 @@ func Example() {
 		fmt.Printf("Error writing data: %v\n", err)
 		return
 	}
-	if err := cw.Close(); err != nil {
+	if err = cw.Close(); err != nil {
 		fmt.Printf("Error closing writer: %v\n", err)
 		return
 	}
@@ -41,12 +42,14 @@ func Example() {
 		fmt.Printf("Error creating reader: %v\n", err)
 		return
 	}
-	defer cr.Close()
+	defer func() {
+		_ = cr.Close()
+	}()
 
 	// Read decompressed data
 	decompressed := make([]byte, 100)
 	n, err := cr.Read(decompressed)
-	if err != nil && err != io.EOF {
+	if err != nil && !errors.Is(err, io.EOF) {
 		fmt.Printf("Error reading data: %v\n", err)
 		return
 	}
@@ -126,7 +129,7 @@ func ExampleReader() {
 		fmt.Printf("Error compressing data: %v\n", err)
 		return
 	}
-	if err := gz.Close(); err != nil {
+	if err = gz.Close(); err != nil {
 		fmt.Printf("Error closing gzip writer: %v\n", err)
 		return
 	}
@@ -138,12 +141,14 @@ func ExampleReader() {
 		fmt.Printf("Error creating reader: %v\n", err)
 		return
 	}
-	defer cr.Close()
+	defer func() {
+		_ = cr.Close()
+	}()
 
 	// Read decompressed data
 	data := make([]byte, 100)
 	n, err := cr.Read(data)
-	if err != nil && err != io.EOF {
+	if err != nil && !errors.Is(err, io.EOF) {
 		fmt.Printf("Error reading data: %v\n", err)
 		return
 	}

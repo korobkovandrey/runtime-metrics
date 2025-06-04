@@ -16,8 +16,8 @@ func TestNewPingHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
-		name      string
 		mockSetup func(*mocks.MockPinger)
+		name      string
 		wantCode  int
 	}{
 		{

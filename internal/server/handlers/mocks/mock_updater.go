@@ -19,9 +19,9 @@ import (
 
 // MockUpdater is a mock of Updater interface.
 type MockUpdater struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockUpdaterMockRecorder
-	isgomock struct{}
 }
 
 // MockUpdaterMockRecorder is the mock recorder for MockUpdater.

@@ -216,7 +216,7 @@ func ExampleMemStorage_FindAll() {
 	// Metric: testCounter, Type: counter, Delta: 100
 }
 
-// Helper functions to create pointers for test data
+// Helper functions to create pointers for test data.
 func float64Ptr(f float64) *float64 {
 	return &f
 }

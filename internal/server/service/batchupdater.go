@@ -19,17 +19,17 @@ type BatchUpdaterRepository interface {
 	CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error)
 }
 
-// BatchUpdater is a service for batch updating metrics
+// BatchUpdater is a service for batch updating metrics.
 type BatchUpdater struct {
 	r BatchUpdaterRepository
 }
 
-// NewBatchUpdater returns a service for batch updating metrics
+// NewBatchUpdater returns a service for batch updating metrics.
 func NewBatchUpdater(r BatchUpdaterRepository) *BatchUpdater {
 	return &BatchUpdater{r: r}
 }
 
-// UpdateBatch updates the metrics
+// UpdateBatch updates the metrics.
 func (s *BatchUpdater) UpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) {
 	var mrsReq []*model.MetricRequest
 	mrsGaugeIndexMap := map[string]int{}
