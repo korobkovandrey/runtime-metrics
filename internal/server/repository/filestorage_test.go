@@ -24,13 +24,13 @@ func TestFileStorage_Create(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name        string
+		wantErr     error
 		cfg         *config.Config
 		args        args
 		want        *model.Metric
-		wantErr     error
-		checkFile   bool
+		name        string
 		fileContent []*model.Metric
+		checkFile   bool
 	}{
 		{
 			name: "create with sync",
@@ -110,15 +110,15 @@ func TestFileStorage_Update(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name        string
+		wantErr     error
 		cfg         *config.Config
 		args        args
-		data        []*model.Metric
 		index       map[string]map[string]int
 		want        *model.Metric
-		wantErr     error
-		checkFile   bool
+		name        string
+		data        []*model.Metric
 		fileContent []*model.Metric
+		checkFile   bool
 	}{
 		{
 			name: "update with sync",
@@ -212,15 +212,15 @@ func TestFileStorage_CreateOrUpdateBatch(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name        string
+		wantErr     error
 		cfg         *config.Config
+		index       map[string]map[string]int
+		name        string
 		args        args
 		data        []*model.Metric
-		index       map[string]map[string]int
 		want        []*model.Metric
-		wantErr     error
-		checkFile   bool
 		fileContent []*model.Metric
+		checkFile   bool
 	}{
 		{
 			name: "create and update with sync",
@@ -301,12 +301,12 @@ func TestFileStorage_Restore(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name      string
+		wantErr   error
 		cfg       *config.Config
+		wantIndex map[string]map[string]int
+		name      string
 		fileData  []byte
 		wantData  []*model.Metric
-		wantIndex map[string]map[string]int
-		wantErr   error
 	}{
 		{
 			name: "restore valid data",
@@ -382,14 +382,14 @@ func TestFileStorage_sync(t *testing.T) {
 	data := []*model.Metric{gauge.Clone()}
 
 	tests := []struct {
-		name      string
+		wantErr   error
 		cfg       *config.Config
-		data      []*model.Metric
 		index     map[string]map[string]int
+		name      string
+		data      []*model.Metric
 		isChanged bool
 		safe      bool
 		tryRetry  bool
-		wantErr   error
 	}{
 		{
 			name: "sync with data",
@@ -458,10 +458,10 @@ func TestFileStorage_Run(t *testing.T) {
 	data := []*model.Metric{gauge.Clone()}
 
 	tests := []struct {
-		name      string
 		cfg       *config.Config
-		data      []*model.Metric
 		index     map[string]map[string]int
+		name      string
+		data      []*model.Metric
 		isChanged bool
 		wantFile  bool
 	}{

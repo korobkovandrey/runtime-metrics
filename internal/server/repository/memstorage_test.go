@@ -220,11 +220,11 @@ func TestMemStorage_FindBatch(t *testing.T) {
 	counter1, err := model.NewMetricRequest(model.TypeCounter, "test1", "13")
 	require.NoError(t, err)
 	tests := []struct {
+		wantErr error
 		name    string
 		fields  fields
 		args    args
 		want    []*model.Metric
-		wantErr error
 	}{
 		{
 			name: "found multiple",
@@ -419,11 +419,11 @@ func TestMemStorage_unsafeUpdate(t *testing.T) {
 	require.NoError(t, err)
 	gaugeEmpty := &model.MetricRequest{Metric: &model.Metric{MType: model.TypeGauge, ID: "test"}}
 	tests := []struct {
-		name    string
-		fields  fields
+		wantErr error
 		args    args
 		want    *model.Metric
-		wantErr error
+		name    string
+		fields  fields
 	}{
 		{
 			name: "update gauge with nil initial value",
@@ -511,11 +511,11 @@ func TestMemStorage_unsafeCreateOrUpdateBatch(t *testing.T) {
 	counter1, err := model.NewMetricRequest(model.TypeCounter, "test1", "13")
 	require.NoError(t, err)
 	tests := []struct {
+		wantErr error
 		name    string
 		fields  fields
 		args    args
 		want    []*model.Metric
-		wantErr error
 	}{
 		{
 			name: "create multiple",
