@@ -16,6 +16,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+func (f *FileStorage) isChangedF() bool {
+	f.mux.Lock()
+	defer f.mux.Unlock()
+	return f.isChanged
+}
+
 func TestFileStorage_Create(t *testing.T) {
 	type args struct {
 		mr *model.MetricRequest
@@ -81,7 +87,7 @@ func TestFileStorage_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := NewMemStorage()
 			fs := NewFileStorage(ms, tt.cfg)
-			got, err := fs.Create(context.Background(), tt.args.mr)
+			got, err := fs.Create(t.Context(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -180,7 +186,7 @@ func TestFileStorage_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.data, tt.index)
 			fs := NewFileStorage(ms, tt.cfg)
-			got, err := fs.Update(context.Background(), tt.args.mr)
+			got, err := fs.Update(t.Context(), tt.args.mr)
 			assert.Equal(t, tt.want, got)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -274,7 +280,7 @@ func TestFileStorage_CreateOrUpdateBatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := newMemStorageWithDataAndIndex(tt.data, tt.index)
 			fs := NewFileStorage(ms, tt.cfg)
-			got, err := fs.CreateOrUpdateBatch(context.Background(), tt.args.mrs)
+			got, err := fs.CreateOrUpdateBatch(t.Context(), tt.args.mrs)
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 			for i := range got {
@@ -456,6 +462,7 @@ func TestFileStorage_Run(t *testing.T) {
 	gauge, err := model.NewMetricRequest(model.TypeGauge, "test", "23")
 	require.NoError(t, err)
 	data := []*model.Metric{gauge.Clone()}
+	tim := time.Now().String()
 
 	tests := []struct {
 		cfg       *config.Config
@@ -468,19 +475,19 @@ func TestFileStorage_Run(t *testing.T) {
 		{
 			name: "run with sync",
 			cfg: &config.Config{
-				FileStoragePath: filepath.Join(t.TempDir(), "metrics.json"),
+				FileStoragePath: filepath.Join(t.TempDir(), "metrics"+tim+".json"),
 				StoreInterval:   1,
 				RetryDelays:     []time.Duration{0},
 			},
 			data:      data,
-			index:     map[string]map[string]int{model.TypeGauge: {"test": 0}},
+			index:     map[string]map[string]int{model.TypeGauge: {"test": 23}},
 			isChanged: true,
 			wantFile:  true,
 		},
 		{
 			name: "run with no sync",
 			cfg: &config.Config{
-				FileStoragePath: filepath.Join(t.TempDir(), "metrics.json"),
+				FileStoragePath: filepath.Join(t.TempDir(), "metrics"+tim+".json"),
 				StoreInterval:   0,
 				RetryDelays:     []time.Duration{0},
 			},
@@ -493,7 +500,7 @@ func TestFileStorage_Run(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
 			defer cancel()
 
 			ms := newMemStorageWithDataAndIndex(tt.data, tt.index)
@@ -505,7 +512,7 @@ func TestFileStorage_Run(t *testing.T) {
 			go fs.Run(ctx, logger)
 
 			// Wait for potential sync
-			time.Sleep(1500 * time.Millisecond)
+			time.Sleep(2*time.Duration(tt.cfg.StoreInterval)*time.Second + 10*time.Millisecond)
 
 			if tt.wantFile {
 				fileData, err := os.ReadFile(tt.cfg.FileStoragePath)
@@ -514,7 +521,7 @@ func TestFileStorage_Run(t *testing.T) {
 				err = json.Unmarshal(fileData, &metrics)
 				require.NoError(t, err)
 				assert.Equal(t, tt.data, metrics)
-				assert.False(t, fs.isChanged)
+				assert.False(t, fs.isChangedF())
 			} else {
 				_, err := os.Stat(tt.cfg.FileStoragePath)
 				assert.Error(t, err)
