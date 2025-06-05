@@ -17,6 +17,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate go run ../../tools/genversion.go
+
 func main() {
 	l, err := logging.NewZapLogger(zap.InfoLevel)
 	if err != nil {

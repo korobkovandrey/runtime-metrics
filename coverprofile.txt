@@ -1,5 +1,7 @@
-github.com/korobkovandrey/runtime-metrics/cmd/agent/main.go:24:						main					0.0%
-github.com/korobkovandrey/runtime-metrics/cmd/server/main.go:20:					main					0.0%
+github.com/korobkovandrey/runtime-metrics/cmd/agent/main.go:26:						main					0.0%
+github.com/korobkovandrey/runtime-metrics/cmd/agent/version.go:11:					init					0.0%
+github.com/korobkovandrey/runtime-metrics/cmd/server/main.go:22:					main					0.0%
+github.com/korobkovandrey/runtime-metrics/cmd/server/version.go:11:					init					0.0%
 github.com/korobkovandrey/runtime-metrics/cmd/staticlint/main.go:133:					main					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/agent.go:19:					Run					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:27:				NewConfig				79.2%
@@ -138,4 +140,6 @@ github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:21:						EncodeToStri
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:26:						DecodeString				100.0%
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:32:						MakeToString				100.0%
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:37:						Validate				100.0%
-total:													(statements)				64.9%
+github.com/korobkovandrey/runtime-metrics/tools/genversion.go:12:					main					0.0%
+github.com/korobkovandrey/runtime-metrics/tools/genversion.go:45:					runCommand				0.0%
+total:													(statements)				63.9%

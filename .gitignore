@@ -26,3 +26,5 @@ vendor/
 .vscode
 /golangci-lint
 /storage.json
+/cmd/agent/version.go
+/cmd/server/version.go
