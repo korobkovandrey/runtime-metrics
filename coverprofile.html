@@ -135,7 +135,7 @@
 				
 				<option value="file39">github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go (100.0%)</option>
 				
-				<option value="file40">github.com/korobkovandrey/runtime-metrics/tools/genversion.go (0.0%)</option>
+				<option value="file40">github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -181,7 +181,7 @@ import (
         _ "net/http/pprof"
 )
 
-//go:generate go run ../../tools/genversion.go
+//go:generate go run ../../tools/genversion
 
 func main() <span class="cov0" title="0">{
         l, err := logging.NewZapLogger(zap.InfoLevel)
@@ -221,9 +221,9 @@ package main
 import "fmt"
 
 var (
-        buildVersion = "a335b3a-dirty"
-        buildDate    = "2025-06-04T23:50:44Z"
-        buildCommit  = "a335b3a"
+        buildVersion = "3912625-dirty"
+        buildDate    = "2025-06-07T13:38:39Z"
+        buildCommit  = "3912625"
 )
 func init() <span class="cov0" title="0">{
         fmt.Printf("Build version=%v, date=%v, commit=%v\n", buildVersion, buildDate, buildCommit)
@@ -249,7 +249,7 @@ import (
         "go.uber.org/zap"
 )
 
-//go:generate go run ../../tools/genversion.go
+//go:generate go run ../../tools/genversion
 
 func main() <span class="cov0" title="0">{
         l, err := logging.NewZapLogger(zap.InfoLevel)
@@ -288,9 +288,9 @@ package main
 import "fmt"
 
 var (
-        buildVersion = "a335b3a-dirty"
-        buildDate    = "2025-06-04T23:50:36Z"
-        buildCommit  = "a335b3a"
+        buildVersion = "3912625-dirty"
+        buildDate    = "2025-06-07T13:38:40Z"
+        buildCommit  = "3912625"
 )
 func init() <span class="cov0" title="0">{
         fmt.Printf("Build version=%v, date=%v, commit=%v\n", buildVersion, buildDate, buildCommit)
@@ -2116,15 +2116,15 @@ func (f *FileStorage) Restore() error <span class="cov5" title="4">{
 }
 
 // sync syncs the file storage.
-func (f *FileStorage) sync(safe, tryRetry bool) error <span class="cov7" title="9">{
-        if safe </span><span class="cov6" title="5">{
+func (f *FileStorage) sync(safe, tryRetry bool) error <span class="cov7" title="8">{
+        if safe </span><span class="cov5" title="4">{
                 f.mux.Lock()
                 defer f.mux.Unlock()
         }</span>
-        <span class="cov7" title="9">if f.cfg.FileStoragePath == "" </span><span class="cov1" title="1">{
+        <span class="cov7" title="8">if f.cfg.FileStoragePath == "" </span><span class="cov1" title="1">{
                 return nil
         }</span>
-        <span class="cov7" title="8">if !f.isChanged </span><span class="cov3" title="2">{
+        <span class="cov7" title="7">if !f.isChanged </span><span class="cov1" title="1">{
                 return nil
         }</span>
         <span class="cov6" title="6">data, err := json.MarshalIndent(f.unsafeFindAll(), "", "   ")
@@ -2161,12 +2161,12 @@ func (f *FileStorage) Run(ctx context.Context, l *logging.ZapLogger) <span class
         }</span>
         <span class="cov1" title="1">var err error
         t := time.NewTicker(time.Duration(f.cfg.StoreInterval) * time.Second)
-        for </span><span class="cov4" title="3">{
+        for </span><span class="cov3" title="2">{
                 select </span>{
                 case &lt;-ctx.Done():<span class="cov1" title="1">
                         t.Stop()
                         return</span>
-                case &lt;-t.C:<span class="cov3" title="2">
+                case &lt;-t.C:<span class="cov1" title="1">
                         if err = f.sync(true, false); err != nil </span><span class="cov0" title="0">{
                                 l.ErrorCtx(ctx, fmt.Errorf("failed to sync: %w", err).Error())
                         }</span>
@@ -3431,7 +3431,8 @@ func init() {
         fmt.Printf("Build version=%%v, date=%%v, commit=%%v\n", buildVersion, buildDate, buildCommit)
 }
 `, version, date, commit)
-        err := os.WriteFile("version.go", []byte(content), 0600)
+        const perm = 0600
+        err := os.WriteFile("version.go", []byte(content), perm)
         if err != nil </span><span class="cov0" title="0">{
                 log.Fatalf("Failed to write version.go: %v", err)
         }</span>

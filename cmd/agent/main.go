@@ -21,7 +21,7 @@ import (
 	_ "net/http/pprof"
 )
 
-//go:generate go run ../../tools/genversion.go
+//go:generate go run ../../tools/genversion
 
 func main() {
 	l, err := logging.NewZapLogger(zap.InfoLevel)

@@ -140,6 +140,6 @@ github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:21:						EncodeToStri
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:26:						DecodeString				100.0%
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:32:						MakeToString				100.0%
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:37:						Validate				100.0%
-github.com/korobkovandrey/runtime-metrics/tools/genversion.go:12:					main					0.0%
-github.com/korobkovandrey/runtime-metrics/tools/genversion.go:45:					runCommand				0.0%
-total:													(statements)				63.9%
+github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go:12:				main					0.0%
+github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go:46:				runCommand				0.0%
+total:													(statements)				63.8%
