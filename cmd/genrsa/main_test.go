@@ -82,7 +82,7 @@ func TestFileCreationError(t *testing.T) {
 		assert.NoError(t, os.RemoveAll(tempDir))
 	}()
 
-	err = os.Chmod(tempDir, 0444)
+	err = os.Chmod(tempDir, 0400)
 	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, os.Chmod(tempDir, 0755))

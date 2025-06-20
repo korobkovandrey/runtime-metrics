@@ -25,7 +25,7 @@ func Example_main() {
 // Example_main_err_permission_denied demonstrates the error handling when trying to create files in a read-only directory.
 func Example_main_err_permission_denied() {
 	const dir = "rsa_example"
-	err := os.Mkdir(dir, 0444)
+	err := os.Mkdir(dir, 0400)
 	if err != nil {
 		fmt.Printf("Error creating temp directory: %v\n", err)
 		return
