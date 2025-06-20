@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"flag"
 	"os"
@@ -42,10 +43,135 @@ func TestNewConfig(t *testing.T) {
 		UpdateURL:   "http://" + cfg.Addr + "/update/",
 		UpdatesURL:  "http://" + cfg.Addr + "/updates/",
 		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
-		Timeout:     10 * time.Second,
+		Timeout:     11 * time.Second,
 		Key:         []byte(cfg.Key),
 		RateLimit:   cfg.RateLimit,
 	}, *cfg.Sender)
+}
+
+func TestNewConfig_JSON(t *testing.T) {
+	origArgs := os.Args
+	defer func() { os.Args = origArgs }()
+	tempDir, err := os.MkdirTemp("", "config_test")
+	require.NoError(t, err, "Failed to create temp dir")
+	defer func() { assert.NoError(t, os.RemoveAll(tempDir)) }()
+	configPath := filepath.Join(tempDir, "config.json")
+
+	jsonConfig := map[string]interface{}{
+		"address":         "json:8080",
+		"poll_interval":   "3s",
+		"report_interval": "9s",
+		"crypto_key":      "",
+	}
+	jsonData, err := json.Marshal(jsonConfig)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(configPath, jsonData, 0600))
+
+	tests := []struct {
+		envVars        map[string]string
+		wantCfg        *Config
+		name           string
+		configPath     string
+		wantErrMessage string
+		args           []string
+		wantErr        bool
+	}{
+		{
+			name:       "valid JSON config",
+			configPath: configPath,
+			args:       []string{"test", "-config", configPath},
+			wantCfg: &Config{
+				Addr:           "json:8080",
+				PollInterval:   3,
+				ReportInterval: 9,
+			},
+			wantErr: false,
+		},
+		{
+			name:       "JSON with env override",
+			configPath: configPath,
+			args:       []string{"test", "-config", configPath},
+			envVars: map[string]string{
+				"ADDRESS":         "env:8080",
+				"POLL_INTERVAL":   "5",
+				"REPORT_INTERVAL": "15",
+			},
+			wantCfg: &Config{
+				Addr:           "env:8080",
+				PollInterval:   5,
+				ReportInterval: 15,
+			},
+			wantErr: false,
+		},
+		{
+			name:           "non-existent JSON file",
+			configPath:     filepath.Join(tempDir, "nonexistent.json"),
+			args:           []string{"test", "-config", filepath.Join(tempDir, "nonexistent.json")},
+			wantErr:        true,
+			wantErrMessage: "failed to stat file",
+		},
+		{
+			name:           "invalid JSON",
+			configPath:     filepath.Join(tempDir, "invalid.json"),
+			args:           []string{"test", "-config", filepath.Join(tempDir, "invalid.json")},
+			wantErr:        true,
+			wantErrMessage: "failed to unmarshal JSON",
+		},
+		{
+			name:           "invalid PollIntervalStr",
+			configPath:     filepath.Join(tempDir, "invalid_interval.json"),
+			args:           []string{"test", "-config", filepath.Join(tempDir, "invalid_interval.json")},
+			wantErr:        true,
+			wantErrMessage: "failed to parse poll duration",
+		},
+		{
+			name:           "invalid ReportIntervalStr",
+			configPath:     filepath.Join(tempDir, "invalid_interval.json"),
+			args:           []string{"test", "-config", filepath.Join(tempDir, "invalid_interval.json")},
+			wantErr:        true,
+			wantErrMessage: "failed to parse report duration",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
+			if tt.name == "invalid JSON" {
+				require.NoError(t, os.WriteFile(tt.configPath, []byte("{invalid}"), 0600), "Failed to write invalid JSON")
+			} else if tt.name == "invalid PollIntervalStr" {
+				invalidJSON := map[string]interface{}{
+					"poll_interval": "invalid",
+				}
+				data, err := json.Marshal(invalidJSON)
+				require.NoError(t, err)
+				require.NoError(t, os.WriteFile(tt.configPath, data, 0600), "Failed to write invalid interval JSON")
+			} else if tt.name == "invalid ReportIntervalStr" {
+				invalidJSON := map[string]interface{}{
+					"report_interval": "invalid",
+				}
+				data, err := json.Marshal(invalidJSON)
+				require.NoError(t, err)
+				require.NoError(t, os.WriteFile(tt.configPath, data, 0600), "Failed to write invalid interval JSON")
+			}
+
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
+			}
+			os.Args = tt.args
+
+			cfg, err := NewConfig()
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErrMessage)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantCfg.Addr, cfg.Addr)
+				assert.Equal(t, tt.wantCfg.PollInterval, cfg.PollInterval)
+				assert.Equal(t, tt.wantCfg.ReportInterval, cfg.ReportInterval)
+			}
+		})
+	}
 }
 
 func TestNewConfig_CryptoKey(t *testing.T) {

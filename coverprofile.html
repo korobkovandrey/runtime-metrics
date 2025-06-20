@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/korobkovandrey/runtime-metrics/internal/agent/agent.go (84.0%)</option>
 				
-				<option value="file5">github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go (80.4%)</option>
+				<option value="file5">github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go (85.1%)</option>
 				
 				<option value="file6">github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go (63.7%)</option>
 				
@@ -77,7 +77,7 @@
 				
 				<option value="file10">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (70.6%)</option>
 				
-				<option value="file11">github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go (89.7%)</option>
+				<option value="file11">github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go (89.9%)</option>
 				
 				<option value="file12">github.com/korobkovandrey/runtime-metrics/internal/server/handler.go (78.0%)</option>
 				
@@ -650,6 +650,7 @@ package config
 import (
         "crypto/rsa"
         "crypto/x509"
+        "encoding/json"
         "encoding/pem"
         "flag"
         "fmt"
@@ -663,94 +664,148 @@ import (
 
 // Config is the agent config.
 type Config struct {
-        Sender         *sender.Config
-        Addr           string `env:"ADDRESS"`
-        Key            string `env:"KEY"`
-        PprofAddr      string `env:"PPROF_ADDRESS"`
-        CryptoKey      string `env:"CRYPTO_KEY"`
-        PollInterval   int    `env:"POLL_INTERVAL"`
-        ReportInterval int    `env:"REPORT_INTERVAL"`
-        RateLimit      int    `env:"RATE_LIMIT"`
-        Batching       bool   `env:"BATCHING"`
+        Sender            *sender.Config
+        PollIntervalStr   *string `json:"poll_interval"`
+        ReportIntervalStr *string `json:"report_interval"`
+        Addr              string  `env:"ADDRESS" json:"address"`
+        Key               string  `env:"KEY"`
+        PprofAddr         string  `env:"PPROF_ADDRESS"`
+        CryptoKey         string  `env:"CRYPTO_KEY" json:"crypto_key"`
+        ConfigPath        string  `env:"CONFIG"`
+        PollInterval      int     `env:"POLL_INTERVAL"`
+        ReportInterval    int     `env:"REPORT_INTERVAL"`
+        RateLimit         int     `env:"RATE_LIMIT"`
+        Batching          bool    `env:"BATCHING"`
 }
 
 // NewConfig returns the agent config.
-func NewConfig() (*Config, error) <span class="cov10" title="5">{
+func NewConfig() (*Config, error) <span class="cov8" title="11">{
         const (
                 pollIntervalSeconds   = 2
                 reportIntervalSeconds = 10
         )
-        cfg := &amp;Config{}
-        flag.StringVar(&amp;cfg.Addr, "a", "localhost:8080", "server host")
-        flag.IntVar(&amp;cfg.PollInterval, "p", pollIntervalSeconds, "pollInterval in seconds")
-        flag.IntVar(&amp;cfg.ReportInterval, "r", reportIntervalSeconds, "reportInterval in seconds")
+        cfg := &amp;Config{
+                Addr:           "localhost:8080",
+                PollInterval:   pollIntervalSeconds,
+                ReportInterval: reportIntervalSeconds,
+        }
+        err := loadJSONConfig(cfg)
+        if err != nil </span><span class="cov5" title="4">{
+                return nil, fmt.Errorf("failed to load json config: %w", err)
+        }</span>
+        <span class="cov7" title="7">err = parseFlags(cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("failed to parse flags: %w", err)
+        }</span>
+        <span class="cov7" title="7">if cfg.ReportInterval &lt; 1 </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
+                        cfg.ReportInterval)
+        }</span>
+        <span class="cov7" title="7">if cfg.PollInterval &lt; 1 </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
+                        cfg.ReportInterval)
+        }</span>
+        <span class="cov7" title="7">if cfg.ReportInterval &lt;= cfg.PollInterval </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater than PollInterval (%ds)",
+                        cfg.ReportInterval, cfg.PollInterval)
+        }</span>
+        <span class="cov7" title="7">if cfg.RateLimit &lt; 1 </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("RateLimit (%d) must be greater 0",
+                        cfg.RateLimit)
+        }</span>
+        <span class="cov7" title="7">baseURL := "http://" + cfg.Addr
+        cfg.Sender = &amp;sender.Config{
+                UpdateURL:   baseURL + "/update/",
+                UpdatesURL:  baseURL + "/updates/",
+                RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+                Timeout:     time.Duration(cfg.ReportInterval) * time.Second,
+                Key:         []byte(cfg.Key),
+                RateLimit:   cfg.RateLimit,
+        }
+        if err = cfg.loadPublicKey(); err != nil </span><span class="cov4" title="3">{
+                return cfg, fmt.Errorf("failed to load public key: %w", err)
+        }</span>
+        <span class="cov5" title="4">return cfg, nil</span>
+}
+
+func parseFlags(cfg *Config) error <span class="cov10" title="18">{
+        flag.StringVar(&amp;cfg.Addr, "a", cfg.Addr, "server host")
+        flag.IntVar(&amp;cfg.PollInterval, "p", cfg.PollInterval, "pollInterval in seconds")
+        flag.IntVar(&amp;cfg.ReportInterval, "r", cfg.ReportInterval, "reportInterval in seconds")
         flag.StringVar(&amp;cfg.Key, "k", "", "key")
         flag.IntVar(&amp;cfg.RateLimit, "l", runtime.NumCPU(), "rate limit")
         flag.BoolVar(&amp;cfg.Batching, "b", true, "batching")
         flag.StringVar(&amp;cfg.PprofAddr, "pprof", "", "pprof address")
         flag.StringVar(&amp;cfg.CryptoKey, "crypto-key", "", "crypto key")
-
+        flag.StringVar(&amp;cfg.ConfigPath, "config", "", "config path")
+        flag.StringVar(&amp;cfg.ConfigPath, "c", "", "config path")
         flag.Parse()
-
         err := env.Parse(cfg)
         if err != nil </span><span class="cov0" title="0">{
-                return cfg, fmt.Errorf("failed to parse config: %w", err)
+                return fmt.Errorf("failed to parse config: %w", err)
         }</span>
-
-        <span class="cov10" title="5">if cfg.ReportInterval &lt; 1 </span><span class="cov0" title="0">{
-                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
-                        cfg.ReportInterval)
-        }</span>
-
-        <span class="cov10" title="5">if cfg.PollInterval &lt; 1 </span><span class="cov0" title="0">{
-                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater 0",
-                        cfg.ReportInterval)
-        }</span>
-
-        <span class="cov10" title="5">if cfg.ReportInterval &lt;= cfg.PollInterval </span><span class="cov0" title="0">{
-                return cfg, fmt.Errorf("ReportInterval (%ds) must be greater than PollInterval (%ds)",
-                        cfg.ReportInterval, cfg.PollInterval)
-        }</span>
-
-        <span class="cov10" title="5">if cfg.RateLimit &lt; 1 </span><span class="cov0" title="0">{
-                return cfg, fmt.Errorf("RateLimit (%d) must be greater 0",
-                        cfg.RateLimit)
-        }</span>
-
-        <span class="cov10" title="5">baseURL := "http://" + cfg.Addr
-        cfg.Sender = &amp;sender.Config{
-                UpdateURL:   baseURL + "/update/",
-                UpdatesURL:  baseURL + "/updates/",
-                RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
-                Timeout:     reportIntervalSeconds * time.Second,
-                Key:         []byte(cfg.Key),
-                RateLimit:   cfg.RateLimit,
-        }
-        if err = cfg.loadPublicKey(); err != nil </span><span class="cov7" title="3">{
-                return cfg, fmt.Errorf("failed to load public key: %w", err)
-        }</span>
-        <span class="cov4" title="2">return cfg, nil</span>
+        <span class="cov10" title="18">return nil</span>
 }
 
-func (cfg *Config) loadPublicKey() error <span class="cov10" title="5">{
-        if cfg.CryptoKey == "" </span><span class="cov1" title="1">{
+func loadJSONConfig(cfg *Config) error <span class="cov8" title="11">{
+        cfg.ConfigPath = os.Getenv("CONFIG")
+        if cfg.ConfigPath == "" </span><span class="cov8" title="11">{
+                if err := parseFlags(cfg); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to parse flags: %w", err)
+                }</span>
+                <span class="cov8" title="11">flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
+                if cfg.ConfigPath == "" </span><span class="cov6" title="5">{
+                        return nil
+                }</span>
+        }
+        <span class="cov6" title="6">if _, err := os.Stat(cfg.ConfigPath); err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("failed to stat file %s: %w", cfg.ConfigPath, err)
+        }</span>
+        <span class="cov6" title="5">jsonDataByte, err := os.ReadFile(cfg.ConfigPath)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to read file %s: %w", cfg.ConfigPath, err)
+        }</span>
+        <span class="cov6" title="5">if err = json.Unmarshal(jsonDataByte, &amp;cfg); err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("failed to unmarshal JSON: %w", err)
+        }</span>
+        <span class="cov5" title="4">if cfg.PollIntervalStr != nil </span><span class="cov4" title="3">{
+                var d time.Duration
+                d, err = time.ParseDuration(*cfg.PollIntervalStr)
+                if err != nil </span><span class="cov1" title="1">{
+                        return fmt.Errorf("failed to parse poll duration: %w", err)
+                }</span>
+                <span class="cov3" title="2">cfg.PollInterval = int(d.Seconds())</span>
+        }
+        <span class="cov4" title="3">if cfg.ReportIntervalStr != nil </span><span class="cov4" title="3">{
+                var d time.Duration
+                d, err = time.ParseDuration(*cfg.ReportIntervalStr)
+                if err != nil </span><span class="cov1" title="1">{
+                        return fmt.Errorf("failed to parse report duration: %w", err)
+                }</span>
+                <span class="cov3" title="2">cfg.ReportInterval = int(d.Seconds())</span>
+        }
+        <span class="cov3" title="2">return nil</span>
+}
+
+func (cfg *Config) loadPublicKey() error <span class="cov7" title="7">{
+        if cfg.CryptoKey == "" </span><span class="cov4" title="3">{
                 return nil
         }</span>
-        <span class="cov8" title="4">var err error
+        <span class="cov5" title="4">var err error
         if _, err = os.Stat(cfg.CryptoKey); os.IsNotExist(err) </span><span class="cov1" title="1">{
                 return fmt.Errorf("file %s does not exist: %w", cfg.CryptoKey, err)
-        }</span> else<span class="cov7" title="3"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov4" title="3"> if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to stat file %s: %w", cfg.CryptoKey, err)
         }</span>
-        <span class="cov7" title="3">data, err := os.ReadFile(cfg.CryptoKey)
+        <span class="cov4" title="3">data, err := os.ReadFile(cfg.CryptoKey)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to read file %s: %w", cfg.CryptoKey, err)
         }</span>
-        <span class="cov7" title="3">block, _ := pem.Decode(data)
+        <span class="cov4" title="3">block, _ := pem.Decode(data)
         if block == nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to decode PEM block from file %s", cfg.CryptoKey)
         }</span>
-        <span class="cov4" title="2">if block.Type != "RSA PUBLIC KEY" </span><span class="cov1" title="1">{
+        <span class="cov3" title="2">if block.Type != "RSA PUBLIC KEY" </span><span class="cov1" title="1">{
                 return fmt.Errorf("file %s is not a RSA public key", cfg.CryptoKey)
         }</span>
         <span class="cov1" title="1">parsedPublicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -1387,6 +1442,7 @@ package config
 import (
         "crypto/rsa"
         "crypto/x509"
+        "encoding/json"
         "encoding/pem"
         "flag"
         "fmt"
@@ -1398,74 +1454,121 @@ import (
 
 // Config is the server config.
 type Config struct {
+        StoreIntervalStr    *string `json:"store_interval"`
         PrivateKey          *rsa.PrivateKey
-        Addr                string `env:"ADDRESS"`
-        FileStoragePath     string `env:"FILE_STORAGE_PATH"`
-        DatabaseDSN         string `env:"DATABASE_DSN"`
+        Addr                string `env:"ADDRESS" json:"address"`
+        FileStoragePath     string `env:"FILE_STORAGE_PATH" json:"store_file"`
+        DatabaseDSN         string `env:"DATABASE_DSN" json:"database_dsn"`
         Key                 string `env:"KEY"`
-        CryptoKey           string `env:"CRYPTO_KEY"`
+        CryptoKey           string `env:"CRYPTO_KEY" json:"crypto_key"`
+        ConfigPath          string `env:"CONFIG"`
         RetryDelays         []time.Duration
-        StoreInterval       int64 `env:"STORE_INTERVAL"`
         ShutdownTimeout     time.Duration
         DatabasePingTimeout time.Duration
-        Restore             bool `env:"RESTORE"`
-        Pprof               bool `env:"PPROF"`
+        StoreInterval       int64 `env:"STORE_INTERVAL"`
+        Restore             bool  `env:"RESTORE" json:"restore"`
+        Pprof               bool  `env:"PPROF"`
 }
 
 // NewConfig returns the server config.
-func NewConfig() (*Config, error) <span class="cov10" title="5">{
+func NewConfig() (*Config, error) <span class="cov8" title="10">{
         const (
-                storeInterval   = 0
                 shutdownTimeout = 5
                 databasePingTimeout
         )
-        cfg := &amp;Config{}
-        flag.StringVar(&amp;cfg.Addr, "a", "localhost:8080", "server host")
-        flag.StringVar(&amp;cfg.FileStoragePath, "f", "storage.json", "file storage path")
-        flag.StringVar(&amp;cfg.DatabaseDSN, "d", "", "database dsn")
-        flag.BoolVar(&amp;cfg.Restore, "r", true, "file storage path")
-        flag.Int64Var(&amp;cfg.StoreInterval, "i", storeInterval, "store interval")
-        flag.StringVar(&amp;cfg.Key, "k", "", "key")
-        flag.BoolVar(&amp;cfg.Pprof, "pprof", false, "use pprof")
-        flag.StringVar(&amp;cfg.CryptoKey, "crypto-key", "", "crypto key")
-
-        flag.Parse()
-
-        err := env.Parse(cfg)
-        if err != nil </span><span class="cov0" title="0">{
-                return cfg, fmt.Errorf("failed to parse config: %w", err)
+        cfg := &amp;Config{
+                Addr:            "localhost:8080",
+                FileStoragePath: "storage.json",
+                Restore:         true,
+        }
+        err := loadJSONConfig(cfg)
+        if err != nil </span><span class="cov4" title="3">{
+                return nil, fmt.Errorf("failed to load json config: %w", err)
         }</span>
-
-        <span class="cov10" title="5">cfg.ShutdownTimeout = shutdownTimeout * time.Second
+        <span class="cov7" title="7">err = parseFlags(cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                return cfg, fmt.Errorf("failed to parse flags: %w", err)
+        }</span>
+        <span class="cov7" title="7">cfg.ShutdownTimeout = shutdownTimeout * time.Second
         cfg.DatabasePingTimeout = databasePingTimeout * time.Second
         cfg.RetryDelays = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 
-        if err = cfg.loadPrivateKey(); err != nil </span><span class="cov7" title="3">{
+        if err = cfg.loadPrivateKey(); err != nil </span><span class="cov4" title="3">{
                 return cfg, fmt.Errorf("failed to load private key: %w", err)
         }</span>
-
-        <span class="cov4" title="2">return cfg, nil</span>
+        <span class="cov5" title="4">return cfg, nil</span>
 }
 
-func (cfg *Config) loadPrivateKey() error <span class="cov10" title="5">{
-        if cfg.CryptoKey == "" </span><span class="cov1" title="1">{
+func parseFlags(cfg *Config) error <span class="cov10" title="17">{
+        flag.StringVar(&amp;cfg.Addr, "a", cfg.Addr, "server host")
+        flag.StringVar(&amp;cfg.FileStoragePath, "f", cfg.FileStoragePath, "file storage path")
+        flag.StringVar(&amp;cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "database dsn")
+        flag.BoolVar(&amp;cfg.Restore, "r", cfg.Restore, "file storage path")
+        flag.Int64Var(&amp;cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
+        flag.StringVar(&amp;cfg.Key, "k", cfg.Key, "key")
+        flag.BoolVar(&amp;cfg.Pprof, "pprof", cfg.Pprof, "use pprof")
+        flag.StringVar(&amp;cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "crypto key")
+        flag.StringVar(&amp;cfg.ConfigPath, "config", "", "config path")
+        flag.StringVar(&amp;cfg.ConfigPath, "c", "", "config path")
+        flag.Parse()
+        err := env.Parse(cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to parse config: %w", err)
+        }</span>
+        <span class="cov10" title="17">return nil</span>
+}
+
+func loadJSONConfig(cfg *Config) error <span class="cov8" title="10">{
+        cfg.ConfigPath = os.Getenv("CONFIG")
+        if cfg.ConfigPath == "" </span><span class="cov8" title="10">{
+                if err := parseFlags(cfg); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to parse flags: %w", err)
+                }</span>
+                <span class="cov8" title="10">flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
+                if cfg.ConfigPath == "" </span><span class="cov6" title="5">{
+                        return nil
+                }</span>
+        }
+        <span class="cov6" title="5">if _, err := os.Stat(cfg.ConfigPath); err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("failed to stat file %s: %w", cfg.ConfigPath, err)
+        }</span>
+        <span class="cov5" title="4">jsonDataByte, err := os.ReadFile(cfg.ConfigPath)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to read file %s: %w", cfg.ConfigPath, err)
+        }</span>
+        <span class="cov5" title="4">if err = json.Unmarshal(jsonDataByte, &amp;cfg); err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("failed to unmarshal JSON: %w", err)
+        }</span>
+        <span class="cov4" title="3">if cfg.StoreIntervalStr != nil </span><span class="cov4" title="3">{
+                var d time.Duration
+                d, err = time.ParseDuration(*cfg.StoreIntervalStr)
+                if err != nil </span><span class="cov1" title="1">{
+                        return fmt.Errorf("failed to parse duration: %w", err)
+                }</span>
+                <span class="cov3" title="2">cfg.StoreInterval = int64(d.Seconds())</span>
+        }
+        <span class="cov3" title="2">return nil</span>
+}
+
+func (cfg *Config) loadPrivateKey() error <span class="cov7" title="7">{
+        if cfg.CryptoKey == "" </span><span class="cov4" title="3">{
                 return nil
         }</span>
-        <span class="cov8" title="4">var err error
+        <span class="cov5" title="4">var err error
         if _, err = os.Stat(cfg.CryptoKey); os.IsNotExist(err) </span><span class="cov1" title="1">{
                 return fmt.Errorf("file %s does not exist: %w", cfg.CryptoKey, err)
-        }</span> else<span class="cov7" title="3"> if err != nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov4" title="3"> if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to stat file %s: %w", cfg.CryptoKey, err)
         }</span>
-        <span class="cov7" title="3">data, err := os.ReadFile(cfg.CryptoKey)
+        <span class="cov4" title="3">data, err := os.ReadFile(cfg.CryptoKey)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to read file %s: %w", cfg.CryptoKey, err)
         }</span>
-        <span class="cov7" title="3">block, _ := pem.Decode(data)
+        <span class="cov4" title="3">block, _ := pem.Decode(data)
         if block == nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to decode PEM block from file %s", cfg.CryptoKey)
         }</span>
-        <span class="cov4" title="2">if block.Type != "RSA PRIVATE KEY" </span><span class="cov1" title="1">{
+        <span class="cov3" title="2">if block.Type != "RSA PRIVATE KEY" </span><span class="cov1" title="1">{
                 return fmt.Errorf("file %s is not a RSA private key", cfg.CryptoKey)
         }</span>
         <span class="cov1" title="1">cfg.PrivateKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)

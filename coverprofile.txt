@@ -4,8 +4,10 @@ github.com/korobkovandrey/runtime-metrics/cmd/genrsa/main.go:60:					main					81
 github.com/korobkovandrey/runtime-metrics/cmd/server/main.go:23:					main					0.0%
 github.com/korobkovandrey/runtime-metrics/cmd/staticlint/main.go:133:					main					0.0%
 github.com/korobkovandrey/runtime-metrics/internal/agent/agent.go:19:					Run					84.0%
-github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:32:				NewConfig				81.5%
-github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:89:				loadPublicKey				79.2%
+github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:36:				NewConfig				76.2%
+github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:85:				parseFlags				93.3%
+github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:104:				loadJSONConfig				92.6%
+github.com/korobkovandrey/runtime-metrics/internal/agent/config/config.go:144:				loadPublicKey				79.2%
 github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:26:				postData				67.9%
 github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:70:				doRetry					42.1%
 github.com/korobkovandrey/runtime-metrics/internal/agent/sender/post.go:100:				makeBodyWithHash			66.7%
@@ -33,8 +35,10 @@ github.com/korobkovandrey/runtime-metrics/internal/model/metric.go:117:					NewM
 github.com/korobkovandrey/runtime-metrics/internal/model/metric.go:139:					UnmarshalMetricRequestFromReader	75.0%
 github.com/korobkovandrey/runtime-metrics/internal/model/metric.go:159:					UnmarshalMetricsRequestFromReader	0.0%
 github.com/korobkovandrey/runtime-metrics/internal/model/metric.go:179:					ValidateMetricsRequest			0.0%
-github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go:33:				NewConfig				95.0%
-github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go:67:				loadPrivateKey				84.2%
+github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go:36:				NewConfig				92.9%
+github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go:64:				parseFlags				93.3%
+github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go:83:				loadJSONConfig				90.5%
+github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go:115:				loadPrivateKey				84.2%
 github.com/korobkovandrey/runtime-metrics/internal/server/handler.go:31:				NewHandler				100.0%
 github.com/korobkovandrey/runtime-metrics/internal/server/handler.go:36:				Configure				75.9%
 github.com/korobkovandrey/runtime-metrics/internal/server/handler.go:92:				Close					0.0%
@@ -148,4 +152,4 @@ github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:32:						MakeToString
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:37:						Validate				100.0%
 github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go:12:				main					91.7%
 github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go:46:				runCommand				100.0%
-total:													(statements)				70.4%
+total:													(statements)				71.3%

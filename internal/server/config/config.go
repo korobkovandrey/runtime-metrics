@@ -4,6 +4,7 @@ package config
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"flag"
 	"fmt"
@@ -15,44 +16,41 @@ import (
 
 // Config is the server config.
 type Config struct {
+	StoreIntervalStr    *string `json:"store_interval"`
 	PrivateKey          *rsa.PrivateKey
-	Addr                string `env:"ADDRESS"`
-	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
-	DatabaseDSN         string `env:"DATABASE_DSN"`
+	Addr                string `env:"ADDRESS" json:"address"`
+	FileStoragePath     string `env:"FILE_STORAGE_PATH" json:"store_file"`
+	DatabaseDSN         string `env:"DATABASE_DSN" json:"database_dsn"`
 	Key                 string `env:"KEY"`
-	CryptoKey           string `env:"CRYPTO_KEY"`
+	CryptoKey           string `env:"CRYPTO_KEY" json:"crypto_key"`
+	ConfigPath          string `env:"CONFIG"`
 	RetryDelays         []time.Duration
-	StoreInterval       int64 `env:"STORE_INTERVAL"`
 	ShutdownTimeout     time.Duration
 	DatabasePingTimeout time.Duration
-	Restore             bool `env:"RESTORE"`
-	Pprof               bool `env:"PPROF"`
+	StoreInterval       int64 `env:"STORE_INTERVAL"`
+	Restore             bool  `env:"RESTORE" json:"restore"`
+	Pprof               bool  `env:"PPROF"`
 }
 
 // NewConfig returns the server config.
 func NewConfig() (*Config, error) {
 	const (
-		storeInterval   = 0
 		shutdownTimeout = 5
 		databasePingTimeout
 	)
-	cfg := &Config{}
-	flag.StringVar(&cfg.Addr, "a", "localhost:8080", "server host")
-	flag.StringVar(&cfg.FileStoragePath, "f", "storage.json", "file storage path")
-	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database dsn")
-	flag.BoolVar(&cfg.Restore, "r", true, "file storage path")
-	flag.Int64Var(&cfg.StoreInterval, "i", storeInterval, "store interval")
-	flag.StringVar(&cfg.Key, "k", "", "key")
-	flag.BoolVar(&cfg.Pprof, "pprof", false, "use pprof")
-	flag.StringVar(&cfg.CryptoKey, "crypto-key", "", "crypto key")
-
-	flag.Parse()
-
-	err := env.Parse(cfg)
-	if err != nil {
-		return cfg, fmt.Errorf("failed to parse config: %w", err)
+	cfg := &Config{
+		Addr:            "localhost:8080",
+		FileStoragePath: "storage.json",
+		Restore:         true,
 	}
-
+	err := loadJSONConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load json config: %w", err)
+	}
+	err = parseFlags(cfg)
+	if err != nil {
+		return cfg, fmt.Errorf("failed to parse flags: %w", err)
+	}
 	cfg.ShutdownTimeout = shutdownTimeout * time.Second
 	cfg.DatabasePingTimeout = databasePingTimeout * time.Second
 	cfg.RetryDelays = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
@@ -60,8 +58,58 @@ func NewConfig() (*Config, error) {
 	if err = cfg.loadPrivateKey(); err != nil {
 		return cfg, fmt.Errorf("failed to load private key: %w", err)
 	}
-
 	return cfg, nil
+}
+
+func parseFlags(cfg *Config) error {
+	flag.StringVar(&cfg.Addr, "a", cfg.Addr, "server host")
+	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "file storage path")
+	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "database dsn")
+	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "file storage path")
+	flag.Int64Var(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
+	flag.StringVar(&cfg.Key, "k", cfg.Key, "key")
+	flag.BoolVar(&cfg.Pprof, "pprof", cfg.Pprof, "use pprof")
+	flag.StringVar(&cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "crypto key")
+	flag.StringVar(&cfg.ConfigPath, "config", "", "config path")
+	flag.StringVar(&cfg.ConfigPath, "c", "", "config path")
+	flag.Parse()
+	err := env.Parse(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to parse config: %w", err)
+	}
+	return nil
+}
+
+func loadJSONConfig(cfg *Config) error {
+	cfg.ConfigPath = os.Getenv("CONFIG")
+	if cfg.ConfigPath == "" {
+		if err := parseFlags(cfg); err != nil {
+			return fmt.Errorf("failed to parse flags: %w", err)
+		}
+		flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
+		if cfg.ConfigPath == "" {
+			return nil
+		}
+	}
+	if _, err := os.Stat(cfg.ConfigPath); err != nil {
+		return fmt.Errorf("failed to stat file %s: %w", cfg.ConfigPath, err)
+	}
+	jsonDataByte, err := os.ReadFile(cfg.ConfigPath)
+	if err != nil {
+		return fmt.Errorf("failed to read file %s: %w", cfg.ConfigPath, err)
+	}
+	if err = json.Unmarshal(jsonDataByte, &cfg); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+	if cfg.StoreIntervalStr != nil {
+		var d time.Duration
+		d, err = time.ParseDuration(*cfg.StoreIntervalStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse duration: %w", err)
+		}
+		cfg.StoreInterval = int64(d.Seconds())
+	}
+	return nil
 }
 
 func (cfg *Config) loadPrivateKey() error {
