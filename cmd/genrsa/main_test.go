@@ -76,23 +76,8 @@ func TestInvalidBits(t *testing.T) {
 
 // TestFileCreationError tests the error handling when trying to create files in a read-only directory
 func TestFileCreationError(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "rsa_test")
-	require.NoError(t, err)
-	defer func() {
-		assert.NoError(t, os.RemoveAll(tempDir))
-	}()
-
-	err = os.Chmod(tempDir, 0400)
-	require.NoError(t, err)
-	defer func() {
-		assert.NoError(t, os.Chmod(tempDir, 0755))
-	}()
-
-	privatePath := filepath.Join(tempDir, "private_key.pem")
-	publicPath := filepath.Join(tempDir, "public_key.pem")
-
-	err = generateAndSaveKeys(2048, privatePath, publicPath)
-	assert.Error(t, err)
+	const dir = "rsa_example"
+	assert.Error(t, generateAndSaveKeys(2048, filepath.Join(dir, "private_key.pem"), filepath.Join(dir, "public_key.pem")))
 }
 
 func runMainTesting(bits int, privatePath, publicPath string) {

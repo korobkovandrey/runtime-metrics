@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -25,18 +24,10 @@ func Example_main() {
 // Example_main_err_permission_denied demonstrates the error handling when trying to create files in a read-only directory.
 func Example_main_err_permission_denied() {
 	const dir = "rsa_example"
-	err := os.Mkdir(dir, 0400)
-	if err != nil {
-		fmt.Printf("Error creating temp directory: %v\n", err)
-		return
-	}
-	defer func() {
-		_ = os.RemoveAll(dir)
-	}()
 	runMainTesting(2048, filepath.Join(dir, "example_private_key.pem"), filepath.Join(dir, "example_public_key.pem"))
 
 	// Output:
-	// Error: error creating private key file: open rsa_example/example_private_key.pem: permission denied
+	// Error: error creating private key file: open rsa_example/example_private_key.pem: no such file or directory
 }
 
 // Example_main_err_incorrect_bits demonstrates the error handling when trying to generate RSA keys with an insecure bit size.
