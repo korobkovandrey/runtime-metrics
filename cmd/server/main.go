@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
@@ -27,7 +28,7 @@ func main() {
 	}
 	defer l.Sync()
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	defer cancel()
 
 	cfg, err := config.NewConfig()
