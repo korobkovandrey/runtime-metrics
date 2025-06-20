@@ -9,6 +9,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -68,4 +69,10 @@ func TestNewIndexHandler(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("fail template path", func(t *testing.T) {
+		_, err := NewIndexHandler(nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to parse template")
+	})
 }

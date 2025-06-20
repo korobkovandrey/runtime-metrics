@@ -1,10 +1,13 @@
 package model
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
+	"testing/iotest"
 
+	"github.com/pashagolub/pgxmock/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -289,6 +292,8 @@ func TestUnmarshalMetricRequestFromReader(t *testing.T) {
 	type args struct {
 		r io.Reader
 	}
+	anyError := errors.New("any error")
+	errorReader := errors.New("error reader")
 	tests := []struct {
 		args    args
 		wantErr error
@@ -316,6 +321,27 @@ func TestUnmarshalMetricRequestFromReader(t *testing.T) {
 			},
 			wantErr: ErrMetricNotFound,
 		},
+		{
+			name: "empty body",
+			args: args{
+				r: strings.NewReader(""),
+			},
+			wantErr: anyError,
+		},
+		{
+			name: "error unmarshal",
+			args: args{
+				r: strings.NewReader(`{`),
+			},
+			wantErr: anyError,
+		},
+		{
+			name: "error reader",
+			args: args{
+				r: iotest.ErrReader(errorReader),
+			},
+			wantErr: errorReader,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -324,7 +350,9 @@ func TestUnmarshalMetricRequestFromReader(t *testing.T) {
 				assert.NoError(t, err)
 			} else {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, tt.wantErr)
+				if !errors.Is(tt.wantErr, anyError) {
+					assert.ErrorIs(t, err, tt.wantErr)
+				}
 			}
 			assert.Equal(t, tt.want, got)
 		})
@@ -407,6 +435,237 @@ func TestMetricRequest_ValidateType(t *testing.T) {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func TestUnmarshalMetricsRequestFromReader(t *testing.T) {
+	type args struct {
+		r io.Reader
+	}
+	anyError := errors.New("any error")
+	errorReader := errors.New("error reader")
+	tests := []struct {
+		args    args
+		wantErr error
+		name    string
+		want    []*MetricRequest
+	}{
+		{
+			name: "valid metrics list",
+			args: args{
+				r: strings.NewReader(`[
+					{"type":"counter","id":"counter1","delta":65},
+					{"type":"gauge","id":"gauge1","value":12.34}
+				]`),
+			},
+			want: []*MetricRequest{
+				{Metric: NewMetricCounter("counter1", 65)},
+				{Metric: NewMetricGauge("gauge1", 12.34)},
+			},
+		},
+		{
+			name: "empty body",
+			args: args{
+				r: strings.NewReader(``),
+			},
+			wantErr: anyError,
+		},
+		{
+			name: "invalid JSON",
+			args: args{
+				r: strings.NewReader(`[{invalid}]`),
+			},
+			wantErr: anyError,
+		},
+		{
+			name: "empty metrics list",
+			args: args{
+				r: strings.NewReader(`[]`),
+			},
+			wantErr: anyError,
+		},
+		{
+			name: "error reader",
+			args: args{
+				r: iotest.ErrReader(errorReader),
+			},
+			wantErr: errorReader,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := UnmarshalMetricsRequestFromReader(tt.args.r)
+			if tt.wantErr == nil {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			} else {
+				assert.Error(t, err)
+				if !errors.Is(tt.wantErr, anyError) {
+					assert.ErrorIs(t, err, tt.wantErr)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateMetricsRequest(t *testing.T) {
+	tests := []struct {
+		wantErr error
+		name    string
+		metrics []*MetricRequest
+	}{
+		{
+			name: "valid metrics",
+			metrics: []*MetricRequest{
+				{Metric: NewMetricCounter("counter1", 65)},
+				{Metric: NewMetricGauge("gauge1", 12.34)},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "invalid gauge value",
+			metrics: []*MetricRequest{
+				{Metric: NewMetricCounter("counter1", 65)},
+				{Metric: &Metric{MType: TypeGauge, ID: "gauge1"}},
+			},
+			wantErr: ErrValueIsNotValid,
+		},
+		{
+			name: "invalid counter value",
+			metrics: []*MetricRequest{
+				{Metric: NewMetricGauge("gauge1", 12.34)},
+				{Metric: &Metric{MType: TypeCounter, ID: "counter1"}},
+			},
+			wantErr: ErrValueIsNotValid,
+		},
+		{
+			name: "invalid type",
+			metrics: []*MetricRequest{
+				{Metric: NewMetricGauge("gauge1", 12.34)},
+				{Metric: &Metric{MType: "invalid", ID: "test"}},
+			},
+			wantErr: ErrTypeIsNotValid,
+		},
+		{
+			name:    "empty metrics list",
+			metrics: []*MetricRequest{},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateMetricsRequest(tt.metrics)
+			if tt.wantErr == nil {
+				assert.NoError(t, err, "Expected no error")
+			} else {
+				require.Error(t, err, "Expected error")
+				assert.ErrorIs(t, err, tt.wantErr, "Unexpected error")
+			}
+		})
+	}
+}
+
+func TestMetric_ScanRow(t *testing.T) {
+	tests := []struct {
+		setupMock   func(mock pgxmock.PgxPoolIface)
+		metric      *Metric
+		wantMetric  *Metric
+		name        string
+		errContains string
+		wantErr     bool
+	}{
+		{
+			name: "gauge",
+			setupMock: func(mock pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"mtype", "id", "value", "delta"}).
+					AddRow(TypeGauge, "gauge1", pointer(12.34), nil)
+				mock.ExpectQuery("SELECT").WillReturnRows(rows)
+			},
+			metric: &Metric{},
+			wantMetric: &Metric{
+				MType: TypeGauge,
+				ID:    "gauge1",
+				Value: pointer(12.34),
+				Delta: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "counter",
+			setupMock: func(mock pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"mtype", "id", "value", "delta"}).
+					AddRow(TypeCounter, "counter1", nil, pointer(int64(65)))
+				mock.ExpectQuery("SELECT").WillReturnRows(rows)
+			},
+			metric: &Metric{},
+			wantMetric: &Metric{
+				MType: TypeCounter,
+				ID:    "counter1",
+				Value: nil,
+				Delta: pointer(int64(65)),
+			},
+			wantErr: false,
+		},
+		{
+			name: "scan error",
+			setupMock: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectQuery("SELECT").WillReturnError(errors.New("database error"))
+			},
+			metric:      &Metric{},
+			wantMetric:  &Metric{},
+			wantErr:     true,
+			errContains: "database error",
+		},
+		{
+			name: "invalid type",
+			setupMock: func(mock pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"mtype", "id", "value", "delta"}).
+					AddRow("invalid", "test", pointer(12.34), nil)
+				mock.ExpectQuery("SELECT").WillReturnRows(rows)
+			},
+			metric: &Metric{},
+			wantMetric: &Metric{
+				MType: "invalid",
+				ID:    "test",
+				Value: pointer(12.34),
+				Delta: nil,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			tt.setupMock(mock)
+			row, err := mock.Query(t.Context(), "SELECT")
+			if tt.name == "scan error" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errContains)
+				return
+			} else {
+				require.NoError(t, err)
+			}
+			defer row.Close()
+
+			if row.Next() {
+				err = tt.metric.ScanRow(row)
+			} else if !tt.wantErr {
+				t.Fatal("No rows returned by mock query")
+			}
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errContains)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantMetric, tt.metric)
+			}
+			assert.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
 }

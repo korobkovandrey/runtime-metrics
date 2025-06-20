@@ -638,6 +638,7 @@ func TestHandler_Configure(t *testing.T) {
 	h.Router = chi.NewRouter()
 	assert.Error(t, h.Configure(t.Context(), cfg, l))
 	t.Chdir(currentDir)
+	require.NoError(t, h.Close())
 }
 
 func testRequest(

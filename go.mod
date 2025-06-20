@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/kisielk/errcheck v1.9.0
+	github.com/pashagolub/pgxmock/v3 v3.4.0
 	github.com/shirou/gopsutil/v4 v4.25.4
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.2

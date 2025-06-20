@@ -75,13 +75,13 @@
 				
 				<option value="file9">github.com/korobkovandrey/runtime-metrics/internal/agent/service/source.go (97.5%)</option>
 				
-				<option value="file10">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (70.6%)</option>
+				<option value="file10">github.com/korobkovandrey/runtime-metrics/internal/model/metric.go (100.0%)</option>
 				
 				<option value="file11">github.com/korobkovandrey/runtime-metrics/internal/server/config/config.go (89.9%)</option>
 				
-				<option value="file12">github.com/korobkovandrey/runtime-metrics/internal/server/handler.go (78.0%)</option>
+				<option value="file12">github.com/korobkovandrey/runtime-metrics/internal/server/handler.go (84.7%)</option>
 				
-				<option value="file13">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/index.go (73.3%)</option>
+				<option value="file13">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/index.go (80.0%)</option>
 				
 				<option value="file14">github.com/korobkovandrey/runtime-metrics/internal/server/handlers/ping.go (100.0%)</option>
 				
@@ -608,7 +608,7 @@ func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) <span cl
         tickPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
         defer tickPoll.Stop()
         go func() </span><span class="cov2" title="2">{
-                for ; ; &lt;-tickPoll.C </span><span class="cov6" title="8">{
+                for ; ; &lt;-tickPoll.C </span><span class="cov6" title="7">{
                         if err := source.Collect(ctx); err != nil </span><span class="cov0" title="0">{
                                 l.ErrorCtx(ctx, fmt.Errorf("failed to collect metrics: %w", err).Error())
                         }</span>
@@ -1292,7 +1292,7 @@ func (m *Metric) Clone() *Metric <span class="cov4" title="3">{
 }
 
 // AnyValue returns the value of the metric as any
-func (m *Metric) AnyValue() any <span class="cov6" title="4">{
+func (m *Metric) AnyValue() any <span class="cov5" title="4">{
         if m.MType == TypeCounter </span><span class="cov3" title="2">{
                 if m.Delta == nil </span><span class="cov1" title="1">{
                         return nil
@@ -1306,7 +1306,7 @@ func (m *Metric) AnyValue() any <span class="cov6" title="4">{
 }
 
 // ScanRow scans the row into the metric
-func (m *Metric) ScanRow(row pgx.Row) error <span class="cov0" title="0">{
+func (m *Metric) ScanRow(row pgx.Row) error <span class="cov4" title="3">{
         return row.Scan(
                 &amp;m.MType,
                 &amp;m.ID,
@@ -1316,7 +1316,7 @@ func (m *Metric) ScanRow(row pgx.Row) error <span class="cov0" title="0">{
 }</span>
 
 // NewMetricGauge returns a new gauge metric
-func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="10">{
+func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="14">{
         return &amp;Metric{
                 Value: &amp;value,
                 MType: TypeGauge,
@@ -1325,7 +1325,7 @@ func NewMetricGauge(id string, value float64) *Metric <span class="cov9" title="
 }</span>
 
 // NewMetricCounter returns a new counter metric
-func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title="12">{
+func NewMetricCounter(id string, delta int64) *Metric <span class="cov10" title="15">{
         return &amp;Metric{
                 Delta: &amp;delta,
                 MType: TypeCounter,
@@ -1339,20 +1339,20 @@ type MetricRequest struct {
 }
 
 // RequiredValue returns an error if the value is not set
-func (mr *MetricRequest) RequiredValue() error <span class="cov6" title="5">{
+func (mr *MetricRequest) RequiredValue() error <span class="cov9" title="13">{
         switch mr.MType </span>{
-        case TypeGauge:<span class="cov3" title="2">
-                if mr.Value == nil </span><span class="cov1" title="1">{
+        case TypeGauge:<span class="cov6" title="6">
+                if mr.Value == nil </span><span class="cov3" title="2">{
                         return ErrValueIsNotValid
                 }</span>
-        case TypeCounter:<span class="cov3" title="2">
-                if mr.Delta == nil </span><span class="cov1" title="1">{
+        case TypeCounter:<span class="cov6" title="5">
+                if mr.Delta == nil </span><span class="cov3" title="2">{
                         return ErrValueIsNotValid
                 }</span>
-        default:<span class="cov1" title="1">
+        default:<span class="cov3" title="2">
                 return ErrTypeIsNotValid</span>
         }
-        <span class="cov3" title="2">return nil</span>
+        <span class="cov7" title="7">return nil</span>
 }
 
 // ValidateType returns an error if the type is not valid
@@ -1364,7 +1364,7 @@ func (mr *MetricRequest) ValidateType() error <span class="cov4" title="3">{
 }
 
 // NewMetricRequest returns a new metric request
-func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="cov7" title="6">{
+func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="cov6" title="6">{
         var m *Metric
         switch t </span>{
         case TypeGauge:<span class="cov3" title="2">
@@ -1386,17 +1386,17 @@ func NewMetricRequest(t, id, value string) (*MetricRequest, error) <span class="
 }
 
 // UnmarshalMetricRequestFromReader unmarshals the metric request from the reader
-func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span class="cov4" title="3">{
+func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span class="cov6" title="6">{
         body, err := io.ReadAll(r)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to read body: %w", err)
         }</span>
-        <span class="cov4" title="3">if len(body) == 0 </span><span class="cov0" title="0">{
+        <span class="cov6" title="5">if len(body) == 0 </span><span class="cov1" title="1">{
                 return nil, errors.New("empty body")
         }</span>
-        <span class="cov4" title="3">var metric *MetricRequest
+        <span class="cov5" title="4">var metric *MetricRequest
         err = json.Unmarshal(body, &amp;metric)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to unmarshal body: %w", err)
         }</span>
         <span class="cov4" title="3">if metric == nil || metric.Metric == nil </span><span class="cov1" title="1">{
@@ -1406,33 +1406,33 @@ func UnmarshalMetricRequestFromReader(r io.Reader) (*MetricRequest, error) <span
 }
 
 // UnmarshalMetricsRequestFromReader unmarshals the metric request from the reader
-func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) <span class="cov0" title="0">{
+func UnmarshalMetricsRequestFromReader(r io.Reader) ([]*MetricRequest, error) <span class="cov6" title="5">{
         body, err := io.ReadAll(r)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to read body: %w", err)
         }</span>
-        <span class="cov0" title="0">if len(body) == 0 </span><span class="cov0" title="0">{
+        <span class="cov5" title="4">if len(body) == 0 </span><span class="cov1" title="1">{
                 return nil, errors.New("empty body")
         }</span>
-        <span class="cov0" title="0">var metrics []*MetricRequest
+        <span class="cov4" title="3">var metrics []*MetricRequest
         err = json.Unmarshal(body, &amp;metrics)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to unmarshal body: %w", err)
         }</span>
-        <span class="cov0" title="0">if len(metrics) == 0 </span><span class="cov0" title="0">{
+        <span class="cov3" title="2">if len(metrics) == 0 </span><span class="cov1" title="1">{
                 return nil, errors.New("empty body")
         }</span>
-        <span class="cov0" title="0">return metrics, nil</span>
+        <span class="cov1" title="1">return metrics, nil</span>
 }
 
 // ValidateMetricsRequest returns an error if the metric request is not valid
-func ValidateMetricsRequest(metrics []*MetricRequest) error <span class="cov0" title="0">{
-        for _, m := range metrics </span><span class="cov0" title="0">{
-                if err := m.RequiredValue(); err != nil </span><span class="cov0" title="0">{
+func ValidateMetricsRequest(metrics []*MetricRequest) error <span class="cov6" title="5">{
+        for _, m := range metrics </span><span class="cov7" title="8">{
+                if err := m.RequiredValue(); err != nil </span><span class="cov4" title="3">{
                         return err
                 }</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov3" title="2">return nil</span>
 }
 </pre>
 		
@@ -1670,14 +1670,14 @@ func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.
 }
 
 // Close closes the handler.
-func (h *Handler) Close() error <span class="cov0" title="0">{
+func (h *Handler) Close() error <span class="cov1" title="1">{
         var errs []error
-        for i := range h.closers </span><span class="cov0" title="0">{
+        for i := range h.closers </span><span class="cov1" title="1">{
                 if err := h.closers[i](); err != nil </span><span class="cov0" title="0">{
                         errs = append(errs, err)
                 }</span>
         }
-        <span class="cov0" title="0">return errors.Join(errs...)</span>
+        <span class="cov1" title="1">return errors.Join(errs...)</span>
 }
 
 // setIndexRoute sets the index route.
@@ -1753,12 +1753,12 @@ type AllFinder interface {
 }
 
 // NewIndexHandler creates a new index handler
-func NewIndexHandler(s AllFinder) (http.HandlerFunc, error) <span class="cov10" title="2">{
+func NewIndexHandler(s AllFinder) (http.HandlerFunc, error) <span class="cov10" title="3">{
         tpl, err := template.ParseFiles("./web/template/index.html")
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to parse template: %w", err)
         }</span>
-        <span class="cov10" title="2">return func(w http.ResponseWriter, r *http.Request) </span><span class="cov10" title="2">{
+        <span class="cov6" title="2">return func(w http.ResponseWriter, r *http.Request) </span><span class="cov6" title="2">{
                 w.Header().Set("Content-Type", "text/html; charset=utf-8")
                 data, err := s.FindAll(r.Context())
                 if err != nil </span><span class="cov1" title="1">{
