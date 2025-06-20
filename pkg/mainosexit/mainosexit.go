@@ -2,19 +2,15 @@ package mainosexit
 
 import (
 	"go/ast"
-	"strings"
 
 	"golang.org/x/tools/go/analysis"
 )
 
 // Analyzer defines a static analyzer that prohibits direct calls to os.Exit in the main function of the main package.
 var Analyzer = &analysis.Analyzer{
-	Name:     "mainosexit",
-	Doc:      "checks for direct calls to os.Exit in the main function of the main package",
-	Requires: []*analysis.Analyzer{
-		// No additional dependencies required
-	},
-	Run: run,
+	Name: "mainosexit",
+	Doc:  "checks for direct calls to os.Exit in the main function of the main package",
+	Run:  run,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -22,10 +18,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 	for _, file := range pass.Files {
-		// Skip non-Go files (from .cache/go-build)
-		if !strings.HasSuffix(pass.Fset.File(file.Pos()).Name(), ".go") {
-			continue
-		}
 		ast.Inspect(file, func(n ast.Node) bool {
 			if funcDecl, ok := n.(*ast.FuncDecl); ok {
 				if funcDecl.Name.Name != "main" {

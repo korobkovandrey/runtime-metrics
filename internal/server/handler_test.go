@@ -3,17 +3,22 @@ package server
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
+	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"go.uber.org/zap"
 )
 
 type testCase struct {
@@ -611,6 +616,28 @@ func TestHandler_setValueRoutes(t *testing.T) {
 			testHelper(t, h, tt.testCase)
 		})
 	}
+}
+
+func TestHandler_Configure(t *testing.T) {
+	origArgs := os.Args
+	defer func() { os.Args = origArgs }()
+	os.Args = []string{"test"}
+	flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
+	cfg, err := config.NewConfig()
+	require.NoError(t, err)
+	l, err := logging.NewZapLogger(zap.InfoLevel)
+	require.NoError(t, err)
+	defer l.Sync()
+
+	h := NewHandler()
+	currentDir, err := os.Getwd()
+	require.NoError(t, err)
+	t.Chdir("../..")
+	assert.NoError(t, h.Configure(t.Context(), cfg, l))
+	cfg.DatabaseDSN = "fail"
+	h.Router = chi.NewRouter()
+	assert.Error(t, h.Configure(t.Context(), cfg, l))
+	t.Chdir(currentDir)
 }
 
 func testRequest(

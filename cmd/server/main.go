@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
 	"errors"
 	"fmt"
 	"log"
@@ -43,7 +44,23 @@ func main() {
 	if err = h.Configure(ctx, cfg, l); err != nil {
 		l.FatalCtx(ctx, fmt.Errorf("failed to configure handler: %w", err).Error())
 	}
-	l.InfoCtx(ctx, "Server started on http://"+cfg.Addr+"/", zap.Any("config", cfg))
+	printCfg := config.Config{
+		Addr:                cfg.Addr,
+		ShutdownTimeout:     cfg.ShutdownTimeout,
+		StoreInterval:       cfg.StoreInterval,
+		DatabasePingTimeout: cfg.DatabasePingTimeout,
+		RetryDelays:         cfg.RetryDelays,
+		DatabaseDSN:         cfg.DatabaseDSN,
+		FileStoragePath:     cfg.FileStoragePath,
+		Restore:             cfg.Restore,
+		Key:                 cfg.Key,
+		Pprof:               cfg.Pprof,
+		CryptoKey:           cfg.CryptoKey,
+	}
+	if cfg.PrivateKey != nil {
+		printCfg.PrivateKey = &rsa.PrivateKey{}
+	}
+	l.InfoCtx(ctx, "Server started on http://"+cfg.Addr+"/", zap.Any("config", printCfg))
 	if err = server.ListenAndServe(ctx, l, cfg.Addr, cfg.ShutdownTimeout, h); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		l.FatalCtx(ctx, "failed to start server", zap.Error(err))
 	}

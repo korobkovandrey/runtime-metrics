@@ -3,6 +3,7 @@ package sender
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
 	"net/http"
 	"sync"
@@ -14,6 +15,7 @@ import (
 
 // Config contains the configuration for the sender.
 type Config struct {
+	PublicKey   *rsa.PublicKey
 	UpdateURL   string
 	UpdatesURL  string
 	RetryDelays []time.Duration
@@ -38,7 +40,7 @@ func New(cfg *Config, l *logging.ZapLogger) *Sender {
 
 // SendMetric sends a metric to the server.
 func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error {
-	if err := s.postData(ctx, s.cfg.UpdateURL, m); err != nil {
+	if err := s.postData(ctx, s.cfg.UpdateURL, m, false); err != nil {
 		return fmt.Errorf("failed to send metric: %w", err)
 	}
 	return nil
@@ -46,7 +48,7 @@ func (s *Sender) SendMetric(ctx context.Context, m *model.Metric) error {
 
 // SendBatchMetrics sends a batch of metrics to the server.
 func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error {
-	if err := s.postData(ctx, s.cfg.UpdatesURL, ms); err != nil {
+	if err := s.postData(ctx, s.cfg.UpdatesURL, ms, true); err != nil {
 		return fmt.Errorf("failed to send metric: %w", err)
 	}
 	return nil

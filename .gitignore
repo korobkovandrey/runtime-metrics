@@ -31,3 +31,6 @@ vendor/
 /cmd/agent/version.go
 /cmd/server/version.go
 /tools/genversion/version.go
+
+/private_key.pem
+/public_key.pem

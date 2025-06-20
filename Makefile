@@ -15,7 +15,7 @@ staticlint:
 	go vet -vettool=./cmd/staticlint/staticlint ./...
 
 coverprofile:
-	go test ./... -covermode=count -coverprofile cover.out.tmp && cat cover.out.tmp | grep -v -e "mock" > cover.out \
+	go test ./... -covermode=count -coverprofile cover.out.tmp && cat cover.out.tmp | grep -v -e "mock" -e "/version" > cover.out \
  		&& rm cover.out.tmp && go tool cover -html cover.out -o coverprofile.html \
  		&& go tool cover -func cover.out > coverprofile.txt && cat coverprofile.txt
 
@@ -26,3 +26,5 @@ coverprofile-with-mocks:
 version:
 	go generate ./cmd/...
 
+rsa:
+	go run ./cmd/genrsa

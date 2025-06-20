@@ -80,6 +80,9 @@ func Signer(key []byte) func(h http.Handler) http.Handler {
 			bh, err := sign.DecodeString(r.Header.Get("HashSHA256"))
 			if err == nil {
 				body, err = io.ReadAll(r.Body)
+				if err == nil {
+					err = r.Body.Close()
+				}
 				if err == nil && !sign.Validate(body, key, bh) {
 					err = errors.New("invalid signature")
 				}
