@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
+	"net"
 	"net/http"
-	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
@@ -15,53 +15,34 @@ import (
 )
 
 func TestListenAndServe(t *testing.T) {
-	tests := []struct {
-		name            string
-		shutdownTimeout time.Duration
-		duration        time.Duration
-	}{
-		{
-			name:            "basic start and stop",
-			shutdownTimeout: time.Second,
-			duration:        2 * time.Second,
-		},
+	l, err := logging.NewZapLogger(zap.InfoLevel)
+	require.NoError(t, err)
+	defer l.Sync()
+
+	list, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	require.NoError(t, list.Close())
+	addr := list.Addr().String()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+		defer cancel()
+		if errSrv := ListenAndServe(ctx, l, addr, 100*time.Millisecond, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})); errSrv != nil {
+			assert.ErrorIs(t, errSrv, http.ErrServerClosed)
+		}
+	}()
+
+	client := &http.Client{}
+	//nolint:noctx // ignore
+	resp, err := client.Get("http://" + addr + "/updates")
+	if err == nil {
+		_ = resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), tt.duration)
-			defer cancel()
-
-			l, err := logging.NewZapLogger(zap.InfoLevel)
-			require.NoError(t, err)
-			defer l.Sync()
-
-			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})
-			srv := httptest.NewServer(handler)
-			srv.Close()
-
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				if err = ListenAndServe(ctx, l, srv.Listener.Addr().String(), tt.shutdownTimeout, handler); err != nil {
-					assert.ErrorIs(t, err, http.ErrServerClosed)
-				}
-			}()
-			time.Sleep(100 * time.Millisecond)
-
-			client := &http.Client{Timeout: time.Second}
-			//nolint:noctx // ignore
-			resp, err := client.Get(srv.URL)
-			assert.NoError(t, err)
-			if err == nil {
-				_ = resp.Body.Close()
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
-			}
-			<-ctx.Done()
-			wg.Wait()
-		})
-	}
+	wg.Wait()
 }

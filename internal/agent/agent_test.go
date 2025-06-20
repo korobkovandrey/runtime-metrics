@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"flag"
+	"net"
 	"net/http"
 	"os"
 	"sync"
@@ -17,9 +18,13 @@ import (
 )
 
 func TestRun(t *testing.T) {
+	list, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	require.NoError(t, list.Close())
+	addr := list.Addr().String()
 	origArgs := os.Args
 	defer func() { os.Args = origArgs }()
-	os.Args = []string{"test"}
+	os.Args = []string{"test", "-a", addr}
 	flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
 	cfg, err := config.NewConfig()
 	require.NoError(t, err)
@@ -50,7 +55,7 @@ func TestRun(t *testing.T) {
 	}
 
 	server := &http.Server{
-		Addr:              ":8080",
+		Addr:              addr,
 		ReadHeaderTimeout: time.Second,
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -65,7 +70,7 @@ func TestRun(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), tt.duration)
+			ctx, cancel := context.WithTimeout(t.Context(), tt.duration)
 			defer cancel()
 
 			l, err := logging.NewZapLogger(zap.InfoLevel)
@@ -80,7 +85,6 @@ func TestRun(t *testing.T) {
 					Run(ctx, tt.cfg, l)
 				})
 			}()
-			<-ctx.Done()
 			wg.Wait()
 		})
 	}
