@@ -15,13 +15,14 @@ import (
 
 // Config contains the configuration for the sender.
 type Config struct {
-	PublicKey   *rsa.PublicKey
-	UpdateURL   string
-	UpdatesURL  string
-	RetryDelays []time.Duration
-	Key         []byte
-	Timeout     time.Duration
-	RateLimit   int
+	PublicKey     *rsa.PublicKey
+	UpdateURL     string
+	UpdatesURL    string
+	RealIPAddress string
+	RetryDelays   []time.Duration
+	Key           []byte
+	Timeout       time.Duration
+	RateLimit     int
 }
 
 // Sender sends metrics to the server.

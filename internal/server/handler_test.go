@@ -624,6 +624,7 @@ func TestHandler_Configure(t *testing.T) {
 	os.Args = []string{"test"}
 	flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
 	cfg, err := config.NewConfig()
+	cfg.Pprof = true
 	require.NoError(t, err)
 	l, err := logging.NewZapLogger(zap.InfoLevel)
 	require.NoError(t, err)

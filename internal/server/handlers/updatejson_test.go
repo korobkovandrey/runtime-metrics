@@ -58,6 +58,52 @@ func TestNewUpdateJSONHandler(t *testing.T) {
 			},
 			wantCode: http.StatusInternalServerError,
 		},
+		{
+			name: "metric value not valid",
+			json: `{"type":"gauge"}`,
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
+			},
+			wantCode: http.StatusBadRequest,
+			containsStrings: []string{
+				"Bad Request",
+				"value is not valid",
+			},
+		},
+		{
+			name: "metric type not valid",
+			json: `{"type":"not_valid"}`,
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
+			},
+			wantCode: http.StatusBadRequest,
+			containsStrings: []string{
+				"Bad Request",
+				"type is not valid",
+			},
+		},
+		{
+			name: "metric not found",
+			json: `{}`,
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().Update(gomock.Any(), gomock.Any()).MaxTimes(0)
+			},
+			wantCode: http.StatusBadRequest,
+			containsStrings: []string{
+				"Bad Request",
+				"metric not found",
+			},
+		},
+		{
+			name: "service metric not found",
+			json: `{"type":"gauge","id":"not_found","value":12.34}`,
+			mockSetup: func(s *mocks.MockUpdater) {
+				s.EXPECT().
+					Update(gomock.Any(), gomock.Eq(&model.MetricRequest{Metric: model.NewMetricGauge("not_found", 12.34)})).
+					Return(nil, model.ErrMetricNotFound)
+			},
+			wantCode: http.StatusNotFound,
+		},
 	}
 
 	for _, tt := range tests {

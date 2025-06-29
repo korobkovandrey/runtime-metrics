@@ -79,7 +79,6 @@ func main() {
 			<-ctx.Done()
 			shCtx, cancel := context.WithTimeout(ctxWithoutCancel, shutdownTimeout*time.Second)
 			defer cancel()
-			l.InfoCtx(ctx, "Shutting down the HTTP server...")
 			if err = server.Shutdown(shCtx); err != nil {
 				l.ErrorCtx(ctx, fmt.Errorf("failed to shutdown pprof server: %w", err).Error())
 			}

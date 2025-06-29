@@ -56,6 +56,8 @@ func main() {
 		Restore:             cfg.Restore,
 		Key:                 cfg.Key,
 		Pprof:               cfg.Pprof,
+		TrustedSubnet:       cfg.TrustedSubnet,
+		IPNet:               cfg.IPNet,
 		CryptoKey:           cfg.CryptoKey,
 	}
 	if cfg.PrivateKey != nil {

@@ -6,8 +6,10 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"runtime"
 	"time"
@@ -68,13 +70,18 @@ func NewConfig() (*Config, error) {
 			cfg.RateLimit)
 	}
 	baseURL := "http://" + cfg.Addr
+	realIPAddr, err := getRealIPAddress()
+	if err != nil {
+		return cfg, fmt.Errorf("failed to get real ip address: %w", err)
+	}
 	cfg.Sender = &sender.Config{
-		UpdateURL:   baseURL + "/update/",
-		UpdatesURL:  baseURL + "/updates/",
-		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
-		Timeout:     time.Duration(cfg.ReportInterval) * time.Second,
-		Key:         []byte(cfg.Key),
-		RateLimit:   cfg.RateLimit,
+		UpdateURL:     baseURL + "/update/",
+		UpdatesURL:    baseURL + "/updates/",
+		RetryDelays:   []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+		Timeout:       time.Duration(cfg.ReportInterval) * time.Second,
+		Key:           []byte(cfg.Key),
+		RateLimit:     cfg.RateLimit,
+		RealIPAddress: realIPAddr,
 	}
 	if err = cfg.loadPublicKey(); err != nil {
 		return cfg, fmt.Errorf("failed to load public key: %w", err)
@@ -173,4 +180,21 @@ func (cfg *Config) loadPublicKey() error {
 		return fmt.Errorf("file %s is not a valid RSA public key", cfg.CryptoKey)
 	}
 	return nil
+}
+
+// getRealIPAddress returns the real IP address of the agent.
+// It uses a UDP connection to a known server to get the local address.
+func getRealIPAddress() (string, error) {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return "", fmt.Errorf("failed to dial: %w", err)
+	}
+	defer func() {
+		_ = conn.Close()
+	}()
+	localAddr, ok := conn.LocalAddr().(*net.UDPAddr)
+	if !ok {
+		return "", errors.New("failed to get local address")
+	}
+	return localAddr.IP.String(), nil
 }

@@ -41,6 +41,10 @@ func (m *Metric) Clone() *Metric {
 	return metric
 }
 
+func (m *Metric) ToRequest() *MetricRequest {
+	return &MetricRequest{m}
+}
+
 // AnyValue returns the value of the metric as any
 func (m *Metric) AnyValue() any {
 	if m.MType == TypeCounter {

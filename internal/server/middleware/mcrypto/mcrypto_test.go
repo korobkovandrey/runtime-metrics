@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,14 +87,15 @@ func TestMiddleware(t *testing.T) {
 	defer l.Sync()
 
 	tests := []struct {
-		privateKey *rsa.PrivateKey
-		name       string
-		headerKey  string
-		route      string
-		wantBody   string
-		body       []byte
-		wantStatus int
-		encrypt    bool
+		privateKey     *rsa.PrivateKey
+		name           string
+		headerKey      string
+		route          string
+		wantBody       string
+		wantLogMessage string
+		body           []byte
+		wantStatus     int
+		encrypt        bool
 	}{
 		{
 			name:       "no encryption",
@@ -101,6 +103,23 @@ func TestMiddleware(t *testing.T) {
 			route:      "/add/",
 			body:       []byte("plain text"),
 			privateKey: privateKey,
+			wantStatus: http.StatusOK,
+			wantBody:   "plain text",
+		},
+		{
+			name:           "without header",
+			headerKey:      "",
+			route:          "/updates/",
+			body:           []byte("plain text"),
+			privateKey:     privateKey,
+			wantStatus:     http.StatusBadRequest,
+			wantLogMessage: "X-Encrypted-Key is required",
+		},
+		{
+			name:       "without header, disable crypt",
+			headerKey:  "",
+			route:      "/updates/",
+			body:       []byte("plain text"),
 			wantStatus: http.StatusOK,
 			wantBody:   "plain text",
 		},
@@ -115,46 +134,51 @@ func TestMiddleware(t *testing.T) {
 			wantBody:   "Hello, world!",
 		},
 		{
-			name:       "invalid base64 header",
-			encrypt:    true,
-			headerKey:  "not-base64-!!!",
-			route:      "/updates/",
-			body:       []byte("body"),
-			privateKey: privateKey,
-			wantStatus: http.StatusBadRequest,
+			name:           "invalid base64 header",
+			encrypt:        true,
+			headerKey:      "not-base64-!!!",
+			route:          "/updates/",
+			body:           []byte("body"),
+			privateKey:     privateKey,
+			wantStatus:     http.StatusBadRequest,
+			wantLogMessage: "failed to get AES key: failed to decode X-Encrypted-Key: illegal base64 data at input byte 3",
 		},
 		{
-			name:       "invalid length AES key",
-			encrypt:    true,
-			headerKey:  createEncryptedAESKey(t, &privateKey.PublicKey, []byte("short")),
-			route:      "/updates/",
-			body:       []byte("body"),
-			privateKey: privateKey,
-			wantStatus: http.StatusBadRequest,
+			name:           "invalid length AES key",
+			encrypt:        true,
+			headerKey:      createEncryptedAESKey(t, &privateKey.PublicKey, []byte("short")),
+			route:          "/updates/",
+			body:           []byte("body"),
+			privateKey:     privateKey,
+			wantStatus:     http.StatusBadRequest,
+			wantLogMessage: "failed to get AES key: invalid AES key length",
 		},
 		{
-			name:       "body too short",
-			headerKey:  createEncryptedAESKey(t, &privateKey.PublicKey, nil),
-			route:      "/updates/",
-			body:       []byte("short"),
-			privateKey: privateKey,
-			wantStatus: http.StatusBadRequest,
+			name:           "body too short",
+			headerKey:      createEncryptedAESKey(t, &privateKey.PublicKey, nil),
+			route:          "/updates/",
+			body:           []byte("short"),
+			privateKey:     privateKey,
+			wantStatus:     http.StatusBadRequest,
+			wantLogMessage: "encrypted body too short",
 		},
 		{
-			name:       "invalid ciphertext",
-			encrypt:    true,
-			route:      "/updates/",
-			body:       []byte("Hello, world!"),
-			privateKey: privateKey,
-			wantStatus: http.StatusBadRequest,
+			name:           "invalid ciphertext",
+			encrypt:        true,
+			route:          "/updates/",
+			body:           []byte("Hello, world!"),
+			privateKey:     privateKey,
+			wantStatus:     http.StatusBadRequest,
+			wantLogMessage: "failed to decrypt body: cipher: message authentication failed",
 		},
 		{
-			name:       "no private key",
-			encrypt:    true,
-			route:      "/updates/",
-			body:       []byte("Hello, world!"),
-			privateKey: nil,
-			wantStatus: http.StatusBadRequest,
+			name:           "no private key",
+			encrypt:        true,
+			route:          "/updates/",
+			body:           []byte("Hello, world!"),
+			privateKey:     nil,
+			wantStatus:     http.StatusBadRequest,
+			wantLogMessage: "crypto is disabled",
 		},
 	}
 
@@ -186,12 +210,20 @@ func TestMiddleware(t *testing.T) {
 			ctx := t.Context()
 			req = req.WithContext(ctx)
 
-			middleware := Middleware(l, tt.privateKey, "/updates/")(mockHandler(t))
+			middleware := Middleware(tt.privateKey, "/updates/")(mockHandler(t))
 			middleware.ServeHTTP(rr, req)
 
 			assert.Equal(t, tt.wantStatus, rr.Code)
 			if tt.wantStatus == http.StatusOK {
 				assert.Equal(t, tt.wantBody, rr.Body.String())
+			}
+			if tt.wantLogMessage != "" {
+				m, ok := req.Context().Value(mlogger.LogMessageKey).(string)
+				assert.True(t, ok)
+				assert.Equal(t, tt.wantLogMessage, m)
+			} else {
+				_, ok := req.Context().Value(mlogger.LogMessageKey).(string)
+				assert.False(t, ok)
 			}
 		})
 	}

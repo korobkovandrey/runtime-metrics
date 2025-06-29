@@ -14,12 +14,11 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
-	"go.uber.org/zap"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers"
 )
 
 // Middleware is a middleware for decrypting requests.
-func Middleware(l *logging.ZapLogger, privateKey *rsa.PrivateKey, routes ...string) func(http.Handler) http.Handler {
+func Middleware(privateKey *rsa.PrivateKey, routes ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != http.MethodPost || (len(routes) != 0 && !slices.Contains(routes, r.URL.Path)) {
@@ -29,7 +28,7 @@ func Middleware(l *logging.ZapLogger, privateKey *rsa.PrivateKey, routes ...stri
 			encryptedKey := r.Header.Get("X-Encrypted-Key")
 			if encryptedKey == "" {
 				if privateKey != nil {
-					logBadRequest(l, r, "X-Encrypted-Key is required")
+					handlers.RequestCtxWithLogMessage(r, "X-Encrypted-Key is required")
 					w.WriteHeader(http.StatusBadRequest)
 					return
 				}
@@ -37,14 +36,14 @@ func Middleware(l *logging.ZapLogger, privateKey *rsa.PrivateKey, routes ...stri
 				return
 			}
 			if privateKey == nil {
-				logBadRequest(l, r, "crypto is disabled")
+				handlers.RequestCtxWithLogMessage(r, "crypto is disabled")
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
 			aesKey, err := getAESKey(encryptedKey, privateKey)
 			if err != nil {
-				logBadRequest(l, r, fmt.Errorf("failed to get AES key: %w", err).Error())
+				handlers.RequestCtxWithLogMessage(r, fmt.Errorf("failed to get AES key: %w", err).Error())
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -54,13 +53,13 @@ func Middleware(l *logging.ZapLogger, privateKey *rsa.PrivateKey, routes ...stri
 				err = r.Body.Close()
 			}
 			if err != nil {
-				logBadRequest(l, r, fmt.Errorf("failed to read request body: %w", err).Error())
+				handlers.RequestCtxWithLogMessage(r, fmt.Errorf("failed to read request body: %w", err).Error())
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 			const ciphertextLen = 12
 			if len(ciphertext) < ciphertextLen {
-				logBadRequest(l, r, "encrypted body too short")
+				handlers.RequestCtxWithLogMessage(r, "encrypted body too short")
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -68,21 +67,21 @@ func Middleware(l *logging.ZapLogger, privateKey *rsa.PrivateKey, routes ...stri
 			ciphertext = ciphertext[ciphertextLen:]
 			block, err := aes.NewCipher(aesKey)
 			if err != nil {
-				logBadRequest(l, r, fmt.Errorf("failed to create AES cipher: %w", err).Error())
+				handlers.RequestCtxWithLogMessage(r, fmt.Errorf("failed to create AES cipher: %w", err).Error())
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
 			gcm, err := cipher.NewGCM(block)
 			if err != nil {
-				logBadRequest(l, r, fmt.Errorf("failed to create GCM: %w", err).Error())
+				handlers.RequestCtxWithLogMessage(r, fmt.Errorf("failed to create GCM: %w", err).Error())
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
 			plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 			if err != nil {
-				logBadRequest(l, r, fmt.Errorf("failed to decrypt body: %w", err).Error())
+				handlers.RequestCtxWithLogMessage(r, fmt.Errorf("failed to decrypt body: %w", err).Error())
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -90,11 +89,6 @@ func Middleware(l *logging.ZapLogger, privateKey *rsa.PrivateKey, routes ...stri
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-func logBadRequest(l *logging.ZapLogger, r *http.Request, msg string) {
-	l.InfoCtx(r.Context(), msg, zap.Int("status", http.StatusBadRequest),
-		zap.String("method", r.Method), zap.String("uri", r.RequestURI))
 }
 
 func getAESKey(encryptedKey string, privateKey *rsa.PrivateKey) ([]byte, error) {

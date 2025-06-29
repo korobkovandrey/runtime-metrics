@@ -48,6 +48,7 @@ func (s *Sender) postData(ctx context.Context, url string, data any, crypt bool)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept-Encoding", "gzip")
 	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("X-Real-IP", s.cfg.RealIPAddress)
 	if encryptedAES != "" {
 		req.Header.Set("X-Encrypted-Key", encryptedAES)
 	}

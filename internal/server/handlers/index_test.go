@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,10 +10,23 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+type errWriter struct {
+	*httptest.ResponseRecorder
+	err error
+}
+
+func (ew *errWriter) Write(buf []byte) (int, error) {
+	if ew.err != nil {
+		return 0, ew.err
+	}
+	return ew.Write(buf)
+}
 
 func TestNewIndexHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -74,5 +88,22 @@ func TestNewIndexHandler(t *testing.T) {
 		_, err := NewIndexHandler(nil)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to parse template")
+	})
+
+	t.Run("fail template execute", func(t *testing.T) {
+		s := mocks.NewMockAllFinder(ctrl)
+		s.EXPECT().FindAll(gomock.Any()).Return(nil, nil)
+		currentDir, err := os.Getwd()
+		require.NoError(t, err)
+		t.Chdir("../../..")
+		handler, err := NewIndexHandler(s)
+		require.NoError(t, err)
+		t.Chdir(currentDir)
+		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+		w := &errWriter{ResponseRecorder: httptest.NewRecorder(), err: errors.New("error")}
+		handler(w, r)
+		m, _ := r.Context().Value(mlogger.LogMessageKey).(string)
+		assert.Equal(t, "failed to execute template: error", m)
+		fmt.Println(r.Context().Value(mlogger.LogMessageKey), w.Body.String())
 	})
 }

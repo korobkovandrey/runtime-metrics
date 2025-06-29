@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"time"
 
@@ -16,8 +17,10 @@ import (
 
 // Config is the server config.
 type Config struct {
-	StoreIntervalStr    *string `json:"store_interval"`
 	PrivateKey          *rsa.PrivateKey
+	StoreIntervalStr    *string `json:"store_interval"`
+	IPNet               *net.IPNet
+	TrustedSubnet       string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 	Addr                string `env:"ADDRESS" json:"address"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH" json:"store_file"`
 	DatabaseDSN         string `env:"DATABASE_DSN" json:"database_dsn"`
@@ -25,11 +28,11 @@ type Config struct {
 	CryptoKey           string `env:"CRYPTO_KEY" json:"crypto_key"`
 	ConfigPath          string `env:"CONFIG"`
 	RetryDelays         []time.Duration
-	ShutdownTimeout     time.Duration
-	DatabasePingTimeout time.Duration
 	StoreInterval       int64 `env:"STORE_INTERVAL"`
-	Restore             bool  `env:"RESTORE" json:"restore"`
-	Pprof               bool  `env:"PPROF"`
+	DatabasePingTimeout time.Duration
+	ShutdownTimeout     time.Duration
+	Restore             bool `env:"RESTORE" json:"restore"`
+	Pprof               bool `env:"PPROF"`
 }
 
 // NewConfig returns the server config.
@@ -55,6 +58,13 @@ func NewConfig() (*Config, error) {
 	cfg.DatabasePingTimeout = databasePingTimeout * time.Second
 	cfg.RetryDelays = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 
+	if cfg.TrustedSubnet != "" {
+		_, cfg.IPNet, err = net.ParseCIDR(cfg.TrustedSubnet)
+		if err != nil {
+			return cfg, fmt.Errorf("failed to parse trusted subnet: %w", err)
+		}
+	}
+
 	if err = cfg.loadPrivateKey(); err != nil {
 		return cfg, fmt.Errorf("failed to load private key: %w", err)
 	}
@@ -72,6 +82,7 @@ func parseFlags(cfg *Config) error {
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", cfg.CryptoKey, "crypto key")
 	flag.StringVar(&cfg.ConfigPath, "config", "", "config path")
 	flag.StringVar(&cfg.ConfigPath, "c", "", "config path")
+	flag.StringVar(&cfg.TrustedSubnet, "t", "", "trusted subnet")
 	flag.Parse()
 	err := env.Parse(cfg)
 	if err != nil {

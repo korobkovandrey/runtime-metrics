@@ -15,6 +15,7 @@ import (
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcrypto"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msubnet"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/service"
@@ -35,10 +36,11 @@ func NewHandler() *Handler {
 // Configure configures the handler.
 func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) error {
 	h.Use(
-		mcompress.GzipCompressed(l),
-		mcrypto.Middleware(l, cfg.PrivateKey, "/updates/"),
-		msign.Signer([]byte(cfg.Key)),
 		mlogger.RequestLogger(l),
+		msubnet.Middleware(cfg.IPNet),
+		mcompress.GzipCompressed(l),
+		mcrypto.Middleware(cfg.PrivateKey, "/updates/"),
+		msign.Signer([]byte(cfg.Key)),
 	)
 	if cfg.Pprof {
 		h.Mount("/debug", middleware.Profiler())

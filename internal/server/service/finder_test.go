@@ -44,8 +44,12 @@ func TestFinder_FindAll(t *testing.T) {
 	defer ctrl.Finish()
 	t.Run("valid", func(t *testing.T) {
 		want := []*model.Metric{
+			model.NewMetricCounter("test1", 1),
 			model.NewMetricGauge("test1", 1),
 			model.NewMetricCounter("test2", 1),
+			model.NewMetricCounter("test1", 1),
+			model.NewMetricGauge("test1", 1),
+			model.NewMetricGauge("test2", 1),
 		}
 		r := mocks.NewMockFinderRepository(ctrl)
 		r.EXPECT().FindAll(gomock.Any()).Return(want, nil)

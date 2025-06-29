@@ -22,14 +22,12 @@ func RequestCtxWithLogMessageFromError(r *http.Request, err error) {
 // responseMarshaled marshals data and writes it to response
 func responseMarshaled(data any, w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(data)
-	if err == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, err = w.Write(response)
-	}
 	if err != nil {
 		RequestCtxWithLogMessageFromError(r, fmt.Errorf("failed response: %w", err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(response)
 }

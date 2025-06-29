@@ -39,13 +39,16 @@ func TestNewConfig(t *testing.T) {
 	assert.Equal(t, 15, cfg.RateLimit)
 	assert.True(t, cfg.Batching)
 	assert.Equal(t, ":6066", cfg.PprofAddr)
+	addr, err := getRealIPAddress()
+	require.NoError(t, err)
 	assert.Equal(t, sender.Config{
-		UpdateURL:   "http://" + cfg.Addr + "/update/",
-		UpdatesURL:  "http://" + cfg.Addr + "/updates/",
-		RetryDelays: []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
-		Timeout:     11 * time.Second,
-		Key:         []byte(cfg.Key),
-		RateLimit:   cfg.RateLimit,
+		UpdateURL:     "http://" + cfg.Addr + "/update/",
+		UpdatesURL:    "http://" + cfg.Addr + "/updates/",
+		RetryDelays:   []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+		Timeout:       11 * time.Second,
+		Key:           []byte(cfg.Key),
+		RateLimit:     cfg.RateLimit,
+		RealIPAddress: addr,
 	}, *cfg.Sender)
 }
 

@@ -25,6 +25,7 @@ func TestNewConfig(t *testing.T) {
 	t.Setenv("KEY", "test_KEY")
 	t.Setenv("PPROF", "true")
 	t.Setenv("CRYPTO_KEY", "")
+	t.Setenv("TRUSTED_SUBNET", "192.168.1.0/24")
 	origArgs := os.Args
 	defer func() { os.Args = origArgs }()
 	os.Args = []string{"test"}
@@ -160,6 +161,17 @@ func TestNewConfig_JSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewConfig_TrustedSubnetErr(t *testing.T) {
+	origArgs := os.Args
+	defer func() { os.Args = origArgs }()
+	os.Args = []string{"test"}
+	flag.CommandLine = flag.NewFlagSet("", flag.ExitOnError)
+
+	t.Setenv("TRUSTED_SUBNET", "invalid")
+	_, err := NewConfig()
+	require.Error(t, err)
 }
 
 func TestNewConfig_CryptoKey(t *testing.T) {
