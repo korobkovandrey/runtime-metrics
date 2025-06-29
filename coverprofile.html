@@ -111,13 +111,13 @@
 				
 				<option value="file27">github.com/korobkovandrey/runtime-metrics/internal/server/repository/memstorage.go (97.2%)</option>
 				
-				<option value="file28">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/methods.go (0.0%)</option>
+				<option value="file28">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/methods.go (89.8%)</option>
 				
 				<option value="file29">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/migrations.go (0.0%)</option>
 				
-				<option value="file30">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/pgxstorage.go (0.0%)</option>
+				<option value="file30">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/pgxstorage.go (60.7%)</option>
 				
-				<option value="file31">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/queries.go (32.0%)</option>
+				<option value="file31">github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage/queries.go (80.0%)</option>
 				
 				<option value="file32">github.com/korobkovandrey/runtime-metrics/internal/server/server.go (83.3%)</option>
 				
@@ -613,7 +613,7 @@ func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) <span cl
         tickPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
         defer tickPoll.Stop()
         go func() </span><span class="cov2" title="2">{
-                for ; ; &lt;-tickPoll.C </span><span class="cov6" title="8">{
+                for ; ; &lt;-tickPoll.C </span><span class="cov6" title="7">{
                         if err := source.Collect(ctx); err != nil </span><span class="cov0" title="0">{
                                 l.ErrorCtx(ctx, fmt.Errorf("failed to collect metrics: %w", err).Error())
                         }</span>
@@ -2904,103 +2904,103 @@ import (
         "github.com/korobkovandrey/runtime-metrics/internal/model"
 )
 
-func (ps *PGXStorage) find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov10" title="3">{
         row := ps.stmts.findOneStmt.QueryRowContext(ctx, mr.MType, mr.ID)
         m := &amp;model.Metric{}
         err := m.ScanRow(row)
-        if err != nil </span><span class="cov0" title="0">{
-                if errors.Is(err, sql.ErrNoRows) </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov6" title="2">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov1" title="1">{
                         err = fmt.Errorf("%w: %w", model.ErrMetricNotFound, err)
                 }</span>
-                <span class="cov0" title="0">return nil, fmt.Errorf("failed to find metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)</span>
+                <span class="cov6" title="2">return nil, fmt.Errorf("failed to find metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)</span>
         }
-        <span class="cov0" title="0">return m, nil</span>
+        <span class="cov1" title="1">return m, nil</span>
 }
 
-func (ps *PGXStorage) findAll(ctx context.Context) ([]*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) findAll(ctx context.Context) ([]*model.Metric, error) <span class="cov6" title="2">{
         rows, err := ps.stmts.findAllStmt.QueryContext(ctx)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to query: %w", err)
         }</span>
-        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+        <span class="cov1" title="1">defer func() </span><span class="cov1" title="1">{
                 _ = rows.Close()
         }</span>()
-        <span class="cov0" title="0">return scanMetricsFromRows(rows)</span>
+        <span class="cov1" title="1">return scanMetricsFromRows(rows)</span>
 }
 
-func (ps *PGXStorage) findBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) findBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov10" title="3">{
         q, params := makeFindBatchQuery(mrs)
         rows, err := ps.db.QueryContext(ctx, q, params...)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to query: %w", err)
         }</span>
-        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+        <span class="cov6" title="2">defer func() </span><span class="cov6" title="2">{
                 _ = rows.Close()
         }</span>()
-        <span class="cov0" title="0">return scanMetricsFromRows(rows)</span>
+        <span class="cov6" title="2">return scanMetricsFromRows(rows)</span>
 }
 
-func (ps *PGXStorage) create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov6" title="2">{
         row := ps.stmts.createReturningStmt.QueryRowContext(ctx, mr.MType, mr.ID, mr.Value, mr.Delta)
         m := &amp;model.Metric{}
         err := m.ScanRow(row)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 var e *pgconn.PgError
                 if errors.As(err, &amp;e) &amp;&amp; pgerrcode.IsIntegrityConstraintViolation(e.Code) </span><span class="cov0" title="0">{
                         return nil, model.ErrMetricAlreadyExist
                 }</span>
-                <span class="cov0" title="0">return nil, fmt.Errorf("failed to scan row: %w", err)</span>
+                <span class="cov1" title="1">return nil, fmt.Errorf("failed to scan row: %w", err)</span>
         }
-        <span class="cov0" title="0">return m, nil</span>
+        <span class="cov1" title="1">return m, nil</span>
 }
 
-func (ps *PGXStorage) update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov6" title="2">{
         row := ps.stmts.updateReturningStmt.QueryRowContext(ctx, mr.Value, mr.Delta, mr.MType, mr.ID)
         m := &amp;model.Metric{}
         err := m.ScanRow(row)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 if errors.Is(err, sql.ErrNoRows) </span><span class="cov0" title="0">{
                         err = fmt.Errorf("%w: %w", model.ErrMetricNotFound, err)
                 }</span>
-                <span class="cov0" title="0">return nil, fmt.Errorf("failed to update metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)</span>
+                <span class="cov1" title="1">return nil, fmt.Errorf("failed to update metric with type=%s and id=%s: %w", mr.MType, mr.ID, err)</span>
         }
-        <span class="cov0" title="0">return m, nil</span>
+        <span class="cov1" title="1">return m, nil</span>
 }
 
-func (ps *PGXStorage) createOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) error <span class="cov0" title="0">{
+func (ps *PGXStorage) createOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) error <span class="cov6" title="2">{
         tx, err := ps.db.BeginTx(ctx, &amp;sql.TxOptions{})
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to begin transaction: %w", err)
         }</span>
-        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+        <span class="cov6" title="2">defer func() </span><span class="cov6" title="2">{
                 _ = tx.Rollback()
         }</span>()
-        <span class="cov0" title="0">for _, mr := range mrs </span><span class="cov0" title="0">{
+        <span class="cov6" title="2">for _, mr := range mrs </span><span class="cov6" title="2">{
                 //nolint:sqlclosecheck // ignore
                 _, err = tx.StmtContext(ctx, ps.stmts.upsertStmt).ExecContext(ctx, mr.MType, mr.ID, mr.Value, mr.Delta)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov1" title="1">{
                         return fmt.Errorf("failed to query: %w", err)
                 }</span>
         }
-        <span class="cov0" title="0">if err = tx.Commit(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov1" title="1">if err = tx.Commit(); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to commit transaction: %w", err)
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov1" title="1">return nil</span>
 }
 
-func scanMetricsFromRows(rows *sql.Rows) ([]*model.Metric, error) <span class="cov0" title="0">{
+func scanMetricsFromRows(rows *sql.Rows) ([]*model.Metric, error) <span class="cov10" title="3">{
         var metrics []*model.Metric
-        for rows.Next() </span><span class="cov0" title="0">{
+        for rows.Next() </span><span class="cov10" title="3">{
                 m := &amp;model.Metric{}
                 if err := m.ScanRow(rows); err != nil </span><span class="cov0" title="0">{
                         return nil, fmt.Errorf("failed to scan row: %w", err)
                 }</span>
-                <span class="cov0" title="0">metrics = append(metrics, m)</span>
+                <span class="cov10" title="3">metrics = append(metrics, m)</span>
         }
-        <span class="cov0" title="0">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov10" title="3">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to iterate rows: %w", err)
         }</span>
-        <span class="cov0" title="0">return metrics, nil</span>
+        <span class="cov10" title="3">return metrics, nil</span>
 }
 </pre>
 		
@@ -3097,91 +3097,91 @@ func NewPGXStorage(ctx context.Context, cfg *Config) (*PGXStorage, error) <span 
 }
 
 // Close closes the PostgreSQL storage.
-func (ps *PGXStorage) Close() error <span class="cov0" title="0">{
+func (ps *PGXStorage) Close() error <span class="cov10" title="8">{
         return ps.db.Close()
 }</span>
 
 // Ping pings the PostgreSQL storage.
-func (ps *PGXStorage) Ping(ctx context.Context) error <span class="cov0" title="0">{
+func (ps *PGXStorage) Ping(ctx context.Context) error <span class="cov1" title="1">{
         ctx, cancel := context.WithTimeout(ctx, ps.cfg.PingTimeout)
         defer cancel()
         return ps.db.PingContext(ctx)
 }</span>
 
 // Find returns the metric with the given ID.
-func (ps *PGXStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) Find(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov5" title="3">{
         return ps.retryForOne(ctx, mr, ps.find)
 }</span>
 
 // FindAll returns all metrics.
-func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err error) <span class="cov0" title="0">{
+func (ps *PGXStorage) FindAll(ctx context.Context) (res []*model.Metric, err error) <span class="cov4" title="2">{
         var e *pgconn.PgError
-        for i := 0; ; i++ </span><span class="cov0" title="0">{
+        for i := 0; ; i++ </span><span class="cov4" title="2">{
                 res, err = ps.findAll(ctx)
                 if i == len(ps.cfg.RetryDelays) ||
-                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov4" title="2">{
                         break</span>
                 }
                 <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
         }
-        <span class="cov0" title="0">return res, err</span>
+        <span class="cov4" title="2">return res, err</span>
 }
 
 // FindBatch returns the metrics with the given IDs.
-func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) (res []*model.Metric, err error) <span class="cov0" title="0">{
+func (ps *PGXStorage) FindBatch(ctx context.Context, mrs []*model.MetricRequest) (res []*model.Metric, err error) <span class="cov5" title="3">{
         var e *pgconn.PgError
-        for i := 0; ; i++ </span><span class="cov0" title="0">{
+        for i := 0; ; i++ </span><span class="cov5" title="3">{
                 res, err = ps.findBatch(ctx, mrs)
                 if i == len(ps.cfg.RetryDelays) ||
-                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov5" title="3">{
                         break</span>
                 }
                 <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
         }
-        <span class="cov0" title="0">return res, err</span>
+        <span class="cov5" title="3">return res, err</span>
 }
 
 // Create creates a new metric.
-func (ps *PGXStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) Create(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
         return ps.retryForOne(ctx, mr, ps.create)
 }</span>
 
 // Update updates the metric.
-func (ps *PGXStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) Update(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error) <span class="cov4" title="2">{
         return ps.retryForOne(ctx, mr, ps.update)
 }</span>
 
 // CreateOrUpdateBatch creates or updates the metrics.
-func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov0" title="0">{
+func (ps *PGXStorage) CreateOrUpdateBatch(ctx context.Context, mrs []*model.MetricRequest) ([]*model.Metric, error) <span class="cov4" title="2">{
         var e *pgconn.PgError
         var err error
-        for i := 0; ; i++ </span><span class="cov0" title="0">{
+        for i := 0; ; i++ </span><span class="cov4" title="2">{
                 err = ps.createOrUpdateBatch(ctx, mrs)
                 if i == len(ps.cfg.RetryDelays) ||
-                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov4" title="2">{
                         break</span>
                 }
                 <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
         }
-        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+        <span class="cov4" title="2">if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return ps.FindBatch(ctx, mrs)</span>
+        <span class="cov1" title="1">return ps.FindBatch(ctx, mrs)</span>
 }
 
 // retryForOne retries the function for one metric.
 func (ps *PGXStorage) retryForOne(ctx context.Context, mr *model.MetricRequest,
-        f func(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)) (m *model.Metric, err error) <span class="cov0" title="0">{
+        f func(ctx context.Context, mr *model.MetricRequest) (*model.Metric, error)) (m *model.Metric, err error) <span class="cov9" title="7">{
         var e *pgconn.PgError
-        for i := 0; ; i++ </span><span class="cov0" title="0">{
+        for i := 0; ; i++ </span><span class="cov9" title="7">{
                 m, err = f(ctx, mr)
                 if i == len(ps.cfg.RetryDelays) ||
-                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov0" title="0">{
+                        err == nil || !errors.As(err, &amp;e) || !pgerrcode.IsConnectionException(e.Code) </span><span class="cov9" title="7">{
                         break</span>
                 }
                 <span class="cov0" title="0">time.Sleep(ps.cfg.RetryDelays[i])</span>
         }
-        <span class="cov0" title="0">return m, err</span>
+        <span class="cov9" title="7">return m, err</span>
 }
 </pre>
 		
@@ -3207,16 +3207,16 @@ const (
     DO UPDATE SET value = EXCLUDED.value, delta = EXCLUDED.delta;`
 )
 
-func makeFindBatchQuery(mrs []*model.MetricRequest) (q string, params []any) <span class="cov6" title="2">{
+func makeFindBatchQuery(mrs []*model.MetricRequest) (q string, params []any) <span class="cov7" title="5">{
         const numColumns = 2
         params = make([]any, 0, len(mrs)*numColumns)
         args := make([]string, 0, len(mrs))
-        for i, mr := range mrs </span><span class="cov10" title="3">{
+        for i, mr := range mrs </span><span class="cov8" title="6">{
                 k := i*numColumns + 1
                 args = append(args, "(type=$"+strconv.Itoa(k)+" AND id=$"+strconv.Itoa(k+1)+")")
                 params = append(params, mr.MType, mr.ID)
         }</span>
-        <span class="cov6" title="2">return fmt.Sprintf(findBatchQueryTpl, strings.Join(args, " OR ")), params</span>
+        <span class="cov7" title="5">return fmt.Sprintf(findBatchQueryTpl, strings.Join(args, " OR ")), params</span>
 }
 
 type statements struct {
@@ -3227,29 +3227,29 @@ type statements struct {
         upsertStmt          *sql.Stmt
 }
 
-func (ps *PGXStorage) prepareStatements(ctx context.Context) (st *statements, err error) <span class="cov0" title="0">{
+func (ps *PGXStorage) prepareStatements(ctx context.Context) (st *statements, err error) <span class="cov10" title="8">{
         st = &amp;statements{}
         st.findOneStmt, err = ps.db.PrepareContext(ctx, findOneQuery)
         if err != nil </span><span class="cov0" title="0">{
                 return st, fmt.Errorf("failed to prepare findOneQuery: %w", err)
         }</span>
-        <span class="cov0" title="0">st.findAllStmt, err = ps.db.PrepareContext(ctx, findAllQuery)
+        <span class="cov10" title="8">st.findAllStmt, err = ps.db.PrepareContext(ctx, findAllQuery)
         if err != nil </span><span class="cov0" title="0">{
                 return st, fmt.Errorf("failed to prepare findAllQuery: %w", err)
         }</span>
-        <span class="cov0" title="0">st.createReturningStmt, err = ps.db.PrepareContext(ctx, createReturningQuery)
+        <span class="cov10" title="8">st.createReturningStmt, err = ps.db.PrepareContext(ctx, createReturningQuery)
         if err != nil </span><span class="cov0" title="0">{
                 return st, fmt.Errorf("failed to prepare createReturningQuery: %w", err)
         }</span>
-        <span class="cov0" title="0">st.updateReturningStmt, err = ps.db.PrepareContext(ctx, updateReturningQuery)
+        <span class="cov10" title="8">st.updateReturningStmt, err = ps.db.PrepareContext(ctx, updateReturningQuery)
         if err != nil </span><span class="cov0" title="0">{
                 return st, fmt.Errorf("failed to prepare updateReturningQuery: %w", err)
         }</span>
-        <span class="cov0" title="0">st.upsertStmt, err = ps.db.PrepareContext(ctx, upsertQuery)
+        <span class="cov10" title="8">st.upsertStmt, err = ps.db.PrepareContext(ctx, upsertQuery)
         if err != nil </span><span class="cov0" title="0">{
                 return st, fmt.Errorf("failed to prepare upsertQuery: %w", err)
         }</span>
-        <span class="cov0" title="0">return</span>
+        <span class="cov10" title="8">return</span>
 }
 </pre>
 		

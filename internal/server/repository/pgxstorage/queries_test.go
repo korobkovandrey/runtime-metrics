@@ -41,3 +41,12 @@ func TestMakeFindBatchQuery(t *testing.T) {
 		})
 	}
 }
+
+func Test_prepareStatements(t *testing.T) {
+	s, mock := dbMockPGXStorage(t)
+	defer func() {
+		assert.NoError(t, s.Close())
+		assert.NoError(t, mock.ExpectationsWereMet())
+	}()
+	mock.ExpectClose()
+}
