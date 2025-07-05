@@ -62,12 +62,12 @@ type JobResult struct {
 }
 
 // SendPoolMetrics sends metrics to the server in parallel.
-func (s *Sender) SendPoolMetrics(ctx context.Context, numWorkers int, ms []*model.Metric) <-chan *JobResult {
+func (s *Sender) SendPoolMetrics(ctx context.Context, ms []*model.Metric) <-chan *JobResult {
 	jobs := make(chan *model.Metric, len(ms))
 	results := make(chan *JobResult, len(ms))
 	var wg sync.WaitGroup
-	wg.Add(numWorkers)
-	for i := 0; i < numWorkers; i++ {
+	wg.Add(s.cfg.RateLimit)
+	for i := 0; i < s.cfg.RateLimit; i++ {
 		go func() {
 			defer wg.Done()
 			for j := range jobs {

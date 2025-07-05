@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,4 +92,10 @@ func TestMakeCryptData(t *testing.T) {
 			assert.Equal(t, tt.data, plaintext)
 		})
 	}
+}
+
+func TestSender_makeBodyWithHash(t *testing.T) {
+	b, err := makeGzipBuffer(nil)
+	require.NoError(t, err)
+	assert.Equal(t, http.NoBody, b)
 }

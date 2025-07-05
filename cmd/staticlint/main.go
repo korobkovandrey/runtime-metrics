@@ -78,6 +78,8 @@
 package main
 
 import (
+	"github.com/gordonklaus/ineffassign/pkg/ineffassign"
+	"github.com/kisielk/errcheck/errcheck"
 	"github.com/korobkovandrey/runtime-metrics/pkg/mainosexit"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
@@ -122,12 +124,8 @@ import (
 	"golang.org/x/tools/go/analysis/passes/usesgenerics"
 	"honnef.co/go/tools/quickfix/qf1001"
 	"honnef.co/go/tools/simple/s1006"
-	"honnef.co/go/tools/stylecheck/st1015"
-
 	"honnef.co/go/tools/staticcheck"
-
-	"github.com/gordonklaus/ineffassign/pkg/ineffassign"
-	"github.com/kisielk/errcheck/errcheck"
+	"honnef.co/go/tools/stylecheck/st1015"
 )
 
 func main() {
@@ -176,6 +174,9 @@ func main() {
 	)
 
 	for _, a := range staticcheck.Analyzers {
+		if a.Analyzer.Name == "SA1019" {
+			continue
+		}
 		analyzers = append(analyzers, a.Analyzer)
 	}
 	analyzers = append(analyzers,

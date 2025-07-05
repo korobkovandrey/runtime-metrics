@@ -26,16 +26,13 @@ func captureOutput(t *testing.T, f func()) string {
 		t.Fatal(err)
 	}
 	os.Stderr = w
-
 	var buf bytes.Buffer
 	done := make(chan struct{})
 	go func() {
 		_, _ = io.Copy(&buf, r)
 		close(done)
 	}()
-
 	f()
-
 	_ = w.Close()
 	<-done
 	os.Stderr = originalStderr

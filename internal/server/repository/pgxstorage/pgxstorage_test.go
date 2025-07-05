@@ -34,6 +34,11 @@ func dbMockPGXStorage(t *testing.T) (*PGXStorage, sqlmock.Sqlmock) {
 	return s, mock
 }
 
+func TestNewPGXStorage(t *testing.T) {
+	_, err := NewPGXStorage(t.Context(), &Config{})
+	require.Error(t, err)
+}
+
 func TestPGXStorage_Ping(t *testing.T) {
 	s, mock := dbMockPGXStorage(t)
 	defer func() {

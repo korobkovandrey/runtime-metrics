@@ -22,6 +22,7 @@ type Config struct {
 	IPNet               *net.IPNet
 	TrustedSubnet       string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 	Addr                string `env:"ADDRESS" json:"address"`
+	GRPSAddr            string `env:"GRPC_ADDRESS" json:"grpc_address"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH" json:"store_file"`
 	DatabaseDSN         string `env:"DATABASE_DSN" json:"database_dsn"`
 	Key                 string `env:"KEY"`
@@ -43,6 +44,7 @@ func NewConfig() (*Config, error) {
 	)
 	cfg := &Config{
 		Addr:            "localhost:8080",
+		GRPSAddr:        "localhost:3200",
 		FileStoragePath: "storage.json",
 		Restore:         true,
 	}
@@ -72,7 +74,8 @@ func NewConfig() (*Config, error) {
 }
 
 func parseFlags(cfg *Config) error {
-	flag.StringVar(&cfg.Addr, "a", cfg.Addr, "server host")
+	flag.StringVar(&cfg.Addr, "a", cfg.Addr, "HTTP server host")
+	flag.StringVar(&cfg.GRPSAddr, "g", cfg.GRPSAddr, "GRPS server host")
 	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "file storage path")
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "database dsn")
 	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "file storage path")

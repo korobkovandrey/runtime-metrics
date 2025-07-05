@@ -75,7 +75,7 @@ func (s *Sender) doRetry(ctx context.Context, req *http.Request) (resp *http.Res
 		}
 		resp, err = s.client.Do(req)
 		if err == nil {
-			if resp.StatusCode >= http.StatusOK || resp.StatusCode < http.StatusInternalServerError {
+			if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusInternalServerError {
 				break
 			}
 			if err = resp.Body.Close(); err != nil {

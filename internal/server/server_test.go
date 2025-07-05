@@ -8,13 +8,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/korobkovandrey/runtime-metrics/internal/model"
+	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/pbservice"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-func TestListenAndServe(t *testing.T) {
+func TestListenAndServeHTTP(t *testing.T) {
 	l, err := logging.NewZapLogger(zap.InfoLevel)
 	require.NoError(t, err)
 	defer l.Sync()
@@ -30,7 +36,7 @@ func TestListenAndServe(t *testing.T) {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 		defer cancel()
-		if errSrv := ListenAndServe(ctx, l, addr, 100*time.Millisecond, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if errSrv := ListenAndServeHTTP(ctx, l, addr, 100*time.Millisecond, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})); errSrv != nil {
 			assert.ErrorIs(t, errSrv, http.ErrServerClosed)
@@ -44,5 +50,59 @@ func TestListenAndServe(t *testing.T) {
 		_ = resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	}
+	wg.Wait()
+}
+
+func TestListenAndServeGRPC(t *testing.T) {
+	l, err := logging.NewZapLogger(zap.InfoLevel)
+	require.NoError(t, err)
+	defer l.Sync()
+
+	list, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	require.NoError(t, list.Close())
+	addr := list.Addr().String()
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	ctx, cancel := context.WithCancel(t.Context())
+	rep := repository.NewMemStorage()
+	go func() {
+		defer wg.Done()
+		assert.NoError(t, ListenAndServeGRPC(ctx, l, addr, nil, "", pbservice.NewMetricsService(rep)))
+	}()
+	time.Sleep(100 * time.Millisecond)
+
+	dialOpts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+	conn, err := grpc.NewClient(
+		addr,
+		dialOpts...,
+	)
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, conn.Close())
+	}()
+	client := pb.NewMetricsServiceClient(conn)
+
+	wantMetric := model.NewMetricCounter("test", 1)
+	resp, err := client.Update(t.Context(), pb.ModelMetricToMetric(wantMetric))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	gotMetric, err := rep.Find(t.Context(), wantMetric.ToRequest())
+	assert.NoError(t, err)
+	assert.Equal(t, wantMetric, gotMetric)
+
+	*wantMetric.Delta = 2
+	resp, err = client.Updates(t.Context(), &pb.Metrics{Metrics: []*pb.Metric{pb.ModelMetricToMetric(wantMetric)}})
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	*wantMetric.Delta = 3
+	gotMetric, err = rep.Find(t.Context(), wantMetric.ToRequest())
+	assert.NoError(t, err)
+	assert.Equal(t, wantMetric, gotMetric)
+
+	cancel()
 	wg.Wait()
 }

@@ -2,22 +2,19 @@
 package server
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/factory"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcompress"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mcrypto"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/mlogger"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msign"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/middleware/msubnet"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
-	"github.com/korobkovandrey/runtime-metrics/internal/server/repository/pgxstorage"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/service"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 )
@@ -25,7 +22,6 @@ import (
 // Handler is a handler for the HTTP server.
 type Handler struct {
 	chi.Router
-	closers []func() error
 }
 
 // NewHandler returns a new Handler.
@@ -34,7 +30,7 @@ func NewHandler() *Handler {
 }
 
 // Configure configures the handler.
-func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.ZapLogger) error {
+func (h *Handler) Configure(cfg *config.Config, r factory.Repository, l *logging.ZapLogger) error {
 	h.Use(
 		mlogger.RequestLogger(l),
 		msubnet.Middleware(cfg.IPNet),
@@ -45,38 +41,9 @@ func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.
 	if cfg.Pprof {
 		h.Mount("/debug", middleware.Profiler())
 	}
-	var r interface {
-		service.FinderRepository
-		service.UpdaterRepository
-		service.BatchUpdaterRepository
-	}
-	if cfg.DatabaseDSN != "" {
-		ps, err := pgxstorage.NewPGXStorage(ctx, &pgxstorage.Config{
-			DSN:         cfg.DatabaseDSN,
-			PingTimeout: cfg.DatabasePingTimeout,
-			RetryDelays: cfg.RetryDelays,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create pgxstorage: %w", err)
-		}
-		h.closers = append(h.closers, ps.Close)
-		h.setPingRoute(ps)
-		r = ps
+	if rPinger, ok := r.(handlers.Pinger); ok {
+		h.setPingRoute(rPinger)
 	} else {
-		ms := repository.NewMemStorage()
-		if cfg.FileStoragePath != "" {
-			fs := repository.NewFileStorage(ms, cfg)
-			if cfg.Restore {
-				if err := fs.Restore(); err != nil {
-					return fmt.Errorf("failed to restore: %w", err)
-				}
-			}
-			h.closers = append(h.closers, fs.Close)
-			go fs.Run(ctx, l)
-			r = fs
-		} else {
-			r = ms
-		}
 		h.setPingRoute(nil)
 	}
 
@@ -88,17 +55,6 @@ func (h *Handler) Configure(ctx context.Context, cfg *config.Config, l *logging.
 	h.setUpdatesRoute(service.NewBatchUpdater(r))
 	h.setValueRoutes(finder)
 	return nil
-}
-
-// Close closes the handler.
-func (h *Handler) Close() error {
-	var errs []error
-	for i := range h.closers {
-		if err := h.closers[i](); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return errors.Join(errs...)
 }
 
 // setIndexRoute sets the index route.

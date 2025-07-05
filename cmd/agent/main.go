@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"crypto/rsa"
 	"errors"
 	"fmt"
 	"net/http"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/agent/pbsender"
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
@@ -41,16 +41,7 @@ func main() {
 	if err != nil {
 		l.FatalCtx(ctx, "failed to get config", zap.Error(err))
 	}
-
 	printCfg := config.Config{
-		Sender: &sender.Config{
-			UpdateURL:   cfg.Sender.UpdateURL,
-			UpdatesURL:  cfg.Sender.UpdatesURL,
-			RetryDelays: cfg.Sender.RetryDelays,
-			Key:         cfg.Sender.Key,
-			Timeout:     cfg.Sender.Timeout,
-			RateLimit:   cfg.Sender.RateLimit,
-		},
 		Addr:           cfg.Addr,
 		Key:            cfg.Key,
 		PprofAddr:      cfg.PprofAddr,
@@ -59,16 +50,42 @@ func main() {
 		RateLimit:      cfg.RateLimit,
 		Batching:       cfg.Batching,
 		CryptoKey:      cfg.CryptoKey,
+		RealIPAddress:  cfg.RealIPAddress,
 	}
-	if cfg.Sender.PublicKey != nil {
-		printCfg.Sender.PublicKey = &rsa.PublicKey{}
+	if cfg.Sender != nil {
+		printCfg.Sender = &sender.Config{
+			UpdateURL:     cfg.Sender.UpdateURL,
+			UpdatesURL:    cfg.Sender.UpdatesURL,
+			RetryDelays:   cfg.Sender.RetryDelays,
+			Key:           cfg.Sender.Key,
+			Timeout:       cfg.Sender.Timeout,
+			RateLimit:     cfg.Sender.RateLimit,
+			RealIPAddress: cfg.Sender.RealIPAddress,
+		}
 	}
 	l.InfoCtx(ctx, "Agent run with cfg", zap.Any("cfg", printCfg))
 
-	if cfg.PprofAddr == "" {
-		agent.Run(ctx, cfg, l)
+	var senderClient agent.SenderClient
+	if cfg.Sender == nil {
+		pbCfg := &pbsender.Config{
+			Addr:          cfg.Addr,
+			RealIPAddress: cfg.RealIPAddress,
+			Key:           []byte(cfg.Key),
+			RateLimit:     cfg.RateLimit,
+		}
+		l.InfoCtx(ctx, "Agent run with GRPC", zap.Any("cfg", pbCfg))
+		senderClient, err = pbsender.New(pbCfg)
+		if err != nil {
+			l.FatalCtx(ctx, fmt.Errorf("failed to create pbsender: %w", err).Error())
+		}
 	} else {
-		go agent.Run(ctx, cfg, l)
+		senderClient = sender.New(cfg.Sender, l)
+	}
+
+	if cfg.PprofAddr == "" {
+		agent.Run(ctx, cfg, l, senderClient)
+	} else {
+		go agent.Run(ctx, cfg, l, senderClient)
 		server := &http.Server{
 			Addr:              cfg.PprofAddr,
 			ReadHeaderTimeout: 3 * time.Second,
@@ -79,8 +96,8 @@ func main() {
 			<-ctx.Done()
 			shCtx, cancel := context.WithTimeout(ctxWithoutCancel, shutdownTimeout*time.Second)
 			defer cancel()
-			if err = server.Shutdown(shCtx); err != nil {
-				l.ErrorCtx(ctx, fmt.Errorf("failed to shutdown pprof server: %w", err).Error())
+			if errSh := server.Shutdown(shCtx); errSh != nil {
+				l.ErrorCtx(ctx, fmt.Errorf("failed to shutdown pprof server: %w", errSh).Error())
 			}
 		}()
 		if err = server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

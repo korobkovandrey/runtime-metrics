@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/factory"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"github.com/stretchr/testify/assert"
@@ -634,12 +634,10 @@ func TestHandler_Configure(t *testing.T) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
 	t.Chdir("../..")
-	assert.NoError(t, h.Configure(t.Context(), cfg, l))
-	cfg.DatabaseDSN = "fail"
-	h.Router = chi.NewRouter()
-	assert.Error(t, h.Configure(t.Context(), cfg, l))
+	r, err := factory.RepositoryFactory(t.Context(), cfg, l)
+	require.NoError(t, err)
+	assert.NoError(t, h.Configure(cfg, r, l))
 	t.Chdir(currentDir)
-	require.NoError(t, h.Close())
 }
 
 func testRequest(

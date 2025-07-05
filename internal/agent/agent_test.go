@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -82,7 +83,7 @@ func TestRun(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				assert.NotPanics(t, func() {
-					Run(ctx, tt.cfg, l)
+					Run(ctx, tt.cfg, l, sender.New(cfg.Sender, l))
 				})
 			}()
 			wg.Wait()

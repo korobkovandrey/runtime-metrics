@@ -77,7 +77,7 @@ func Example() {
 	}
 
 	// Send metrics in parallel
-	results := s.SendPoolMetrics(ctx, 2, batch)
+	results := s.SendPoolMetrics(ctx, batch)
 	for result := range results {
 		if result.Err != nil {
 			fmt.Printf("Error sending metric %s: %v\n", result.Metric.ID, result.Err)
@@ -176,7 +176,6 @@ func ExampleSender_SendBatchMetrics() {
 }
 
 func ExampleSender_SendPoolMetrics() {
-	// Create a logger
 	logger, err := logging.NewZapLogger(zap.InfoLevel)
 	if err != nil {
 		fmt.Printf("Error creating logger: %v\n", err)
@@ -209,7 +208,7 @@ func ExampleSender_SendPoolMetrics() {
 	}
 
 	// Send metrics in parallel
-	results := s.SendPoolMetrics(ctx, 2, batch)
+	results := s.SendPoolMetrics(ctx, batch)
 	successCount := 0
 	for result := range results {
 		if result.Err == nil {
@@ -219,4 +218,45 @@ func ExampleSender_SendPoolMetrics() {
 
 	fmt.Printf("Successfully sent %d metrics\n", successCount)
 	// Output: Successfully sent 2 metrics
+}
+
+func ExampleSender_retry() {
+	// Create a logger
+	logger, err := logging.NewZapLogger(zap.InfoLevel)
+	if err != nil {
+		fmt.Printf("Error creating logger: %v\n", err)
+		return
+	}
+
+	// Create a mock server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	// Create a Sender configuration
+	cfg := &sender.Config{
+		UpdatesURL:  server.URL + "/updates",
+		Timeout:     5 * time.Second,
+		RetryDelays: []time.Duration{1 * time.Second},
+		Key:         []byte("secret-key"),
+	}
+
+	// Create a Sender
+	s := sender.New(cfg, logger)
+	ctx := context.Background()
+
+	// Create a batch of metrics
+	batch := []*model.Metric{
+		{ID: "testGauge", MType: "gauge", Value: float64Ptr(42.0)},
+		{ID: "testCounter", MType: "counter", Delta: int64Ptr(100)},
+	}
+
+	// Send the batch
+	err = s.SendBatchMetrics(ctx, batch)
+	if err != nil {
+		fmt.Printf("Error sending batch: %v\n", err)
+		return
+	}
+	// Output: Error sending batch: failed to send metric: failed to send request: Internal Server Error
 }

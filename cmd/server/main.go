@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"crypto/rsa"
 	"errors"
 	"fmt"
 	"log"
@@ -15,8 +14,11 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/server"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/config"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/factory"
+	"github.com/korobkovandrey/runtime-metrics/internal/server/pbservice"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 //go:generate go run ../../tools/genversion
@@ -35,18 +37,27 @@ func main() {
 	if err != nil {
 		l.FatalCtx(ctx, fmt.Errorf("failed to get config: %w", err).Error())
 	}
+	rep, err := factory.RepositoryFactory(ctx, cfg, l)
+	if err != nil {
+		l.FatalCtx(ctx, fmt.Errorf("failed to create repository: %w", err).Error())
+	}
+	if rCloser, ok := rep.(interface {
+		Close() error
+	}); ok {
+		defer func() {
+			l.InfoCtx(ctx, "Closing repository...")
+			if rErr := rCloser.Close(); rErr != nil {
+				l.ErrorCtx(ctx, fmt.Errorf("failed to close repository: %w", err).Error())
+			}
+		}()
+	}
 	h := server.NewHandler()
-	defer func() {
-		l.InfoCtx(ctx, "Closing handler...")
-		if err = h.Close(); err != nil {
-			l.ErrorCtx(ctx, fmt.Errorf("failed to close handler: %w", err).Error())
-		}
-	}()
-	if err = h.Configure(ctx, cfg, l); err != nil {
+	if err = h.Configure(cfg, rep, l); err != nil {
 		l.FatalCtx(ctx, fmt.Errorf("failed to configure handler: %w", err).Error())
 	}
 	printCfg := config.Config{
 		Addr:                cfg.Addr,
+		GRPSAddr:            cfg.GRPSAddr,
 		ShutdownTimeout:     cfg.ShutdownTimeout,
 		StoreInterval:       cfg.StoreInterval,
 		DatabasePingTimeout: cfg.DatabasePingTimeout,
@@ -60,11 +71,28 @@ func main() {
 		IPNet:               cfg.IPNet,
 		CryptoKey:           cfg.CryptoKey,
 	}
-	if cfg.PrivateKey != nil {
-		printCfg.PrivateKey = &rsa.PrivateKey{}
+	l.InfoCtx(ctx, "Start with config:", zap.Any("config", printCfg))
+	g := new(errgroup.Group)
+	if cfg.Addr != "" {
+		l.InfoCtx(ctx, "HTTP server started on http://"+cfg.Addr+"/")
+		g.Go(func() error {
+			if gErr := server.ListenAndServeHTTP(ctx, l, cfg.Addr, cfg.ShutdownTimeout, h); gErr != nil && !errors.Is(gErr, http.ErrServerClosed) {
+				return fmt.Errorf("failed to start server: %w", gErr)
+			}
+			return nil
+		})
 	}
-	l.InfoCtx(ctx, "Server started on http://"+cfg.Addr+"/", zap.Any("config", printCfg))
-	if err = server.ListenAndServe(ctx, l, cfg.Addr, cfg.ShutdownTimeout, h); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		l.FatalCtx(ctx, "failed to start server", zap.Error(err))
+	if cfg.GRPSAddr != "" {
+		l.InfoCtx(ctx, "GRPC server started on "+cfg.GRPSAddr)
+		g.Go(func() error {
+			gErr := server.ListenAndServeGRPC(ctx, l, cfg.GRPSAddr, cfg.IPNet, cfg.Key, pbservice.NewMetricsService(rep))
+			if gErr != nil && !errors.Is(gErr, http.ErrServerClosed) {
+				return fmt.Errorf("failed to start GRPC server: %w", gErr)
+			}
+			return nil
+		})
+	}
+	if err = g.Wait(); err != nil {
+		l.FatalCtx(ctx, fmt.Errorf("failed server: %w", err).Error())
 	}
 }

@@ -23,15 +23,17 @@ type Config struct {
 	Sender            *sender.Config
 	PollIntervalStr   *string `json:"poll_interval"`
 	ReportIntervalStr *string `json:"report_interval"`
-	Addr              string  `env:"ADDRESS" json:"address"`
-	Key               string  `env:"KEY"`
 	PprofAddr         string  `env:"PPROF_ADDRESS"`
+	Key               string  `env:"KEY"`
+	Addr              string  `env:"ADDRESS" json:"address"`
 	CryptoKey         string  `env:"CRYPTO_KEY" json:"crypto_key"`
 	ConfigPath        string  `env:"CONFIG"`
-	PollInterval      int     `env:"POLL_INTERVAL"`
-	ReportInterval    int     `env:"REPORT_INTERVAL"`
-	RateLimit         int     `env:"RATE_LIMIT"`
-	Batching          bool    `env:"BATCHING"`
+	RealIPAddress     string
+	PollInterval      int  `env:"POLL_INTERVAL"`
+	ReportInterval    int  `env:"REPORT_INTERVAL"`
+	RateLimit         int  `env:"RATE_LIMIT"`
+	GRPC              bool `env:"GRPC" json:"grpc"`
+	Batching          bool `env:"BATCHING"`
 }
 
 // NewConfig returns the agent config.
@@ -69,20 +71,23 @@ func NewConfig() (*Config, error) {
 		return cfg, fmt.Errorf("RateLimit (%d) must be greater 0",
 			cfg.RateLimit)
 	}
-	baseURL := "http://" + cfg.Addr
-	realIPAddr, err := getRealIPAddress()
+	cfg.RealIPAddress, err = getRealIPAddress()
 	if err != nil {
 		return cfg, fmt.Errorf("failed to get real ip address: %w", err)
 	}
-	cfg.Sender = &sender.Config{
-		UpdateURL:     baseURL + "/update/",
-		UpdatesURL:    baseURL + "/updates/",
-		RetryDelays:   []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
-		Timeout:       time.Duration(cfg.ReportInterval) * time.Second,
-		Key:           []byte(cfg.Key),
-		RateLimit:     cfg.RateLimit,
-		RealIPAddress: realIPAddr,
+	if !cfg.GRPC {
+		baseURL := "http://" + cfg.Addr
+		cfg.Sender = &sender.Config{
+			UpdateURL:     baseURL + "/update/",
+			UpdatesURL:    baseURL + "/updates/",
+			RetryDelays:   []time.Duration{time.Second, 3 * time.Second, 5 * time.Second},
+			Timeout:       time.Duration(cfg.ReportInterval) * time.Second,
+			Key:           []byte(cfg.Key),
+			RateLimit:     cfg.RateLimit,
+			RealIPAddress: cfg.RealIPAddress,
+		}
 	}
+
 	if err = cfg.loadPublicKey(); err != nil {
 		return cfg, fmt.Errorf("failed to load public key: %w", err)
 	}
@@ -91,6 +96,7 @@ func NewConfig() (*Config, error) {
 
 func parseFlags(cfg *Config) error {
 	flag.StringVar(&cfg.Addr, "a", cfg.Addr, "server host")
+	flag.BoolVar(&cfg.GRPC, "grpc", cfg.GRPC, "grpc")
 	flag.IntVar(&cfg.PollInterval, "p", cfg.PollInterval, "pollInterval in seconds")
 	flag.IntVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "reportInterval in seconds")
 	flag.StringVar(&cfg.Key, "k", "", "key")
@@ -172,6 +178,9 @@ func (cfg *Config) loadPublicKey() error {
 	parsedPublicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return fmt.Errorf("file %s is not a valid RSA public key: %w", cfg.CryptoKey, err)
+	}
+	if cfg.Sender == nil {
+		return nil
 	}
 	var ok bool
 	cfg.Sender.PublicKey, ok = parsedPublicKey.(*rsa.PublicKey)
