@@ -210,4 +210,4 @@ github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:32:						MakeToString
 github.com/korobkovandrey/runtime-metrics/pkg/sign/sign.go:37:						Validate					100.0%
 github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go:12:				main						91.7%
 github.com/korobkovandrey/runtime-metrics/tools/genversion/genversion.go:46:				runCommand					100.0%
-total:													(statements)					84.1%
+total:													(statements)					84.2%

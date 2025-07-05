@@ -174,9 +174,6 @@ func main() {
 	)
 
 	for _, a := range staticcheck.Analyzers {
-		if a.Analyzer.Name == "SA1019" {
-			continue
-		}
 		analyzers = append(analyzers, a.Analyzer)
 	}
 	analyzers = append(analyzers,

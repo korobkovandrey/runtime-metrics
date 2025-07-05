@@ -77,7 +77,7 @@ func TestSender_SendBatchMetrics(t *testing.T) {
 	server, listener := setupTestServer(t, mock)
 	defer server.Stop()
 	cfg := &Config{
-		Addr:          "bufnet",
+		Addr:          "localhost",
 		RealIPAddress: "192.168.1.1",
 		RateLimit:     2,
 	}
@@ -118,12 +118,14 @@ func TestSender_SendBatchMetrics(t *testing.T) {
 			defer func() {
 				assert.NoError(t, s.Close())
 			}()
-			//lint:ignore SA1019
-			conn, err := grpc.DialContext(t.Context(), "bufnet",
-				grpc.WithContextDialer(dialer(listener)),
-				grpc.WithTransportCredentials(insecure.NewCredentials()),
-				grpc.WithUnaryInterceptor(getRealIPInterceptor(cfg.RealIPAddress)),
-				grpc.WithUnaryInterceptor(getHashInterceptor(cfg.Key)))
+			conn, err := grpc.NewClient(
+				cfg.Addr,
+				[]grpc.DialOption{
+					grpc.WithContextDialer(dialer(listener)),
+					grpc.WithTransportCredentials(insecure.NewCredentials()),
+					grpc.WithUnaryInterceptor(getRealIPInterceptor(cfg.RealIPAddress)),
+				}...,
+			)
 			require.NoError(t, err)
 			s.conn = conn
 			s.c = proto.NewMetricsServiceClient(conn)
@@ -143,7 +145,7 @@ func TestSender_SendPoolMetrics(t *testing.T) {
 	server, listener := setupTestServer(t, mock)
 	defer server.Stop()
 	cfg := &Config{
-		Addr:          "bufnet",
+		Addr:          "localhost",
 		Key:           []byte("testkey"),
 		RealIPAddress: "192.168.1.1",
 		RateLimit:     2,
@@ -209,11 +211,14 @@ func TestSender_SendPoolMetrics(t *testing.T) {
 			defer func() {
 				assert.NoError(t, s.Close())
 			}()
-			conn, err := grpc.DialContext(t.Context(), "bufnet",
-				grpc.WithContextDialer(dialer(listener)),
-				grpc.WithTransportCredentials(insecure.NewCredentials()),
-				grpc.WithUnaryInterceptor(getRealIPInterceptor(cfg.RealIPAddress)),
-				grpc.WithUnaryInterceptor(getHashInterceptor(cfg.Key)))
+			conn, err := grpc.NewClient(
+				cfg.Addr,
+				[]grpc.DialOption{
+					grpc.WithContextDialer(dialer(listener)),
+					grpc.WithTransportCredentials(insecure.NewCredentials()),
+					grpc.WithUnaryInterceptor(getRealIPInterceptor(cfg.RealIPAddress)),
+				}...,
+			)
 			require.NoError(t, err)
 			s.conn = conn
 			s.c = proto.NewMetricsServiceClient(conn)

@@ -642,11 +642,8 @@ func main() <span class="cov0" title="0">{
         )
 
         for _, a := range staticcheck.Analyzers </span><span class="cov0" title="0">{
-                if a.Analyzer.Name == "SA1019" </span><span class="cov0" title="0">{
-                        continue</span>
-                }
-                <span class="cov0" title="0">analyzers = append(analyzers, a.Analyzer)</span>
-        }
+                analyzers = append(analyzers, a.Analyzer)
+        }</span>
         <span class="cov0" title="0">analyzers = append(analyzers,
                 s1006.Analyzer, st1015.Analyzer, qf1001.Analyzer,
                 errcheck.Analyzer, ineffassign.Analyzer,
@@ -684,7 +681,7 @@ func Run(ctx context.Context, cfg *config.Config, l *logging.ZapLogger, cl Sende
         tickPoll := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
         defer tickPoll.Stop()
         go func() </span><span class="cov2" title="2">{
-                for ; ; &lt;-tickPoll.C </span><span class="cov6" title="7">{
+                for ; ; &lt;-tickPoll.C </span><span class="cov6" title="8">{
                         if err := source.Collect(ctx); err != nil </span><span class="cov0" title="0">{
                                 l.ErrorCtx(ctx, fmt.Errorf("failed to collect metrics: %w", err).Error())
                         }</span>
@@ -948,25 +945,25 @@ func getRealIPInterceptor(realIP string) func(ctx context.Context, method string
         reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error <span class="cov10" title="16">{
         return func(ctx context.Context, method string, req interface{},
                 reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker,
-                opts ...grpc.CallOption) error </span><span class="cov1" title="1">{
+                opts ...grpc.CallOption) error </span><span class="cov7" title="7">{
                 return invoker(metadata.AppendToOutgoingContext(ctx, "XRealIP", realIP), method, req, reply, cc, opts...)
         }</span>
 }
 
 func getHashInterceptor(key []byte) func(ctx context.Context, method string, req interface{},
-        reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error <span class="cov9" title="15">{
+        reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error <span class="cov7" title="8">{
         return func(ctx context.Context, method string, req interface{},
                 reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker,
-                opts ...grpc.CallOption) error </span><span class="cov8" title="9">{
+                opts ...grpc.CallOption) error </span><span class="cov4" title="3">{
                 reqM, ok := req.(proto.Message)
                 if !ok </span><span class="cov1" title="1">{
                         return errors.New("request is not a proto message")
                 }</span>
-                <span class="cov7" title="8">dataBytes, err := proto.Marshal(reqM)
+                <span class="cov3" title="2">dataBytes, err := proto.Marshal(reqM)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to marshal request: %w", err)
                 }</span>
-                <span class="cov7" title="8">return invoker(metadata.AppendToOutgoingContext(ctx, "HashSHA256", sign.MakeToString(dataBytes, key)),
+                <span class="cov3" title="2">return invoker(metadata.AppendToOutgoingContext(ctx, "HashSHA256", sign.MakeToString(dataBytes, key)),
                         method, req, reply, cc, opts...)</span>
         }
 }
