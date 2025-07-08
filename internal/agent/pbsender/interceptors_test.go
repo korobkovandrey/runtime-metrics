@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
 	"github.com/korobkovandrey/runtime-metrics/pkg/sign"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -54,7 +53,7 @@ func TestGetHashInterceptor(t *testing.T) {
 		cc := &grpc.ClientConn{}
 		interceptor := getHashInterceptor(key)
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		dataBytes, err := proto.Marshal(req)
 		require.NoError(t, err)
 		expectedHash := sign.MakeToString(dataBytes, key)
@@ -75,7 +74,7 @@ func TestGetHashInterceptor(t *testing.T) {
 		cc := &grpc.ClientConn{}
 		interceptor := getHashInterceptor(nil)
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		dataBytes, err := proto.Marshal(req)
 		require.NoError(t, err)
 		expectedHash := sign.MakeToString(dataBytes, nil)

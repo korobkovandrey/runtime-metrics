@@ -9,7 +9,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	"github.com/korobkovandrey/runtime-metrics/internal/proto"
+	proto2 "github.com/korobkovandrey/runtime-metrics/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -22,29 +22,29 @@ import (
 const bufSize = 1024 * 1024
 
 type mockMetricsServiceServer struct {
-	proto.UnimplementedMetricsServiceServer
+	proto2.UnimplementedMetricsServiceServer
 	updateErr  error
 	updatesErr error
 }
 
-func (m *mockMetricsServiceServer) Update(_ context.Context, _ *proto.Metric) (*proto.Response, error) {
+func (m *mockMetricsServiceServer) Update(_ context.Context, _ *proto2.Metric) (*proto2.Response, error) {
 	if m.updateErr != nil {
 		return nil, m.updateErr
 	}
-	return &proto.Response{}, nil
+	return &proto2.Response{}, nil
 }
 
-func (m *mockMetricsServiceServer) Updates(_ context.Context, _ *proto.Metrics) (*proto.Response, error) {
+func (m *mockMetricsServiceServer) Updates(_ context.Context, _ *proto2.Metrics) (*proto2.Response, error) {
 	if m.updatesErr != nil {
 		return nil, m.updatesErr
 	}
-	return &proto.Response{}, nil
+	return &proto2.Response{}, nil
 }
 
 func setupTestServer(t *testing.T, mock *mockMetricsServiceServer) (*grpc.Server, *bufconn.Listener) {
 	listener := bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	proto.RegisterMetricsServiceServer(s, mock)
+	proto2.RegisterMetricsServiceServer(s, mock)
 	go func() {
 		if err := s.Serve(listener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
 			t.Errorf("Server failed: %v", err)
@@ -128,7 +128,7 @@ func TestSender_SendBatchMetrics(t *testing.T) {
 			)
 			require.NoError(t, err)
 			s.conn = conn
-			s.c = proto.NewMetricsServiceClient(conn)
+			s.c = proto2.NewMetricsServiceClient(conn)
 			err = s.SendBatchMetrics(t.Context(), tt.metrics)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -221,7 +221,7 @@ func TestSender_SendPoolMetrics(t *testing.T) {
 			)
 			require.NoError(t, err)
 			s.conn = conn
-			s.c = proto.NewMetricsServiceClient(conn)
+			s.c = proto2.NewMetricsServiceClient(conn)
 			ctx := tt.ctx()
 			results := s.SendPoolMetrics(ctx, tt.metrics)
 			var wg sync.WaitGroup

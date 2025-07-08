@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
 	"github.com/korobkovandrey/runtime-metrics/pkg/sign"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,7 @@ func TestInterceptor(t *testing.T) {
 			return expectedResponse, nil
 		}
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		resp, err := interceptor(t.Context(), req, &grpc.UnaryServerInfo{FullMethod: "/runtime_metrics.MetricsService/Update"}, handler)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedResponse, resp)
@@ -37,7 +36,7 @@ func TestInterceptor(t *testing.T) {
 			return "test-response", nil
 		}
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		resp, err := interceptor(t.Context(), req, &grpc.UnaryServerInfo{FullMethod: "/runtime_metrics.MetricsService/Update"}, handler)
 		assert.Nil(t, resp)
 		assert.Error(t, err)
@@ -53,7 +52,7 @@ func TestInterceptor(t *testing.T) {
 			return "test-response", nil
 		}
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		resp, err := interceptor(ctx, req, &grpc.UnaryServerInfo{FullMethod: "/runtime_metrics.MetricsService/Update"}, handler)
 		assert.Nil(t, resp)
 		assert.Error(t, err)
@@ -71,7 +70,7 @@ func TestInterceptor(t *testing.T) {
 			return "test-response", nil
 		}
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		resp, err := interceptor(ctx, req, &grpc.UnaryServerInfo{FullMethod: "/runtime_metrics.MetricsService/Update"}, handler)
 		assert.Nil(t, resp)
 		assert.Error(t, err)
@@ -100,7 +99,7 @@ func TestInterceptor(t *testing.T) {
 		key := []byte("test-key")
 		interceptor := Interceptor(key)
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
 			"HashSHA256": sign.MakeToString([]byte("invalid-data"), key),
 		}))
@@ -119,7 +118,7 @@ func TestInterceptor(t *testing.T) {
 		key := []byte("test-key")
 		interceptor := Interceptor(key)
 		m := model.NewMetricCounter("test-metric", 1)
-		req := pb.ModelMetricToMetric(m)
+		req := model.ModelMetricToMetric(m)
 		dataBytes, err := proto.Marshal(req)
 		require.NoError(t, err)
 		ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{

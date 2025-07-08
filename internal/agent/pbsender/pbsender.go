@@ -7,7 +7,7 @@ import (
 
 	"github.com/korobkovandrey/runtime-metrics/internal/agent/sender"
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
+	"github.com/korobkovandrey/runtime-metrics/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -20,7 +20,7 @@ type Config struct {
 }
 
 type Sender struct {
-	c    pb.MetricsServiceClient
+	c    proto.MetricsServiceClient
 	conn *grpc.ClientConn
 	cfg  *Config
 }
@@ -41,7 +41,7 @@ func New(cfg *Config) (*Sender, error) {
 		return nil, fmt.Errorf("failed to create grpc client: %w", err)
 	}
 	return &Sender{
-		c:    pb.NewMetricsServiceClient(conn),
+		c:    proto.NewMetricsServiceClient(conn),
 		conn: conn,
 		cfg:  cfg,
 	}, nil
@@ -55,7 +55,7 @@ func (s *Sender) Close() error {
 }
 
 func (s *Sender) SendBatchMetrics(ctx context.Context, ms []*model.Metric) error {
-	req := &pb.Metrics{Metrics: pb.ModelMetricsToMetrics(ms)}
+	req := &proto.Metrics{Metrics: model.ModelMetricsToMetrics(ms)}
 	if _, err := s.c.Updates(ctx, req); err != nil {
 		return fmt.Errorf("failed to send batch metrics: %w", err)
 	}
@@ -74,7 +74,7 @@ func (s *Sender) SendPoolMetrics(ctx context.Context, ms []*model.Metric) <-chan
 				if ctx.Err() != nil {
 					break
 				}
-				_, err := s.c.Update(ctx, pb.ModelMetricToMetric(j))
+				_, err := s.c.Update(ctx, model.ModelMetricToMetric(j))
 				results <- &sender.JobResult{
 					Metric: j,
 					Err:    err,

@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"time"
 
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/interceptors/ilogger"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/interceptors/isign"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/interceptors/isubnet"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/pbservice"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
+	pb "github.com/korobkovandrey/runtime-metrics/pkg/proto"
 	"google.golang.org/grpc"
 )
 

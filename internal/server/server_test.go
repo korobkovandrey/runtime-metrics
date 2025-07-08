@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/pbservice"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
 	"github.com/korobkovandrey/runtime-metrics/pkg/logging"
+	"github.com/korobkovandrey/runtime-metrics/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -84,10 +84,10 @@ func TestListenAndServeGRPC(t *testing.T) {
 	defer func() {
 		assert.NoError(t, conn.Close())
 	}()
-	client := pb.NewMetricsServiceClient(conn)
+	client := proto.NewMetricsServiceClient(conn)
 
 	wantMetric := model.NewMetricCounter("test", 1)
-	resp, err := client.Update(t.Context(), pb.ModelMetricToMetric(wantMetric))
+	resp, err := client.Update(t.Context(), model.ModelMetricToMetric(wantMetric))
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	gotMetric, err := rep.Find(t.Context(), wantMetric.ToRequest())
@@ -95,7 +95,7 @@ func TestListenAndServeGRPC(t *testing.T) {
 	assert.Equal(t, wantMetric, gotMetric)
 
 	*wantMetric.Delta = 2
-	resp, err = client.Updates(t.Context(), &pb.Metrics{Metrics: []*pb.Metric{pb.ModelMetricToMetric(wantMetric)}})
+	resp, err = client.Updates(t.Context(), &proto.Metrics{Metrics: []*proto.Metric{model.ModelMetricToMetric(wantMetric)}})
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	*wantMetric.Delta = 3

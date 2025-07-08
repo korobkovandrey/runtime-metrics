@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/factory"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/service"
+	"github.com/korobkovandrey/runtime-metrics/pkg/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,7 +24,7 @@ type metricsService struct {
 }
 
 type MetricsService struct {
-	pb.UnimplementedMetricsServiceServer
+	proto.UnimplementedMetricsServiceServer
 	s *metricsService
 }
 
@@ -36,8 +36,8 @@ func NewMetricsService(r factory.Repository) *MetricsService {
 }
 
 // Update method
-func (ms *MetricsService) Update(ctx context.Context, req *pb.Metric) (*pb.Response, error) {
-	mr, err := pb.MetricToModelMetricRequest(req)
+func (ms *MetricsService) Update(ctx context.Context, req *proto.Metric) (*proto.Response, error) {
+	mr, err := model.MetricToModelMetricRequest(req)
 	if err == nil {
 		err = mr.RequiredValue()
 	}
@@ -47,12 +47,12 @@ func (ms *MetricsService) Update(ctx context.Context, req *pb.Metric) (*pb.Respo
 	if _, err = ms.s.Update(ctx, mr); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &pb.Response{}, nil
+	return &proto.Response{}, nil
 }
 
 // Updates method
-func (ms *MetricsService) Updates(ctx context.Context, req *pb.Metrics) (*pb.Response, error) {
-	mrs, err := pb.MetricsToModelsMetricRequest(req.Metrics)
+func (ms *MetricsService) Updates(ctx context.Context, req *proto.Metrics) (*proto.Response, error) {
+	mrs, err := model.MetricsToModelsMetricRequest(req.Metrics)
 	if err == nil {
 		err = model.ValidateMetricsRequest(mrs)
 	}
@@ -62,5 +62,5 @@ func (ms *MetricsService) Updates(ctx context.Context, req *pb.Metrics) (*pb.Res
 	if _, err = ms.s.UpdateBatch(ctx, mrs); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &pb.Response{}, nil
+	return &proto.Response{}, nil
 }

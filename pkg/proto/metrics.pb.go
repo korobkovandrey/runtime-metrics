@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.31.1
-// source: internal/proto/metrics.proto
+// source: api/proto/metrics.proto
 
 package proto
 
@@ -54,11 +54,11 @@ func (x MetricType) String() string {
 }
 
 func (MetricType) Descriptor() protoreflect.EnumDescriptor {
-	return file_internal_proto_metrics_proto_enumTypes[0].Descriptor()
+	return file_api_proto_metrics_proto_enumTypes[0].Descriptor()
 }
 
 func (MetricType) Type() protoreflect.EnumType {
-	return &file_internal_proto_metrics_proto_enumTypes[0]
+	return &file_api_proto_metrics_proto_enumTypes[0]
 }
 
 func (x MetricType) Number() protoreflect.EnumNumber {
@@ -67,7 +67,7 @@ func (x MetricType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MetricType.Descriptor instead.
 func (MetricType) EnumDescriptor() ([]byte, []int) {
-	return file_internal_proto_metrics_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_metrics_proto_rawDescGZIP(), []int{0}
 }
 
 type Metric struct {
@@ -82,7 +82,7 @@ type Metric struct {
 
 func (x *Metric) Reset() {
 	*x = Metric{}
-	mi := &file_internal_proto_metrics_proto_msgTypes[0]
+	mi := &file_api_proto_metrics_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *Metric) String() string {
 func (*Metric) ProtoMessage() {}
 
 func (x *Metric) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_proto_metrics_proto_msgTypes[0]
+	mi := &file_api_proto_metrics_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *Metric) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Metric.ProtoReflect.Descriptor instead.
 func (*Metric) Descriptor() ([]byte, []int) {
-	return file_internal_proto_metrics_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_metrics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Metric) GetId() string {
@@ -147,7 +147,7 @@ type Metrics struct {
 
 func (x *Metrics) Reset() {
 	*x = Metrics{}
-	mi := &file_internal_proto_metrics_proto_msgTypes[1]
+	mi := &file_api_proto_metrics_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -159,7 +159,7 @@ func (x *Metrics) String() string {
 func (*Metrics) ProtoMessage() {}
 
 func (x *Metrics) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_proto_metrics_proto_msgTypes[1]
+	mi := &file_api_proto_metrics_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -172,7 +172,7 @@ func (x *Metrics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Metrics.ProtoReflect.Descriptor instead.
 func (*Metrics) Descriptor() ([]byte, []int) {
-	return file_internal_proto_metrics_proto_rawDescGZIP(), []int{1}
+	return file_api_proto_metrics_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Metrics) GetMetrics() []*Metric {
@@ -190,7 +190,7 @@ type Response struct {
 
 func (x *Response) Reset() {
 	*x = Response{}
-	mi := &file_internal_proto_metrics_proto_msgTypes[2]
+	mi := &file_api_proto_metrics_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -202,7 +202,7 @@ func (x *Response) String() string {
 func (*Response) ProtoMessage() {}
 
 func (x *Response) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_proto_metrics_proto_msgTypes[2]
+	mi := &file_api_proto_metrics_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -215,14 +215,14 @@ func (x *Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Response.ProtoReflect.Descriptor instead.
 func (*Response) Descriptor() ([]byte, []int) {
-	return file_internal_proto_metrics_proto_rawDescGZIP(), []int{2}
+	return file_api_proto_metrics_proto_rawDescGZIP(), []int{2}
 }
 
-var File_internal_proto_metrics_proto protoreflect.FileDescriptor
+var File_api_proto_metrics_proto protoreflect.FileDescriptor
 
-const file_internal_proto_metrics_proto_rawDesc = "" +
+const file_api_proto_metrics_proto_rawDesc = "" +
 	"\n" +
-	"\x1cinternal/proto/metrics.proto\x12\x0fruntime_metrics\"u\n" +
+	"\x17api/proto/metrics.proto\x12\x0fruntime_metrics\"u\n" +
 	"\x06Metric\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1b.runtime_metrics.MetricTypeR\x04type\x12\x14\n" +
@@ -239,29 +239,29 @@ const file_internal_proto_metrics_proto_rawDesc = "" +
 	"\aCOUNTER\x10\x022\x8e\x01\n" +
 	"\x0eMetricsService\x12<\n" +
 	"\x06Update\x12\x17.runtime_metrics.Metric\x1a\x19.runtime_metrics.Response\x12>\n" +
-	"\aUpdates\x12\x18.runtime_metrics.Metrics\x1a\x19.runtime_metrics.ResponseB:Z8github.com/korobkovandrey/runtime-metrics/internal/protob\x06proto3"
+	"\aUpdates\x12\x18.runtime_metrics.Metrics\x1a\x19.runtime_metrics.ResponseB5Z3github.com/korobkovandrey/runtime-metrics/pkg/protob\x06proto3"
 
 var (
-	file_internal_proto_metrics_proto_rawDescOnce sync.Once
-	file_internal_proto_metrics_proto_rawDescData []byte
+	file_api_proto_metrics_proto_rawDescOnce sync.Once
+	file_api_proto_metrics_proto_rawDescData []byte
 )
 
-func file_internal_proto_metrics_proto_rawDescGZIP() []byte {
-	file_internal_proto_metrics_proto_rawDescOnce.Do(func() {
-		file_internal_proto_metrics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_internal_proto_metrics_proto_rawDesc), len(file_internal_proto_metrics_proto_rawDesc)))
+func file_api_proto_metrics_proto_rawDescGZIP() []byte {
+	file_api_proto_metrics_proto_rawDescOnce.Do(func() {
+		file_api_proto_metrics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_proto_metrics_proto_rawDesc), len(file_api_proto_metrics_proto_rawDesc)))
 	})
-	return file_internal_proto_metrics_proto_rawDescData
+	return file_api_proto_metrics_proto_rawDescData
 }
 
-var file_internal_proto_metrics_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_internal_proto_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_internal_proto_metrics_proto_goTypes = []any{
+var file_api_proto_metrics_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_proto_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_api_proto_metrics_proto_goTypes = []any{
 	(MetricType)(0),  // 0: runtime_metrics.MetricType
 	(*Metric)(nil),   // 1: runtime_metrics.Metric
 	(*Metrics)(nil),  // 2: runtime_metrics.Metrics
 	(*Response)(nil), // 3: runtime_metrics.Response
 }
-var file_internal_proto_metrics_proto_depIdxs = []int32{
+var file_api_proto_metrics_proto_depIdxs = []int32{
 	0, // 0: runtime_metrics.Metric.type:type_name -> runtime_metrics.MetricType
 	1, // 1: runtime_metrics.Metrics.metrics:type_name -> runtime_metrics.Metric
 	1, // 2: runtime_metrics.MetricsService.Update:input_type -> runtime_metrics.Metric
@@ -275,27 +275,27 @@ var file_internal_proto_metrics_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_internal_proto_metrics_proto_init() }
-func file_internal_proto_metrics_proto_init() {
-	if File_internal_proto_metrics_proto != nil {
+func init() { file_api_proto_metrics_proto_init() }
+func file_api_proto_metrics_proto_init() {
+	if File_api_proto_metrics_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_proto_metrics_proto_rawDesc), len(file_internal_proto_metrics_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_metrics_proto_rawDesc), len(file_api_proto_metrics_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_internal_proto_metrics_proto_goTypes,
-		DependencyIndexes: file_internal_proto_metrics_proto_depIdxs,
-		EnumInfos:         file_internal_proto_metrics_proto_enumTypes,
-		MessageInfos:      file_internal_proto_metrics_proto_msgTypes,
+		GoTypes:           file_api_proto_metrics_proto_goTypes,
+		DependencyIndexes: file_api_proto_metrics_proto_depIdxs,
+		EnumInfos:         file_api_proto_metrics_proto_enumTypes,
+		MessageInfos:      file_api_proto_metrics_proto_msgTypes,
 	}.Build()
-	File_internal_proto_metrics_proto = out.File
-	file_internal_proto_metrics_proto_goTypes = nil
-	file_internal_proto_metrics_proto_depIdxs = nil
+	File_api_proto_metrics_proto = out.File
+	file_api_proto_metrics_proto_goTypes = nil
+	file_api_proto_metrics_proto_depIdxs = nil
 }

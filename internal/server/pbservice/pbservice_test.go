@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/korobkovandrey/runtime-metrics/internal/model"
-	pb "github.com/korobkovandrey/runtime-metrics/internal/proto"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/handlers/mocks"
 	"github.com/korobkovandrey/runtime-metrics/internal/server/repository"
+	pb "github.com/korobkovandrey/runtime-metrics/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"

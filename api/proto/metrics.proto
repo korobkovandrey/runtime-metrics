@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package runtime_metrics;
 
-option go_package = "github.com/korobkovandrey/runtime-metrics/internal/proto";
+option go_package = "github.com/korobkovandrey/runtime-metrics/pkg/proto";
 
 enum MetricType {
     UNKNOWN = 0;
